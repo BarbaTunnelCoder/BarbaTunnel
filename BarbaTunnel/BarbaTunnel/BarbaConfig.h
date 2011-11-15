@@ -2,16 +2,19 @@
 #include "General.h"
 #include "BarbaUtils.h"
 
-class BarbaConfig
+//BarbaConfig
+class ClientConfigItem
 {
 public:
-	DWORD ServerIP;
-	ProtocolPort TunnelProtocol;
-	ProtocolPort GrabProtocols[100];
+	BarbaModeEnum Mode;
+	u_short TunnelPort;
+	ProtocolPort GrabProtocols[MAX_PORTITEM]; //valid when mode is UDP-Tunnel or TCP-Tunnel mode
 	int GrabProtocolsCount;
-	BYTE Key[255];
+	u_short RealPort; //valid when mode is UDP-Redirect or TCP-Redirect mode
+	bool Enabled;
 
-	BarbaConfig();
+
+	ClientConfigItem();
 	void LoadFile(LPCTSTR file);
 
 private:
@@ -19,17 +22,23 @@ private:
 	void ParseGrabProtocols(LPCTSTR value);
 };
 
-class BarbaConfigManager
+//BarbaConfig
+class ClientConfig
 {
-private:
-	BarbaConfig* Configs[MAX_BARBA_CONFIGS];
-	int ConfigsCount;
-	BarbaConfig* ServerConfig;
-
 public:
-	BarbaConfigManager();
-	BarbaConfig* GetServerConfig();
-	~BarbaConfigManager();
+	DWORD ServerIp;
+	BYTE Key[MAX_KEYLEN];
+	ClientConfigItem Items[MAX_BARBA_CONFIGITEMS];
+};
+
+
+//BarbaConfigManager
+class ClientConfigManager
+{
+public:
+	ClientConfigManager();
+	ClientConfig* Configs[MAX_BARBA_CONFIGS];
+	int ConfigsCount;
 	void LoadFolder(LPCTSTR folder);
-	BarbaConfig* FindByServerIP(DWORD ip);
+	ClientConfig* FindByServerIP(DWORD ip);
 };
