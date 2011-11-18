@@ -1,5 +1,6 @@
 #include "stdafx.h"
-#include "BarbaApp.h"
+#include "BarbaClient\BarbaClientApp.h"
+#include "BarbaServer\BarbaServerApp.h"
 
 TCP_AdapterList		AdList;
 DWORD				iIndex;
@@ -32,12 +33,10 @@ void ReleaseInterface()
 	api.FlushAdapterPacketQueue (AdList.m_nAdapterHandle[iIndex]);
 }
 
-void Test(int index, int counter)
+void Test(ULONG index, int counter)
 {
 	ETH_REQUEST			Request;
 	INTERMEDIATE_BUFFER PacketBuffer;
-	ether_header*		pEthHeader = NULL;
-	iphdr*				pIpHeader = NULL;
 
 	if(!api.IsDriverLoaded())
 	{
@@ -47,7 +46,7 @@ void Test(int index, int counter)
 	
 	api.GetTcpipBoundAdaptersInfo ( &AdList );
 
-	if ( iIndex + 1 > AdList.m_nAdapterCount )
+	if ( index + 1 > AdList.m_nAdapterCount )
 	{
 		printf("There is no network interface with such index on this system.\n");
 		return;
@@ -56,13 +55,13 @@ void Test(int index, int counter)
 	
 	ADAPTER_MODE Mode;
 	Mode.dwFlags = MSTCP_FLAG_SENT_TUNNEL|MSTCP_FLAG_RECV_TUNNEL;
-	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[iIndex];
+	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[index];
 
 	// Create notification event
 	hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
 	// Set event for helper driver
-	if ((!hEvent)||(!api.SetPacketEvent((HANDLE)AdList.m_nAdapterHandle[iIndex], hEvent)))
+	if ((!hEvent)||(!api.SetPacketEvent((HANDLE)AdList.m_nAdapterHandle[index], hEvent)))
 	{
 		printf ("Failed to create notification event or set it for driver.\n");
 		return;
@@ -74,7 +73,7 @@ void Test(int index, int counter)
 	ZeroMemory ( &Request, sizeof(ETH_REQUEST) );
 	ZeroMemory ( &PacketBuffer, sizeof(INTERMEDIATE_BUFFER) );
 	Request.EthPacket.Buffer = &PacketBuffer;
-	Request.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[iIndex];
+	Request.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[index];
 		
 	api.SetAdapterMode(&Mode);
 
@@ -114,13 +113,13 @@ void Test(int index, int counter)
 }
 
 
-BarbaApp barbaApp;
+bool IsBarbaServer;
+BarbaClientApp barbaClientApp;
+BarbaServerApp barbaServerApp;
+BarbaApp* barbaApp;
+
 int main(int argc, char* argv[])
 {
-	barbaApp.Init();
-	ether_header*		pEthHeader = NULL;
-	iphdr*				pIpHeader = NULL;
-
 	//set process priortiy
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 
@@ -132,10 +131,20 @@ int main(int argc, char* argv[])
 
 	iIndex = atoi(argv[1]) - 1;
 
+	//create BarbaApp
+	for (int i=0; i<argc; i++)
+	{
+		if (_stricmp(argv[i], "/server")==0)
+			IsBarbaServer = true;
+	}
+	barbaApp = IsBarbaServer ? (BarbaApp*)&barbaServerApp : (BarbaApp*)&barbaClientApp ;
+	barbaApp->Init();
+
+	//process other command line
 	for (int i=0; i<argc; i++)
 	{
 		if (_stricmp(argv[i], "/debug")==0)
-			barbaApp.IsDebugMode = true;
+			barbaApp->IsDebugMode = true;
 	}
 
 
@@ -180,30 +189,31 @@ int main(int argc, char* argv[])
 	atexit (ReleaseInterface);
 	
 	// Initialize Request
-	barbaApp.CurrentRequest.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[iIndex];
+	barbaApp->CurrentRequest.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[iIndex];
 	api.SetAdapterMode(&Mode);
 
 	bool terminate = false;
 	while (!terminate)
 	{
 		WaitForSingleObject ( hEvent, INFINITE );
-		while(api.ReadPacket(&barbaApp.CurrentRequest))
+		while(api.ReadPacket(&barbaApp->CurrentRequest))
 		{
-			PINTERMEDIATE_BUFFER buffer = barbaApp.CurrentRequest.EthPacket.Buffer;
+			PINTERMEDIATE_BUFFER buffer = barbaApp->CurrentRequest.EthPacket.Buffer;
 			bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
 
 			//check commands
-			if (barbaApp.CheckTerminateCommands(buffer))
+			if (barbaApp->CheckTerminateCommands(buffer))
 				terminate = true;
 
 
-			barbaApp.ProcessPacket(buffer);
+			//process packet
+			barbaApp->ProcessPacket(buffer);
 
 			//send packet
 			if (send)
-				api.SendPacketToAdapter(&barbaApp.CurrentRequest);
+				api.SendPacketToAdapter(&barbaApp->CurrentRequest);
 			else
-				api.SendPacketToMstcp(&barbaApp.CurrentRequest);
+				api.SendPacketToMstcp(&barbaApp->CurrentRequest);
 		}
 		ResetEvent(hEvent);
 	}

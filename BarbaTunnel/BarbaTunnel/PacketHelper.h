@@ -1,5 +1,7 @@
 #pragma once
-#include "BarbaUtils.h"
+
+u_short ntohs( u_short netshort );
+u_short htons( u_short value );
 
 class PacketHelper
 {
@@ -34,12 +36,17 @@ public:
 	void SetDesPort(u_short port);
 	void SetSrcPort(u_short port);
 	void SetIpPacket(iphdr_ptr ipHeader);
+	BYTE* GetIpExtraHeader(); 
+	size_t GetIpExtraHeaderLen(); 
 	void RecalculateChecksum();
+
 	
 	bool IsTcp() { return tcpHeader!=NULL;}
 	size_t GetTcpPayloadLen() { return GetIpLen() - ipHeader->ip_hl*4 - tcpHeader->th_off*4; }
 	BYTE* GetTcpPayload() {  return (BYTE*)tcpHeader + tcpHeader->th_off*4; }
 	void SetTcpPayload(BYTE* payload, size_t len);
+	BYTE* GetTcpExtraHeader(); 
+	size_t GetTcpExtraHeaderLen(); 
 
 	bool IsUdp() { return udpHeader!=NULL;}
 	size_t GetUdpPayloadLen() { return ntohs(udpHeader->length) - sizeof(udphdr); }
@@ -49,7 +56,12 @@ public:
 	BYTE* GetPacket() {return (BYTE*)ethHeader;}
 	size_t GetPacketLen() { return sizeof (ether_header) + GetIpLen(); }
 
-
-//private:
+	static u_short CheckSum(u_short *buffer, int size);
+	static void RecalculateICMPChecksum(iphdr_ptr pIpHeader);
+	static void RecalculateUDPChecksum(iphdr_ptr pIpHeader);
+	static void RecalculateTCPChecksum(iphdr_ptr pIpHeader);
+	static void RecalculateIPChecksum(iphdr_ptr pIpHeader, bool calculateProtoCheckSum=true);
+	static DWORD ConvertStringIp(LPCTSTR pszIp);
+	static BYTE ConvertStringProtocol(LPCTSTR protocol);
 };
 

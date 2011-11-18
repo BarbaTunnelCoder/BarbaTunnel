@@ -2,30 +2,20 @@
 #include "General.h"
 #include "BarbaUtils.h"
 #include "PacketHelper.h"
-#include "BarbaHeader.h"
-#include "BarbaConfig.h"
-#include "BarbaConnection.h"
+
 
 class BarbaApp
 {
 public:
-	BarbaApp();
-	void Init();
-	bool IsServer();
-	BarbaConfigManager ConfigManager;
-	BarbaConnectionManager ConnectionManager;
-	GUID* GetBarbaSign();
-	void ProcessPacket(INTERMEDIATE_BUFFER* packet);
+	BarbaApp(void);
+	virtual ~BarbaApp(void);
+	virtual void Init()=0;
+	virtual void ProcessPacket(INTERMEDIATE_BUFFER* packet)=0;
 	//@return false to terminate process
-	bool CheckTerminateCommands(INTERMEDIATE_BUFFER* packet);
+	bool CheckTerminateCommands(INTERMEDIATE_BUFFER* packetBuffer);
 	ETH_REQUEST CurrentRequest;
 	bool IsDebugMode;
-	u_short IpInc;
 
 private:
-	bool IsClientGrabPacket(PacketHelper* packet, BarbaConfig* config);
 	INTERMEDIATE_BUFFER PacketBuffer;
-
 };
-
-extern BarbaApp* theApp;
