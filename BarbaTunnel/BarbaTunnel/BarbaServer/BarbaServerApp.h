@@ -1,5 +1,6 @@
 #pragma once
 #include "BarbaApp.h"
+#include "BarbaVirtualIp.h"
 #include "BarbaServerConfig.h"
 #include "BarbaServerConnection.h"
 
@@ -13,7 +14,10 @@ public:
 	BarbaServerConnectionManager ConnectionManager;
 	void Init();
 	void ProcessPacket(INTERMEDIATE_BUFFER* packet);
-	u_short VirtualIpInc;
+	BarbaVirtualIpManager VirtualIpManager;
+
+private:
+	BarbaServerConfigItem* IsGrabPacket(PacketHelper* packet);
 };
 
 extern BarbaServerApp* theServerApp;

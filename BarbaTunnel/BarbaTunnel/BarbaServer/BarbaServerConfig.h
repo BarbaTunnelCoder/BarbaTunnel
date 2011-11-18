@@ -5,6 +5,7 @@ class BarbaServerConfigItem
 {
 public:
 	BarbaServerConfigItem();
+	u_char GetTunnelProtocol() {return BarbaMode_GetProtocol(this->Mode);}
 	BarbaModeEnum Mode;
 	PortRange ListenPorts[BARBA_MAX_PORTITEM];
 	int ListenPortsCount;

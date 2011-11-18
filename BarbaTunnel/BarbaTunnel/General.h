@@ -5,6 +5,7 @@
 #define MAX_BARBA_CONNECTIONS 1000
 #define BARBA_MAX_PORTITEM 100
 #define BARBA_MAX_KEYLEN 1500
+#define BARBA_MAX_VIRTUALIP 0xFFFF
 
 //BarbaModeEnum
 enum BarbaModeEnum
