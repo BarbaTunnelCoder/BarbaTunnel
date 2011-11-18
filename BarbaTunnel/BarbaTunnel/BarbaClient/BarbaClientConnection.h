@@ -5,7 +5,14 @@
 class BarbaClientConnection
 {
 public:
-	BarbaClientConnection();
+	BarbaClientConnection()
+	{
+		Config = NULL;
+		ConfigItem = NULL;
+		LasNegotiationTime = 0;
+		ClientPort = 0;
+	}
+
 	BarbaClientConfig* Config;
 	BarbaClientConfigItem* ConfigItem;
 	DWORD LasNegotiationTime;

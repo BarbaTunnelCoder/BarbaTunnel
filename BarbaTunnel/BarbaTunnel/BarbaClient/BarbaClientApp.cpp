@@ -75,7 +75,7 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 		if (!packet.IsTcp() && !packet.IsUdp())
 			return;
 
-		//make sure packet came from tunnel
+		//find packet that come from tunnel
 		connection = ConnectionManager.Find(packet.GetSrcIp(), packet.ipHeader->ip_p, packet.GetDesPort());
 	}
 

@@ -117,9 +117,9 @@ bool IsBarbaServer;
 BarbaClientApp barbaClientApp;
 BarbaServerApp barbaServerApp;
 BarbaApp* barbaApp;
-
 int main(int argc, char* argv[])
 {
+
 	//set process priortiy
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 

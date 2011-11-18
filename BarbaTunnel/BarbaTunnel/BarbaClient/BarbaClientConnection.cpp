@@ -3,13 +3,6 @@
 #include "BarbaCrypt.h"
 extern CNdisApi			api;
 
-BarbaClientConnection::BarbaClientConnection()
-{
-	LasNegotiationTime = 0;
-	Config = NULL;
-	ConfigItem = NULL;
-}
-
 bool BarbaClientConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer)
 {
 	BarbaCrypt::CryptUdp(barbaPacket);
@@ -30,7 +23,7 @@ bool BarbaClientConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* bar
 	barbaPacket.SetSrcIp(packet->GetSrcIp());
 	barbaPacket.SetDesIp(this->Config->ServerIp);
 	barbaPacket.SetSrcPort(this->ConfigItem->TunnelPort);
-	barbaPacket.SetDesPort(this->ConfigItem->TunnelPort);
+	barbaPacket.SetDesPort(this->ClientPort);
 	barbaPacket.SetUdpPayload((BYTE*)packet->ipHeader, packet->GetIpLen());
 	BarbaCrypt::CryptUdp(&barbaPacket);
 	return true;
