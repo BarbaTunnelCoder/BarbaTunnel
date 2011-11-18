@@ -43,14 +43,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -63,7 +65,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -83,26 +85,37 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BarbaApp.h" />
-    <ClInclude Include="BarbaConfig.h" />
-    <ClInclude Include="BarbaConnection.h" />
-    <ClInclude Include="BarbaHeader.h" />
+    <ClInclude Include="BarbaClient\BarbaClientApp.h" />
+    <ClInclude Include="BarbaClient\BarbaClientConfig.h" />
+    <ClInclude Include="BarbaClient\BarbaClientConnection.h" />
+    <ClInclude Include="BarbaCrypt.h" />
+    <ClInclude Include="BarbaServer\BarbaServerApp.h" />
+    <ClInclude Include="BarbaServer\BarbaServerConnection.h" />
     <ClInclude Include="BarbaUtils.h" />
     <ClInclude Include="General.h" />
     <ClInclude Include="PacketHelper.h" />
+    <ClInclude Include="BarbaServer\BarbaServerConfig.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BarbaApp.cpp" />
-    <ClCompile Include="BarbaConfig.cpp" />
-    <ClCompile Include="BarbaConnection.cpp" />
+    <ClCompile Include="BarbaClient\BarbaClientApp.cpp" />
+    <ClCompile Include="BarbaClient\BarbaClientConfig.cpp" />
+    <ClCompile Include="BarbaClient\BarbaClientConnection.cpp" />
+    <ClCompile Include="BarbaCrypt.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerApp.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerConfig.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerConnection.cpp" />
     <ClCompile Include="BarbaTunnel.cpp" />
     <ClCompile Include="BarbaUtils.cpp" />
+    <ClCompile Include="General.cpp" />
     <ClCompile Include="PacketHelper.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
