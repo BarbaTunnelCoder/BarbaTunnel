@@ -41,7 +41,7 @@ void SendPing(INTERMEDIATE_BUFFER* packet)
 
 
 	ip->ip_src.S_un.S_addr = BarbaUtils::ConvertStringIp(_T("192.168.0.21"));
-	ip->ip_dst.S_un.S_addr = BarbaUtils::ConvertStringIp(_T("76.72.163.224"));
+	ip->ip_dst.S_un.S_addr = BarbaUtils::ConvertStringIp(_T("x.x.x.x"));
 	ip->ip_p = IPPROTO_ICMP;
 	ip->ip_v = 4;
 	ip->ip_hl = 5;
