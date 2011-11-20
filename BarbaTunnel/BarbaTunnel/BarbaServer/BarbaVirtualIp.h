@@ -16,8 +16,9 @@ public:
 		{
 			if ( !VirtualIps[i] )
 			{
+				printf("new ip: %d\n", i);
 				VirtualIps[i] = true;
-				return VirtualIpRange->StartIp + i;
+				return htonl( ntohl(VirtualIpRange->StartIp) + i );
 			}
 		}
 		return 0;

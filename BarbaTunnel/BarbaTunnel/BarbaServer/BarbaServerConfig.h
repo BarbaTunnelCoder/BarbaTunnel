@@ -6,6 +6,8 @@ class BarbaServerConfigItem
 public:
 	BarbaServerConfigItem();
 	u_char GetTunnelProtocol() {return BarbaMode_GetProtocol(this->Mode);}
+	bool IsTunnelMode() { return Mode==BarbaModeTcpTunnel || Mode==BarbaModeUdpTunnel; }
+	bool IsRedirectMode() { return Mode==BarbaModeTcpRedirect || Mode==BarbaModeTcpRedirect; }
 	BarbaModeEnum Mode;
 	PortRange ListenPorts[BARBA_MAX_PORTITEM];
 	int ListenPortsCount;

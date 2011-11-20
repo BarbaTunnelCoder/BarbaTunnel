@@ -119,8 +119,7 @@ BarbaServerApp barbaServerApp;
 BarbaApp* barbaApp;
 int main(int argc, char* argv[])
 {
-
-	//set process priortiy
+	//set process priority
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 
 	if (argc < 2)

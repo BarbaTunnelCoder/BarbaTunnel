@@ -8,6 +8,8 @@ class BarbaClientConfigItem
 public:
 	BarbaModeEnum Mode;
 	u_char GetTunnelProtocol();
+	bool IsTunnelMode() { return Mode==BarbaModeTcpTunnel || Mode==BarbaModeUdpTunnel; }
+	bool IsRedirectMode() { return Mode==BarbaModeTcpRedirect || Mode==BarbaModeUdpRedirect; }
 	u_short TunnelPort;
 	ProtocolPort GrabProtocols[BARBA_MAX_PORTITEM]; //valid when mode is UDP-Tunnel or TCP-Tunnel mode
 	int GrabProtocolsCount;

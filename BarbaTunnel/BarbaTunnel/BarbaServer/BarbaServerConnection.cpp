@@ -31,10 +31,49 @@ bool BarbaServerConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* bar
 	return true;
 }
 
+bool BarbaServerConnection::ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuffer)
+{
+	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
+	PacketHelper packet(packetBuffer->m_IBuffer);
+
+	if (send)
+	{
+		packet.SetSrcPort(this->ClientTunnelPort);
+		packet.SetDesIp(this->ClientIp);
+		BarbaCrypt::CryptPacket(&packet);
+		packet.RecalculateChecksum();
+		packetBuffer->m_Length = packet.GetPacketLen();
+	}
+	else
+	{
+		BarbaCrypt::CryptPacket(&packet);
+		packet.SetSrcIp(this->ClientFakeIp);
+		packet.SetDesPort(this->ConfigItem->RealPort);
+		packet.RecalculateChecksum();
+		packetBuffer->m_Length = packet.GetPacketLen();
+	}
+
+	return true;
+}
+
+bool BarbaServerConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
+{
+	switch(ConfigItem->Mode){
+	case BarbaModeTcpRedirect:
+	case BarbaModeUdpRedirect:
+		return ProcessPacketRedirect(packetBuffer);
+	
+	case BarbaModeUdpTunnel:
+		return ProcessPacketUdpTunnel(packetBuffer);
+	}
+
+	return false;
+}
+
 //This function called when the connection should process the current IP
 //In receive mode it should check signature after decrypt
 //@return true if it process the packet
-bool BarbaServerConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
+bool BarbaServerConnection::ProcessPacketUdpTunnel(INTERMEDIATE_BUFFER* packetBuffer)
 {
 	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
 	PacketHelper packet(packetBuffer->m_IBuffer);
@@ -49,14 +88,6 @@ bool BarbaServerConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 			
 
 		packet.SetDesIp(this->ClientLocalIp);
-
-		//static int i =0;
-		//printf("\n\nServer sending packet!: ");
-		//printf("\n%d, sum: %d\n", i++, packet.ipHeader->ip_sum);
-		//printf("\norgPacket len: %d, sport%d, dport:%d\n", packet.GetPacketLen(), packet.GetSrcPort(), packet.GetDesPort());
-		//BarbaUtils::PrintIp(packet.GetDesIp());
-		//printf("\n");
-
 
 		//Create Barba packet
 		BYTE barbaPacketBuffer[MAX_ETHER_FRAME];
@@ -76,6 +107,12 @@ bool BarbaServerConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 		if (!ExtractUdpBarbaPacket(&packet, orgPacketBuffer))
 			return false;
 		PacketHelper orgPacket(orgPacketBuffer);
+
+		//Init First Attempt
+		if (this->ClientLocalIp==0)
+		{
+			this->ClientLocalIp = orgPacket.GetSrcIp();
+		}
 			
 		//prepare for NAT
 		orgPacket.SetSrcIp(this->ClientFakeIp);
@@ -89,5 +126,38 @@ bool BarbaServerConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
 		return true;
+	}
+}
+
+BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelper* packet, BarbaServerConfigItem* configItem)
+{
+	BarbaServerConnection* conn = new BarbaServerConnection();
+	conn->ConfigItem = configItem;
+	memcpy_s(conn->ClientEthAddress, ETH_ALEN, packet->ethHeader->h_source, ETH_ALEN);
+	conn->ClientIp = packet->GetSrcIp(); 
+	conn->ClientFakeIp = theServerApp->VirtualIpManager.GetNewIp();
+	conn->ClientPort = packet->GetSrcPort();
+	conn->ClientTunnelPort = packet->GetDesPort();
+	Connections[ConnectionsCount++] = conn;
+	BarbaUtils::PrintIp(conn->ClientIp );
+	printf(" - ");
+	BarbaUtils::PrintIp(conn->ClientFakeIp);
+	printf("\n");
+
+	return conn;
+}
+
+void BarbaServerConnectionManager::RemoveConnection(BarbaServerConnection* conn)
+{
+	for (size_t i=0; i<ConnectionsCount; i++)
+	{
+		if (Connections[i]==conn)
+		{
+			Connections[i]=Connections[ConnectionsCount-1];
+			theServerApp->VirtualIpManager.ReleaseIp(conn->ClientFakeIp);
+			delete conn;
+			ConnectionsCount--;
+			break;
+		}
 	}
 }

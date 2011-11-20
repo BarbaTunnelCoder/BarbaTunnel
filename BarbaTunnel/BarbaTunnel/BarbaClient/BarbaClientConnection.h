@@ -22,7 +22,8 @@ public:
 private:
 	bool CreateUdpBarbaPacket(PacketHelper* packet, BYTE* barbaPacket);
 	bool ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer);
-
+	bool ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuffer);
+	bool ProcessPacketUdpTunnel(INTERMEDIATE_BUFFER* packetBuffer);
 };
 
 //BarbaClientConnectionManager
@@ -43,18 +44,19 @@ public:
 		for (size_t i=0; i<ConnectionsCount; i++)
 		{
 			if (Connections[i]->Config->ServerIp==serverIp 
-				&& (tunnelProtocol==0 || BarbaMode_GetProtocol(Connections[i]->ConfigItem->Mode)==tunnelProtocol)
-				&& (clientPort==0 || Connections[i]->ConfigItem->TunnelPort==clientPort))
+				&& (tunnelProtocol==0 || tunnelProtocol==BarbaMode_GetProtocol(Connections[i]->ConfigItem->Mode))
+				&& (clientPort==0 || clientPort==Connections[i]->ClientPort))
 				return Connections[i];
 		}
 		return NULL;
 	}
 
-	BarbaClientConnection* FindByConfigItem(BarbaClientConfigItem* configItem)
+	BarbaClientConnection* FindByConfigItem(BarbaClientConfigItem* configItem, u_short clientPort)
 	{
 		for (size_t i=0; i<ConnectionsCount; i++)
 		{
-			if (Connections[i]->ConfigItem==configItem)
+			if (Connections[i]->ConfigItem==configItem 
+				&& (clientPort==0 || clientPort==Connections[i]->ClientPort))
 				return Connections[i];
 		}
 		return NULL;
@@ -74,12 +76,13 @@ public:
 		}
 	}
 
-	BarbaClientConnection* CreateConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem)
+	BarbaClientConnection* CreateConnection(PacketHelper* packet, BarbaClientConfig* config, BarbaClientConfigItem* configItem)
 	{
 		BarbaClientConnection* conn = new BarbaClientConnection();
 		conn->Config = config;
 		conn->ConfigItem = configItem;
-		conn->ClientPort = configItem->TunnelPort; //currently same as tunnel protocol
+		conn->ClientPort = packet->GetSrcPort();
+		//conn->ClientPort = configItem->TunnelPort;
 		Connections[ConnectionsCount++] = conn;
 		return conn;
 	}

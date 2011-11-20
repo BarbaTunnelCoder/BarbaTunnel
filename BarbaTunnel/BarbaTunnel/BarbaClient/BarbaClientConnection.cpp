@@ -22,8 +22,8 @@ bool BarbaClientConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* bar
 	barbaPacket.ipHeader->ip_off = 0;
 	barbaPacket.SetSrcIp(packet->GetSrcIp());
 	barbaPacket.SetDesIp(this->Config->ServerIp);
-	barbaPacket.SetSrcPort(this->ConfigItem->TunnelPort);
-	barbaPacket.SetDesPort(this->ClientPort);
+	barbaPacket.SetSrcPort(this->ClientPort);
+	barbaPacket.SetDesPort(this->ConfigItem->TunnelPort);
 	barbaPacket.SetUdpPayload((BYTE*)packet->ipHeader, packet->GetIpLen());
 	BarbaCrypt::CryptUdp(&barbaPacket);
 	return true;
@@ -34,16 +34,48 @@ bool BarbaClientConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* bar
 //@return true if it process the packet
 bool BarbaClientConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 {
+	switch(ConfigItem->Mode){
+	case BarbaModeTcpRedirect:
+	case BarbaModeUdpRedirect:
+		return ProcessPacketRedirect(packetBuffer);
+	
+	case BarbaModeUdpTunnel:
+		return ProcessPacketUdpTunnel(packetBuffer);
+	}
+
+	return false;
+}
+
+bool BarbaClientConnection::ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuffer)
+{
 	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
 	PacketHelper packet(packetBuffer->m_IBuffer);
 
 	if (send)
 	{
-		//static int i = 0;
-		//printf("\norgPacket len: %d, sport%d, dport:%d", packet.GetPacketLen(), packet.GetSrcPort(), packet.GetDesPort());
-		//if (packet.GetDesPort()!=1723)
-			//return false;
-			
+		packet.SetDesPort(this->ConfigItem->TunnelPort);
+		BarbaCrypt::CryptPacket(&packet);
+		packet.RecalculateChecksum();
+		packetBuffer->m_Length = packet.GetPacketLen();
+	}
+	else
+	{
+		BarbaCrypt::CryptPacket(&packet);
+		packet.SetSrcPort(this->ConfigItem->RealPort);
+		packet.RecalculateChecksum();
+		packetBuffer->m_Length = packet.GetPacketLen();
+	}
+
+	return true;
+}
+
+bool BarbaClientConnection::ProcessPacketUdpTunnel(INTERMEDIATE_BUFFER* packetBuffer)
+{
+	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
+	PacketHelper packet(packetBuffer->m_IBuffer);
+
+	if (send)
+	{
 		//Create Barba packet
 		BYTE barbaPacket[MAX_ETHER_FRAME];
 		if (!CreateUdpBarbaPacket(&packet, barbaPacket))
@@ -67,14 +99,7 @@ bool BarbaClientConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
 
-		static int i =0;
-		//printf("\n%d, sum: %d", i++, packet.ipHeader->ip_sum);
-		printf("\norgPacket len: %d, sport%d, dport:%d\n", packet.GetPacketLen(), packet.GetSrcPort(), packet.GetDesPort());
-		//BarbaUtils::PrintIp(orgPacket.GetSrcIp());
-		//printf(" -- ");
-		//BarbaUtils::PrintIp(orgPacket.GetDesIp());
-
-		//extract org packet from barba packet
 		return true;
 	}
+
 }

@@ -2,6 +2,8 @@
 
 u_short ntohs( u_short netshort );
 u_short htons( u_short value );
+DWORD htonl( DWORD value );
+DWORD ntohl( DWORD value );
 
 class PacketHelper
 {

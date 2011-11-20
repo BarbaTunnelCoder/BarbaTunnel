@@ -10,6 +10,13 @@ void BarbaCrypt::Crypt(BYTE* buffer, int len)
 	}
 }
 
+void BarbaCrypt::CryptPacket(PacketHelper* packet)
+{
+	if (packet->IsTcp())
+		CryptTcp(packet);
+	if (packet->IsUdp())
+		CryptUdp(packet);
+}
 
 void BarbaCrypt::CryptUdp(PacketHelper* packet)
 {
@@ -19,6 +26,6 @@ void BarbaCrypt::CryptUdp(PacketHelper* packet)
 
 void BarbaCrypt::CryptTcp(PacketHelper* packet)
 {
-	Crypt(packet->GetTcpExtraHeader(), packet->GetTcpExtraHeaderLen() + packet->GetUdpPayloadLen());
+	Crypt(packet->GetTcpExtraHeader(), packet->GetTcpExtraHeaderLen() + packet->GetTcpPayloadLen());
 	Crypt(packet->GetIpExtraHeader(), packet->GetIpExtraHeaderLen());
 }
