@@ -30,6 +30,8 @@ public:
 private:
 	bool CreateUdpBarbaPacket(PacketHelper* packet, BYTE* barbaPacket);
 	bool ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer);
+	bool ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuffer);
+	bool ProcessPacketUdpTunnel(INTERMEDIATE_BUFFER* packetBuffer);
 
 };
 

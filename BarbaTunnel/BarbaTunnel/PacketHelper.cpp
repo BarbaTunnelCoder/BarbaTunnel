@@ -20,6 +20,24 @@ u_short htons( u_short netshort )
 	return ntohs(netshort);
 }
 
+DWORD htonl( DWORD hostlong )
+{
+	ULONG nResult = hostlong >> 16;
+	USHORT upper = (USHORT) nResult & 0x0000FFFF;
+	USHORT lower = (USHORT) hostlong & 0x0000FFFF;
+
+	upper = htons( upper );
+	lower = htons( lower );
+
+    nResult = 0x10000 * lower + upper;
+	return( nResult );
+}
+
+DWORD ntohl( DWORD netshort )
+{
+	return htonl(netshort);
+}
+
 void PacketHelper::Reinit()
 {
 	ipHeader = NULL;

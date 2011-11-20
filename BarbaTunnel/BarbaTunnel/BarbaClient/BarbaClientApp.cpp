@@ -36,8 +36,16 @@ BarbaClientConfigItem* BarbaClientApp::IsGrabPacket(PacketHelper* packet, BarbaC
 
 bool BarbaClientApp::IsGrabPacket(PacketHelper* packet, BarbaClientConfigItem* configItem)
 {
+	//check RealPort for redirect modes
+	if (configItem->Mode==BarbaModeTcpRedirect || configItem->Mode==BarbaModeUdpRedirect)
+	{
+		return packet->GetDesPort()==configItem->RealPort;
+	}
+
+
 	for (int j=0; j<configItem->GrabProtocolsCount; j++)
 	{
+		//check GrabProtocols for tunnel modes
 		ProtocolPort* protocolPort = &configItem->GrabProtocols[j];
 		if (protocolPort->Protocol==0 || protocolPort->Protocol==packet->ipHeader->ip_p)
 		{
@@ -66,9 +74,10 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 			return;
 
 		//create new connection if not found
-		connection = ConnectionManager.FindByConfigItem(configItem);
+		//in Redirect mode, the connection should always match the client port, to permit reestablish the connection
+		connection = ConnectionManager.FindByConfigItem(configItem, configItem->IsRedirectMode() ? packet.GetSrcPort() : 0);
 		if (connection==NULL)
-			connection = ConnectionManager.CreateConnection(config, configItem);
+			connection = ConnectionManager.CreateConnection(&packet, config, configItem);
 	}
 	else
 	{

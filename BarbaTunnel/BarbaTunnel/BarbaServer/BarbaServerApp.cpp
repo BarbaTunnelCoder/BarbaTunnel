@@ -36,14 +36,14 @@ BarbaServerConfigItem* BarbaServerApp::IsGrabPacket(PacketHelper* packet)
 	{
 		BarbaServerConfigItem* item = &this->Config.Items[i];
 		//check protocol
-		if (!item->GetTunnelProtocol()==packet->ipHeader->ip_p)
+		if (item->GetTunnelProtocol()!=packet->ipHeader->ip_p)
 			continue;
 
 		//check port
+		u_short port = packet->GetDesPort();
 		for (int j=0; j<item->ListenPortsCount; j++)
 		{
-			u_short port = packet->GetDesPort();
-			if (port>=item->ListenPorts[i].StartPort && port<=item->ListenPorts[i].EndPort)
+			if (port>=item->ListenPorts[j].StartPort && port<=item->ListenPorts[j].EndPort)
 				return item;
 		}
 	}
@@ -79,33 +79,5 @@ void BarbaServerApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 	if (connection!=NULL)
 	{
 		connection->ProcessPacket(packetBuffer);
-	}
-}
-
-BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelper* packet, BarbaServerConfigItem* configItem)
-{
-	BarbaServerConnection* conn = new BarbaServerConnection();
-	conn->ConfigItem = configItem;
-	memcpy_s(conn->ClientEthAddress, ETH_ALEN, packet->ethHeader->h_source, ETH_ALEN);
-	conn->ClientIp = packet->GetSrcIp(); 
-	conn->ClientFakeIp = theServerApp->VirtualIpManager.GetNewIp();
-	conn->ClientPort = packet->GetSrcPort();
-	conn->ClientTunnelPort = packet->GetDesPort();
-	Connections[ConnectionsCount++] = conn;
-	return conn;
-}
-
-void BarbaServerConnectionManager::RemoveConnection(BarbaServerConnection* conn)
-{
-	for (size_t i=0; i<ConnectionsCount; i++)
-	{
-		if (Connections[i]==conn)
-		{
-			Connections[i]=Connections[ConnectionsCount-1];
-			theServerApp->VirtualIpManager.ReleaseIp(conn->ClientFakeIp);
-			delete conn;
-			ConnectionsCount--;
-			break;
-		}
 	}
 }
