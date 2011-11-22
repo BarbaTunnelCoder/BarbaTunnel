@@ -16,11 +16,6 @@ void BarbaUtils::GetModuleFolder(TCHAR* folder)
 	}
 }
 
-void BarbaUtils::PrintIp(DWORD ip)
-{
-	printf("%d.%d.%d.%d", LOBYTE(LOWORD(ip)), HIBYTE(LOWORD(ip)), LOBYTE(HIWORD(ip)), HIBYTE(HIWORD(ip)));
-}
-
 bool BarbaUtils::GetPortRange(LPCTSTR value, u_short* startPort, u_short* endPort)
 {
 	//VirtualIpRange
@@ -114,4 +109,21 @@ int BarbaUtils::ConvertHexStringToBuffer(TCHAR* hexString, BYTE* buffer, int buf
 	}
 
 	return bufferIndex;
+}
+
+bool BarbaUtils::SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine, int nShow, LPCTSTR lpszWorkDirectory, LPCTSTR lpVerb, HWND hWnd)
+{
+	SHELLEXECUTEINFO s;
+	memset (&s,0,sizeof s);
+
+	s.cbSize=sizeof SHELLEXECUTEINFO;
+	s.fMask= 0;
+	s.hwnd=hWnd;
+	s.lpVerb=lpVerb;
+	s.lpFile = fileName;
+	s.lpParameters = commandLine;
+	s.lpDirectory = lpszWorkDirectory;
+	s.nShow=nShow;
+
+	return ShellExecuteEx(&s)!=FALSE;
 }

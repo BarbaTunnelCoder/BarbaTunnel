@@ -3,12 +3,81 @@
 #include "BarbaServer\BarbaServerApp.h"
 
 TCP_AdapterList		AdList;
-DWORD				iIndex;
+DWORD				CurrentAdapterIndex;
 CNdisApi			api;
 HANDLE				hEvent;
 
-void printPacketInfo(ether_header_ptr ethHeader);
+bool IsBarbaServer;
+BarbaClientApp barbaClientApp;
+BarbaServerApp barbaServerApp;
+BarbaApp* barbaApp;
 
+bool CheckAdapterIndex()
+{
+	if (barbaApp->AdapterIndex-1>=0 && barbaApp->AdapterIndex-1<(int)AdList.m_nAdapterCount)
+	{
+		CurrentAdapterIndex = barbaApp->AdapterIndex-1;
+		return true;
+	}
+
+	//find best adapter
+	TCHAR msg[ADAPTER_NAME_SIZE*ADAPTER_LIST_SIZE + 255] = {0};
+	_tcscat_s(msg, _T("Could not find main network adapter!\nPlease set your main network adapter index in AdapterIndex of config.ini file.\n\n"));
+
+	int findCount = 0;
+	int findIndex = 0;
+	for (size_t i=0; i<AdList.m_nAdapterCount; i++)
+	{
+		TCHAR adapterName[ADAPTER_NAME_SIZE];
+		CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[i], adapterName, _countof(adapterName));
+
+		TCHAR adapterNameLower[ADAPTER_NAME_SIZE] = {0};
+		for(size_t j = 0; adapterName[j] != '\0' && i<ADAPTER_NAME_SIZE; j++)
+			adapterNameLower[j] = (TCHAR)_totlower(adapterName[j]);
+
+		bool isWan = _tcsstr(adapterNameLower, _T("wan network"))!=NULL;
+		if (isWan)
+			continue;
+
+		//save last find
+		findCount++;
+		findIndex = i;
+
+		//add adapter name
+		TCHAR adapterLine[ADAPTER_NAME_SIZE + 10];
+		_stprintf_s(adapterLine, _T("%d) %s"), i+1, adapterName);
+		_tcscat_s(msg, adapterLine);
+		_tcscat_s(msg, _T("\n"));
+	}
+
+	//use the only found adapter
+	if (findCount==1)
+	{
+		CurrentAdapterIndex = findIndex;
+		return true;
+	}
+
+	_tcscat_s(msg, _T("\nDo you want to open config.ini file now?"));
+	if (MessageBox(NULL, msg, _T("Barbatunnel"), MB_ICONWARNING|MB_YESNO)==IDYES)
+	{
+		BarbaUtils::SimpleShellExecute(barbaApp->GetConfigFile(), NULL, SW_SHOW, NULL, _T("edit"));
+	}
+	return false;
+}
+
+void SetMTU()
+{
+	api.SetMTUDecrement( GetMTUDecrement() ) ;
+
+	LPCTSTR msg = 
+		_T("Barbatunnel set new MTU decrement to have enough space for adding Barba header to your packet.\n\n")
+		_T("You must restart Windows so the new MTU decrement can effect.\n\nDo you want to restart now?");
+
+	if (MessageBox(NULL, msg, _T("Barabtunnel"), MB_ICONQUESTION|MB_YESNO)==IDYES)
+	{
+		BarbaUtils::SimpleShellExecute(_T("shutdown.exe"), _T("/r /t 0 /d p:4:2"), SW_HIDE);
+	}
+}
 
 
 void ReleaseInterface()
@@ -17,10 +86,10 @@ void ReleaseInterface()
 	ADAPTER_MODE Mode;
 
 	Mode.dwFlags = 0;
-	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[iIndex];
+	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
 
 	// Set NULL event to release previously set event object
-	api.SetPacketEvent(AdList.m_nAdapterHandle[iIndex], NULL);
+	api.SetPacketEvent(AdList.m_nAdapterHandle[CurrentAdapterIndex], NULL);
 
 	// Close Event
 	if (hEvent)
@@ -30,105 +99,23 @@ void ReleaseInterface()
 	api.SetAdapterMode(&Mode);
 
 	// Empty adapter packets queue
-	api.FlushAdapterPacketQueue (AdList.m_nAdapterHandle[iIndex]);
-}
-
-void Test(ULONG index, int counter)
-{
-	ETH_REQUEST			Request;
-	INTERMEDIATE_BUFFER PacketBuffer;
-
-	if(!api.IsDriverLoaded())
-	{
-		printf ("Driver not installed on this system of failed to load.\n");
-		return;
-	}
-	
-	api.GetTcpipBoundAdaptersInfo ( &AdList );
-
-	if ( index + 1 > AdList.m_nAdapterCount )
-	{
-		printf("There is no network interface with such index on this system.\n");
-		return;
-	}
-
-	
-	ADAPTER_MODE Mode;
-	Mode.dwFlags = MSTCP_FLAG_SENT_TUNNEL|MSTCP_FLAG_RECV_TUNNEL;
-	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[index];
-
-	// Create notification event
-	hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-
-	// Set event for helper driver
-	if ((!hEvent)||(!api.SetPacketEvent((HANDLE)AdList.m_nAdapterHandle[index], hEvent)))
-	{
-		printf ("Failed to create notification event or set it for driver.\n");
-		return;
-	}
-
-	atexit (ReleaseInterface);
-	
-	// Initialize Request
-	ZeroMemory ( &Request, sizeof(ETH_REQUEST) );
-	ZeroMemory ( &PacketBuffer, sizeof(INTERMEDIATE_BUFFER) );
-	Request.EthPacket.Buffer = &PacketBuffer;
-	Request.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[index];
-		
-	api.SetAdapterMode(&Mode);
-
-	while (counter != 0)
-	{
-		WaitForSingleObject ( hEvent, INFINITE );
-		
-		while(api.ReadPacket(&Request))
-		{
-			bool send = PacketBuffer.m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
-			//ether_header_ptr ethHeader = (ether_header*)Request.EthPacket.Buffer->m_IBuffer;
-
-			counter--;
-			if (counter%100==0) 
-				printf("Counter:%d\n", counter);
-
-			if (send)
-			{
-				// Place packet on the network interface
-				api.SendPacketToAdapter(&Request);
-			}
-			else
-			{
-				// Indicate packet to MSTCP
-				api.SendPacketToMstcp(&Request);
-			}
-
-			if (counter == 0)
-			{
-				printf ("Filtering complete\n");
-				break;
-			}
-		}
-
-		ResetEvent(hEvent);
-	}
+	api.FlushAdapterPacketQueue (AdList.m_nAdapterHandle[CurrentAdapterIndex]);
 }
 
 
-bool IsBarbaServer;
-BarbaClientApp barbaClientApp;
-BarbaServerApp barbaServerApp;
-BarbaApp* barbaApp;
+RAS_LINKS RasLinks;
+
 int main(int argc, char* argv[])
 {
 	//set process priority
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 
-	if (argc < 2)
+	//check is driver loaded
+	if(!api.IsDriverLoaded())
 	{
-		printf ("Command line syntax:\n\tGreTunnel.exe index num\n\tindex - network interface index.\n\tYou can use ListAdapters to determine correct index.\n");
+		printf ("Driver not installed on this system of failed to load.\n");
 		return 0;
 	}
-
-	iIndex = atoi(argv[1]) - 1;
 
 	//create BarbaApp
 	for (int i=0; i<argc; i++)
@@ -143,43 +130,40 @@ int main(int argc, char* argv[])
 	for (int i=0; i<argc; i++)
 	{
 		if (_stricmp(argv[i], "/debug")==0)
+		{
 			barbaApp->IsDebugMode = true;
+		}
+		else if (_stricmp(argv[i], "/setmtu")==0)
+		{
+			SetMTU();
+			return 0;
+		}
 	}
 
-
-	if(!api.IsDriverLoaded())
+	//try to set MTU as administrator
+	if (barbaApp->GetMTUDecrement() > api.GetMTUDecrement()  )
 	{
-		printf ("Driver not installed on this system of failed to load.\n");
+		TCHAR file[MAX_PATH];
+		GetModuleFileName(NULL, file, _countof(file));
+		printf ("Set new MTU decrement: %d\n", barbaApp->GetMTUDecrement());
+		BarbaUtils::SimpleShellExecute(file, _T("/setmtu"), SW_HIDE, NULL, _T("runas"));
 		return 0;
 	}
 	
+	//get adapter list
 	api.GetTcpipBoundAdaptersInfo ( &AdList );
-
-	if ( iIndex + 1 > AdList.m_nAdapterCount )
-	{
-		printf("There is no network interface with such index on this system.\n");
+	if (!CheckAdapterIndex())
 		return 0;
-	}
-
-	DWORD dwMTUDec = api.GetMTUDecrement();
-	DWORD myOverHead = sizeof iphdr + sizeof tcphdr + sizeof BarbaHeader;
-	if (myOverHead > dwMTUDec )
-	{
-		api.SetMTUDecrement(myOverHead);
-		printf ("Incorrect MTU decrement was set for the system. New MTU decrement is %d bytes. Please reboot the system for the changes to take the effect.\n", myOverHead);
-		//return 0;
-	}
-	printf ("MTU decrement is:%d\n", dwMTUDec);
 
 	ADAPTER_MODE Mode;
 	Mode.dwFlags = MSTCP_FLAG_SENT_TUNNEL|MSTCP_FLAG_RECV_TUNNEL;
-	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[iIndex];
+	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
 
 	// Create notification event
 	hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
 	// Set event for helper driver
-	if ((!hEvent)||(!api.SetPacketEvent((HANDLE)AdList.m_nAdapterHandle[iIndex], hEvent)))
+	if ((!hEvent)||(!api.SetPacketEvent((HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex], hEvent)))
 	{
 		printf ("Failed to create notification event or set it for driver.\n");
 		return 0;
@@ -188,8 +172,16 @@ int main(int argc, char* argv[])
 	atexit (ReleaseInterface);
 	
 	// Initialize Request
-	barbaApp->CurrentRequest.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[iIndex];
+	barbaApp->CurrentRequest.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
 	api.SetAdapterMode(&Mode);
+
+	//print info
+	printf(_T("Barba %s Started\n"), IsBarbaServer ? _T("Server") : _T("Client"));
+	printf(_T("Version: %d\n"), BARBA_CURRENT_VERSION);
+	TCHAR adapterName[ADAPTER_NAME_SIZE];
+	CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[CurrentAdapterIndex], adapterName, _countof(adapterName));
+	printf(_T("Adpater Name: %s\n"), adapterName);
+
 
 	bool terminate = false;
 	while (!terminate)

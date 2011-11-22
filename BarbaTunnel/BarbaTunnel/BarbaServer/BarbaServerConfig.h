@@ -27,7 +27,7 @@ public:
 	int KeyCount;
 	bool LoadFile(LPCTSTR file);
 
-	BarbaServerConfigItem Items[MAX_BARBA_CONFIGITEMS];
+	BarbaServerConfigItem Items[BARBA_MAX_CONFIGITEMS];
 	int ItemsCount;
 
 private:

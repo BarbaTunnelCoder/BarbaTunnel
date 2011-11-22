@@ -404,6 +404,11 @@ DWORD PacketHelper::ConvertStringIp(LPCTSTR pszIp)
 	return *(DWORD*)ret;
 }
 
+void PacketHelper::ConvertIpToString(DWORD ip, TCHAR* buffer, rsize_t bufferCount)
+{
+	_stprintf_s(buffer, bufferCount, _T("%d.%d.%d.%d"), LOBYTE(LOWORD(ip)), HIBYTE(LOWORD(ip)), LOBYTE(HIWORD(ip)), HIBYTE(HIWORD(ip)));
+}
+
 //@param value eg: TCP:80; TCP:*; *
 BYTE PacketHelper::ConvertStringProtocol(LPCTSTR protocol)
 {
@@ -418,4 +423,21 @@ BYTE PacketHelper::ConvertStringProtocol(LPCTSTR protocol)
 	else if (_tcsicmp(protocol, _T("ND"))==0) return IPPROTO_ND;
 
 	return (BYTE)_tcstoul(protocol, NULL, 0);
+}
+
+//@param value eg: TCP:80; TCP:*; *
+LPCTSTR PacketHelper::ConvertProtocolToString(BYTE protocol)
+{
+	switch(protocol){
+	case IPPROTO_ICMP: return _T("ICMP");
+	case IPPROTO_IGMP: return _T("IGMP");
+	case IPPROTO_GGP: return _T("GGP");
+	case IPPROTO_TCP: return _T("TCP");
+	case IPPROTO_PUP: return _T("PUP");
+	case IPPROTO_UDP: return _T("UDP");
+	case IPPROTO_IDP: return _T("IDP");
+	case IPPROTO_GRE: return _T("GRE");
+	case IPPROTO_ND: return _T("ND");
+	default: return _T("?");
+	}
 }

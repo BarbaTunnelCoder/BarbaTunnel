@@ -12,6 +12,7 @@
 #include "targetver.h"
 
 #include <windows.h>
+#include <shellapi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <tchar.h>

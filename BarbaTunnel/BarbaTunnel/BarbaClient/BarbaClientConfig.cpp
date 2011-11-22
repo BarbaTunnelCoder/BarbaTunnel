@@ -50,7 +50,7 @@ void BarbaClientConfigManager::LoadFolder(LPCTSTR folder)
 		
 	//findData.
 	_tcscpy_s(file, _countof(file), folder);
-	_tcsncat_s(file, _T("\\config\\*.cfg"), MAX_PATH);
+	_tcsncat_s(file, _T("\\config\\*.ini"), MAX_PATH);
 	HANDLE findHandle = FindFirstFile(file, &findData);
 	BOOL bfind = findHandle!=NULL;
 	while (bfind)
