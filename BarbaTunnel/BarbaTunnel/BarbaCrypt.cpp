@@ -2,30 +2,33 @@
 #include "BarbaCrypt.h"
 #include "BarbaUtils.h"
 
-void BarbaCrypt::Crypt(BYTE* buffer, int len)
+void BarbaCrypt::Crypt(BYTE* buffer, size_t bufferCount, BYTE* key, size_t keyCount)
 {
-	for (int i=0; i<len; i++)
+	if (keyCount==0)
+		return;
+
+	for (size_t i=0; i<bufferCount; i++)
 	{
-		buffer[i] ^= i+1;
+		buffer[i] ^= key[i%keyCount];
 	}
 }
 
-void BarbaCrypt::CryptPacket(PacketHelper* packet)
+void BarbaCrypt::CryptPacket(PacketHelper* packet, BYTE* key, size_t keyCount)
 {
 	if (packet->IsTcp())
-		CryptTcp(packet);
+		CryptTcp(packet, key, keyCount);
 	if (packet->IsUdp())
-		CryptUdp(packet);
+		CryptUdp(packet, key, keyCount);
 }
 
-void BarbaCrypt::CryptUdp(PacketHelper* packet)
+void BarbaCrypt::CryptUdp(PacketHelper* packet, BYTE* key, size_t keyCount)
 {
-	Crypt(packet->GetUdpPayload(), packet->GetUdpPayloadLen());
-	Crypt(packet->GetIpExtraHeader(), packet->GetIpExtraHeaderLen());
+	Crypt(packet->GetUdpPayload(), packet->GetUdpPayloadLen(), key, keyCount);
+	Crypt(packet->GetIpExtraHeader(), packet->GetIpExtraHeaderLen(), key, keyCount);
 }
 
-void BarbaCrypt::CryptTcp(PacketHelper* packet)
+void BarbaCrypt::CryptTcp(PacketHelper* packet, BYTE* key, size_t keyCount)
 {
-	Crypt(packet->GetTcpExtraHeader(), packet->GetTcpExtraHeaderLen() + packet->GetTcpPayloadLen());
-	Crypt(packet->GetIpExtraHeader(), packet->GetIpExtraHeaderLen());
+	Crypt(packet->GetTcpExtraHeader(), packet->GetTcpExtraHeaderLen() + packet->GetTcpPayloadLen(), key, keyCount);
+	Crypt(packet->GetIpExtraHeader(), packet->GetIpExtraHeaderLen(), key, keyCount);
 }

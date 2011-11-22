@@ -8,13 +8,24 @@ GUID* GetBarbaSign()
 	return &BarbaSign;
 }
 
-BarbaModeEnum BarbaMode_FromString(TCHAR* mode)
+BarbaModeEnum BarbaMode_FromString(LPCTSTR mode)
 {
 	if (_tcsicmp(mode, _T("UDP-Tunnel"))==0) return BarbaModeUdpTunnel;
 	else if (_tcsicmp(mode, _T("TCP-Tunnel"))==0) return BarbaModeTcpTunnel;
 	else if (_tcsicmp(mode, _T("UDP-Redirect"))==0) return BarbaModeUdpRedirect;
 	else if (_tcsicmp(mode, _T("TCP-Redirect"))==0) return BarbaModeTcpRedirect;
 	else return BarbaModeNone;
+}
+
+ LPCTSTR BarbaMode_ToString(BarbaModeEnum mode)
+{
+	switch(mode){
+	case BarbaModeUdpTunnel: return _T("UDP-Tunnel");
+	case BarbaModeTcpTunnel: return _T("TCP-Tunnel");
+	case BarbaModeUdpRedirect: return _T("UDP-Redirect");
+	case BarbaModeTcpRedirect: return _T("TCP-Redirect");
+	default: return _T("None");
+	}
 }
 
 u_char BarbaMode_GetProtocol(BarbaModeEnum mode)

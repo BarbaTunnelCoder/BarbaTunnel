@@ -1,11 +1,23 @@
 #include "StdAfx.h"
 #include "BarbaClientApp.h"
 #include "BarbaCrypt.h"
-extern CNdisApi			api;
+
+void BarbaClientConnection::CryptPacket(PacketHelper* packet)
+{
+	BarbaCrypt::CryptPacket(packet, Config->Key, Config->KeyCount);
+}
+
+void BarbaClientConnection::ReportConnection()
+{
+	TCHAR ip[100];
+	PacketHelper::ConvertIpToString(Config->ServerIp, ip, _countof(ip));
+	LPCTSTR mode = BarbaMode_ToString(ConfigItem->Mode);
+	printf(_T("New connection! %s - %s:%d\n"), ip, mode, ConfigItem->TunnelPort);
+}
 
 bool BarbaClientConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer)
 {
-	BarbaCrypt::CryptUdp(barbaPacket);
+	CryptPacket(barbaPacket);
 	PacketHelper orgPacket(orgPacketBuffer, 0);
 	orgPacket.SetEthHeader(barbaPacket->ethHeader);
 	orgPacket.SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload());
@@ -25,7 +37,7 @@ bool BarbaClientConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* bar
 	barbaPacket.SetSrcPort(this->ClientPort);
 	barbaPacket.SetDesPort(this->ConfigItem->TunnelPort);
 	barbaPacket.SetUdpPayload((BYTE*)packet->ipHeader, packet->GetIpLen());
-	BarbaCrypt::CryptUdp(&barbaPacket);
+	CryptPacket(&barbaPacket);
 	return true;
 }
 
@@ -34,6 +46,8 @@ bool BarbaClientConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* bar
 //@return true if it process the packet
 bool BarbaClientConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 {
+	this->LasNegotiationTime = GetTickCount();
+
 	switch(ConfigItem->Mode){
 	case BarbaModeTcpRedirect:
 	case BarbaModeUdpRedirect:
@@ -54,13 +68,13 @@ bool BarbaClientConnection::ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuf
 	if (send)
 	{
 		packet.SetDesPort(this->ConfigItem->TunnelPort);
-		BarbaCrypt::CryptPacket(&packet);
+		CryptPacket(&packet);
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
 	}
 	else
 	{
-		BarbaCrypt::CryptPacket(&packet);
+		CryptPacket(&packet);
 		packet.SetSrcPort(this->ConfigItem->RealPort);
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();

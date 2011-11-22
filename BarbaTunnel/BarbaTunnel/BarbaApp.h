@@ -15,7 +15,13 @@ public:
 	bool CheckTerminateCommands(INTERMEDIATE_BUFFER* packetBuffer);
 	ETH_REQUEST CurrentRequest;
 	bool IsDebugMode;
+	DWORD GetMTUDecrement() { return sizeof iphdr + sizeof tcphdr + sizeof BarbaHeader; }
+	LPCTSTR GetConfigFile() {return ConfigFile;}
+	LPCTSTR GetModuleFolder() {return ModuleFolder;}
+	int AdapterIndex;
 
 private:
 	INTERMEDIATE_BUFFER PacketBuffer;
+	TCHAR ConfigFile[MAX_PATH];
+	TCHAR ModuleFolder[MAX_PATH];
 };

@@ -1,11 +1,13 @@
 #pragma once
 
-#define MAX_BARBA_CONFIGS 100
-#define MAX_BARBA_CONFIGITEMS 100
-#define MAX_BARBA_CONNECTIONS 1000
+#define BARBA_MAX_CONFIGS 100
+#define BARBA_MAX_CONFIGITEMS 100
+#define BARBA_MAX_CONNECTIONS 1000
 #define BARBA_MAX_PORTITEM 100
 #define BARBA_MAX_KEYLEN 1500
 #define BARBA_MAX_VIRTUALIP 0xFFFF
+#define BARBA_CURRENT_VERSION 1
+#define BARBA_CONNECTION_TIMEOUT (3*3600*1000)
 
 //BarbaModeEnum
 enum BarbaModeEnum
@@ -47,6 +49,7 @@ struct BarbaHeader
 };
 
 
-BarbaModeEnum BarbaMode_FromString(TCHAR* mode);
+BarbaModeEnum BarbaMode_FromString(LPCTSTR mode);
+LPCTSTR BarbaMode_ToString(BarbaModeEnum mode);
 u_char BarbaMode_GetProtocol(BarbaModeEnum mode);
 GUID* GetBarbaSign();

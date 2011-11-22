@@ -7,31 +7,32 @@ public:
 	BarbaServerConnection(void)
 	{
 		ClientLocalIp = 0;
-		ClientFakeIp = 0;
+		ClientVirtualIp = 0;
 		ClientIp = 0;
 		ClientPort = 0;
 		ClientTunnelPort = 0;
-		LastNegoTime = 0;
+		LasNegotiationTime = 0;
 		ConfigItem = NULL;
 		memset(ClientEthAddress, 0, _countof(ClientEthAddress));
 	}
 
-
 	DWORD ClientLocalIp;
-	DWORD ClientFakeIp;
+	DWORD ClientVirtualIp;
 	DWORD ClientIp;
 	u_short ClientPort;
 	u_short ClientTunnelPort;
 	BYTE ClientEthAddress[ETH_ALEN]; //Ethernet address of received packet; useful when router not exists
-	DWORD LastNegoTime;
+	DWORD LasNegotiationTime;
 	BarbaServerConfigItem* ConfigItem;
 	bool ProcessPacket(INTERMEDIATE_BUFFER* packet);
+	void ReportConnection();
 
 private:
 	bool CreateUdpBarbaPacket(PacketHelper* packet, BYTE* barbaPacket);
 	bool ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer);
 	bool ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuffer);
 	bool ProcessPacketUdpTunnel(INTERMEDIATE_BUFFER* packetBuffer);
+	void CryptPacket(PacketHelper* packet);
 
 };
 
@@ -39,8 +40,20 @@ private:
 class BarbaServerConnectionManager
 {
 private:
-	BarbaServerConnection* Connections[MAX_BARBA_CONNECTIONS];
+	BarbaServerConnection* Connections[BARBA_MAX_CONNECTIONS];
 	size_t ConnectionsCount;
+
+	void CleanTimeoutConnections()
+	{
+		for (size_t i=0; i<ConnectionsCount; i++)
+		{
+			if (GetTickCount()-Connections[i]->LasNegotiationTime>BARBA_CONNECTION_TIMEOUT)
+			{
+				RemoveConnection(Connections[i]);
+				i--;
+			}
+		}
+	}
 
 public:
 	BarbaServerConnectionManager()
@@ -48,10 +61,10 @@ public:
 		ConnectionsCount = 0;
 	}
 
-	BarbaServerConnection* FindByFakeIp(DWORD ip)
+	BarbaServerConnection* FindByVirtualIp(DWORD ip)
 	{
 		for (size_t i=0; i<ConnectionsCount; i++)
-			if (Connections[i]->ClientFakeIp==ip )
+			if (Connections[i]->ClientVirtualIp==ip )
 				return Connections[i];
 		return NULL;
 	}

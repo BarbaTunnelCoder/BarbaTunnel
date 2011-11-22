@@ -26,7 +26,7 @@ public:
 	DWORD ServerIp;
 	BYTE Key[BARBA_MAX_KEYLEN];
 	int KeyCount;
-	BarbaClientConfigItem Items[MAX_BARBA_CONFIGITEMS];
+	BarbaClientConfigItem Items[BARBA_MAX_CONFIGITEMS];
 	int ItemsCount;
 	// @return false if could not load file
 	bool LoadFile(LPCTSTR file);
@@ -42,7 +42,7 @@ class BarbaClientConfigManager
 {
 public:
 	BarbaClientConfigManager();
-	BarbaClientConfig Configs[MAX_BARBA_CONFIGS];
+	BarbaClientConfig Configs[BARBA_MAX_CONFIGS];
 	int ConfigsCount;
 	void LoadFolder(LPCTSTR folder);
 	BarbaClientConfig* FindByServerIP(DWORD ip);

@@ -3,10 +3,24 @@
 #include "BarbaServerConnection.h"
 #include "BarbaCrypt.h"
 
+void BarbaServerConnection::CryptPacket(PacketHelper* packet)
+{
+	BarbaCrypt::CryptPacket(packet, theServerApp->Config.Key, theServerApp->Config.KeyCount);
+}
+
+void BarbaServerConnection::ReportConnection()
+{
+	TCHAR ip[50];
+	PacketHelper::ConvertIpToString(this->ClientIp, ip, _countof(ip));
+	TCHAR virtualIp[50];
+	PacketHelper::ConvertIpToString(this->ClientVirtualIp, virtualIp, _countof(virtualIp));
+	LPCTSTR mode = BarbaMode_ToString(ConfigItem->Mode);
+	printf(_T("New connection! %s - %s:%d, Virtual IP: %s\n"), ip, mode, this->ClientTunnelPort, virtualIp);
+}
 
 bool BarbaServerConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer)
 {
-	BarbaCrypt::CryptUdp(barbaPacket);
+	CryptPacket(barbaPacket);
 	PacketHelper orgPacket(orgPacketBuffer, 0);
 	orgPacket.SetEthHeader(barbaPacket->ethHeader);
 	orgPacket.SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload());
@@ -27,7 +41,7 @@ bool BarbaServerConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* bar
 	barbaPacket.SetDesPort( this->ClientPort );
 	barbaPacket.SetUdpPayload((BYTE*)packet->ipHeader, packet->GetIpLen());
 	barbaPacket.SetDesEthAddress(this->ClientEthAddress);
-	BarbaCrypt::CryptUdp(&barbaPacket);
+	CryptPacket(&barbaPacket);
 	return true;
 }
 
@@ -40,14 +54,14 @@ bool BarbaServerConnection::ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuf
 	{
 		packet.SetSrcPort(this->ClientTunnelPort);
 		packet.SetDesIp(this->ClientIp);
-		BarbaCrypt::CryptPacket(&packet);
+		CryptPacket(&packet);
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
 	}
 	else
 	{
-		BarbaCrypt::CryptPacket(&packet);
-		packet.SetSrcIp(this->ClientFakeIp);
+		CryptPacket(&packet);
+		packet.SetSrcIp(this->ClientVirtualIp);
 		packet.SetDesPort(this->ConfigItem->RealPort);
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
@@ -58,6 +72,8 @@ bool BarbaServerConnection::ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuf
 
 bool BarbaServerConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 {
+	this->LasNegotiationTime = GetTickCount();
+
 	switch(ConfigItem->Mode){
 	case BarbaModeTcpRedirect:
 	case BarbaModeUdpRedirect:
@@ -103,7 +119,6 @@ bool BarbaServerConnection::ProcessPacketUdpTunnel(INTERMEDIATE_BUFFER* packetBu
 	{
 		//extract Barba packet
 		BYTE orgPacketBuffer[MAX_ETHER_FRAME];
-		//printf("barba tunnel\n");
 		if (!ExtractUdpBarbaPacket(&packet, orgPacketBuffer))
 			return false;
 		PacketHelper orgPacket(orgPacketBuffer);
@@ -115,13 +130,10 @@ bool BarbaServerConnection::ProcessPacketUdpTunnel(INTERMEDIATE_BUFFER* packetBu
 		}
 			
 		//prepare for NAT
-		orgPacket.SetSrcIp(this->ClientFakeIp);
+		orgPacket.SetSrcIp(this->ClientVirtualIp);
 		orgPacket.RecalculateChecksum();
 
-		//printf("barba restored\n");
-
 		//replace current packet with barba packet
-		//static int i = 0;
 		packet.SetEthPacket(orgPacket.ethHeader);
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
@@ -135,15 +147,11 @@ BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelp
 	conn->ConfigItem = configItem;
 	memcpy_s(conn->ClientEthAddress, ETH_ALEN, packet->ethHeader->h_source, ETH_ALEN);
 	conn->ClientIp = packet->GetSrcIp(); 
-	conn->ClientFakeIp = theServerApp->VirtualIpManager.GetNewIp();
+	conn->ClientVirtualIp = theServerApp->VirtualIpManager.GetNewIp();
 	conn->ClientPort = packet->GetSrcPort();
 	conn->ClientTunnelPort = packet->GetDesPort();
+	conn->ReportConnection();
 	Connections[ConnectionsCount++] = conn;
-	BarbaUtils::PrintIp(conn->ClientIp );
-	printf(" - ");
-	BarbaUtils::PrintIp(conn->ClientFakeIp);
-	printf("\n");
-
 	return conn;
 }
 
@@ -154,7 +162,7 @@ void BarbaServerConnectionManager::RemoveConnection(BarbaServerConnection* conn)
 		if (Connections[i]==conn)
 		{
 			Connections[i]=Connections[ConnectionsCount-1];
-			theServerApp->VirtualIpManager.ReleaseIp(conn->ClientFakeIp);
+			theServerApp->VirtualIpManager.ReleaseIp(conn->ClientVirtualIp);
 			delete conn;
 			ConnectionsCount--;
 			break;

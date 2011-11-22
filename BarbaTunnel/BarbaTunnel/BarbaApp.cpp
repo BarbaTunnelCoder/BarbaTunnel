@@ -4,10 +4,14 @@
 
 BarbaApp::BarbaApp(void)
 {
+	BarbaUtils::GetModuleFolder(ModuleFolder);
+	_stprintf_s(ConfigFile, _T("%s\\config.ini"), ModuleFolder);
 	ZeroMemory ( &CurrentRequest, sizeof(ETH_REQUEST) );
 	ZeroMemory ( &PacketBuffer, sizeof(INTERMEDIATE_BUFFER) );
 	CurrentRequest.EthPacket.Buffer = &PacketBuffer;
 	IsDebugMode = false;
+
+	AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetConfigFile());
 }
 
 

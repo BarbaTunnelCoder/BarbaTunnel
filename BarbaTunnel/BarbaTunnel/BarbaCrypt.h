@@ -4,9 +4,9 @@
 class BarbaCrypt
 {
 public:
-	static void Crypt(BYTE* buffer, int len);
-	static void CryptPacket(PacketHelper* packet);
-	static void CryptUdp(PacketHelper* packet);
-	static void CryptTcp(PacketHelper* packet);
+	static void Crypt(BYTE* buffer, size_t bufferCount, BYTE* key, size_t keyCount);
+	static void CryptPacket(PacketHelper* packet, BYTE* key, size_t keyCount);
+	static void CryptUdp(PacketHelper* packet, BYTE* key, size_t keyCount);
+	static void CryptTcp(PacketHelper* packet, BYTE* key, size_t keyCount);
 };
 

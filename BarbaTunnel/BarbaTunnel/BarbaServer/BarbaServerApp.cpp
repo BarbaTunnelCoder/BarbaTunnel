@@ -26,7 +26,7 @@ void BarbaServerApp::Init()
 	BarbaUtils::GetModuleFolder(moduleFolder);
 
 	TCHAR file[MAX_PATH];
-	_stprintf_s(file, _countof(file), _T("%s\\config\\server.cfg"), moduleFolder);
+	_stprintf_s(file, _countof(file), _T("%s\\server.ini"), moduleFolder);
 	Config.LoadFile(file);
 }
 
@@ -61,7 +61,7 @@ void BarbaServerApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 
 	if (send)
 	{
-		connection = ConnectionManager.FindByFakeIp(packet.GetDesIp());
+		connection = ConnectionManager.FindByVirtualIp(packet.GetDesIp());
 	}
 	else
 	{

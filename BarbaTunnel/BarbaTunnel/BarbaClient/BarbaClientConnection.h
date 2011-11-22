@@ -18,20 +18,34 @@ public:
 	DWORD LasNegotiationTime;
 	u_short ClientPort;
 	bool ProcessPacket(INTERMEDIATE_BUFFER* packet);
+	void ReportConnection();
 
 private:
 	bool CreateUdpBarbaPacket(PacketHelper* packet, BYTE* barbaPacket);
 	bool ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer);
 	bool ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuffer);
 	bool ProcessPacketUdpTunnel(INTERMEDIATE_BUFFER* packetBuffer);
+	void CryptPacket(PacketHelper* packet);
 };
 
 //BarbaClientConnectionManager
 class BarbaClientConnectionManager
 {
 private:
-	BarbaClientConnection* Connections[MAX_BARBA_CONNECTIONS];
+	BarbaClientConnection* Connections[BARBA_MAX_CONNECTIONS];
 	size_t ConnectionsCount;
+
+	void CleanTimeoutConnections()
+	{
+		for (size_t i=0; i<ConnectionsCount; i++)
+		{
+			if (GetTickCount()-Connections[i]->LasNegotiationTime>BARBA_CONNECTION_TIMEOUT)
+			{
+				RemoveConnection(Connections[i]);
+				i--;
+			}
+		}
+	}
 
 public:
 	BarbaClientConnectionManager()
@@ -82,8 +96,10 @@ public:
 		conn->Config = config;
 		conn->ConfigItem = configItem;
 		conn->ClientPort = packet->GetSrcPort();
-		//conn->ClientPort = configItem->TunnelPort;
+		conn->ReportConnection();
+		conn->LasNegotiationTime = GetTickCount();
 		Connections[ConnectionsCount++] = conn;
+		CleanTimeoutConnections();
 		return conn;
 	}
 };
