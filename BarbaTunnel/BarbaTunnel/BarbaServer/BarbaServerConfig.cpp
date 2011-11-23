@@ -15,7 +15,6 @@ BarbaServerConfig::BarbaServerConfig()
 	DebugMode = 0;
 	VirtualIpRange.EndIp = 0;
 	VirtualIpRange.StartIp = 0;
-	AdapterIndex = 0;
 	KeyCount = 0;
 	ItemsCount = 0;
 }
@@ -24,7 +23,6 @@ BarbaServerConfig::BarbaServerConfig()
 bool BarbaServerConfig::LoadFile(LPCTSTR file)
 {
 	DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, file)!=0;
-	AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, file);
 
 	//Key
 	TCHAR hexKey[BARBA_MAX_KEYLEN*2];

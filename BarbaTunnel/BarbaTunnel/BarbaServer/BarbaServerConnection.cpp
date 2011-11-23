@@ -23,12 +23,13 @@ bool BarbaServerConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYT
 	CryptPacket(barbaPacket);
 	PacketHelper orgPacket(orgPacketBuffer, 0);
 	orgPacket.SetEthHeader(barbaPacket->ethHeader);
-	orgPacket.SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload());
-	return true;
+	return orgPacket.SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload()) && orgPacket.IsValidChecksum();
 }
 
 bool BarbaServerConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* barbaPacketBuffer)
 {
+	packet->RecalculateChecksum();
+
 	PacketHelper barbaPacket(barbaPacketBuffer, IPPROTO_UDP);
 	barbaPacket.SetEthHeader(packet->ethHeader);
 	barbaPacket.ipHeader->ip_ttl = packet->ipHeader->ip_ttl;
@@ -61,6 +62,8 @@ bool BarbaServerConnection::ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuf
 	else
 	{
 		CryptPacket(&packet);
+		if (!packet.IsValidChecksum())
+			return false;
 		packet.SetSrcIp(this->ClientVirtualIp);
 		packet.SetDesPort(this->ConfigItem->RealPort);
 		packet.RecalculateChecksum();
@@ -143,6 +146,8 @@ bool BarbaServerConnection::ProcessPacketUdpTunnel(INTERMEDIATE_BUFFER* packetBu
 
 BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelper* packet, BarbaServerConfigItem* configItem)
 {
+	CleanTimeoutConnections();
+
 	BarbaServerConnection* conn = new BarbaServerConnection();
 	conn->ConfigItem = configItem;
 	memcpy_s(conn->ClientEthAddress, ETH_ALEN, packet->ethHeader->h_source, ETH_ALEN);

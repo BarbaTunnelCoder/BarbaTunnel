@@ -37,10 +37,11 @@ public:
 	u_short GetSrcPort();
 	void SetDesPort(u_short port);
 	void SetSrcPort(u_short port);
-	void SetIpPacket(iphdr_ptr ipHeader);
+	bool SetIpPacket(iphdr_ptr ipHeader);
 	BYTE* GetIpExtraHeader(); 
 	size_t GetIpExtraHeaderLen(); 
 	void RecalculateChecksum();
+	bool IsValidChecksum();
 
 	
 	bool IsTcp() { return tcpHeader!=NULL;}
@@ -63,6 +64,7 @@ public:
 	static void RecalculateUDPChecksum(iphdr_ptr pIpHeader);
 	static void RecalculateTCPChecksum(iphdr_ptr pIpHeader);
 	static void RecalculateIPChecksum(iphdr_ptr pIpHeader, bool calculateProtoCheckSum=true);
+	static bool IsValidIPChecksum(iphdr_ptr pIpHeader);
 	static DWORD ConvertStringIp(LPCTSTR pszIp);
 	static void ConvertIpToString(DWORD ip, TCHAR* buffer, rsize_t bufferCount);
 	static BYTE ConvertStringProtocol(LPCTSTR protocol);

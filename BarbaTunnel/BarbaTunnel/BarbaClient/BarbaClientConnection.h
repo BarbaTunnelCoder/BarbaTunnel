@@ -92,6 +92,8 @@ public:
 
 	BarbaClientConnection* CreateConnection(PacketHelper* packet, BarbaClientConfig* config, BarbaClientConfigItem* configItem)
 	{
+		CleanTimeoutConnections();
+
 		BarbaClientConnection* conn = new BarbaClientConnection();
 		conn->Config = config;
 		conn->ConfigItem = configItem;
@@ -99,7 +101,6 @@ public:
 		conn->ReportConnection();
 		conn->LasNegotiationTime = GetTickCount();
 		Connections[ConnectionsCount++] = conn;
-		CleanTimeoutConnections();
 		return conn;
 	}
 };
