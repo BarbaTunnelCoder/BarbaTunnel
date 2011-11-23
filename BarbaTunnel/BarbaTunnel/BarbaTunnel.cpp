@@ -67,7 +67,7 @@ bool CheckAdapterIndex()
 
 void SetMTU()
 {
-	api.SetMTUDecrement( GetMTUDecrement() ) ;
+	api.SetMTUDecrement( barbaApp->GetMTUDecrement() ) ;
 
 	LPCTSTR msg = 
 		_T("Barbatunnel set new MTU decrement to have enough space for adding Barba header to your packet.\n\n")
