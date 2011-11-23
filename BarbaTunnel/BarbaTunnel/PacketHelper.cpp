@@ -142,12 +142,16 @@ void PacketHelper::SetEthPacket(ether_header_ptr ethHeader)
 	Reinit();
 }
 
-void PacketHelper::SetIpPacket(iphdr_ptr ipHeader)
+bool PacketHelper::SetIpPacket(iphdr_ptr ipHeader)
 {
+	if (ntohs(ipHeader->ip_len)>MAX_ETHER_FRAME-sizeof ether_header)
+		return false; //big IP!
+
 	this->ethHeader->h_proto = htons(ETH_P_IP);
 	this->ipHeader = (iphdr*)(ethHeader + 1);
 	memcpy_s(this->ipHeader, MAX_ETHER_FRAME-sizeof ether_header, ipHeader, ntohs(ipHeader->ip_len));
 	Reinit();
+	return true;
 }
 
 void PacketHelper::SetSrcEthAddress(BYTE* address)
@@ -180,8 +184,30 @@ size_t PacketHelper::GetTcpExtraHeaderLen()
 	return tcpHeader->th_off*4 - sizeof (tcphdr);
 }
 
+bool PacketHelper::IsValidChecksum()
+{
+	return IsIp() && PacketHelper::IsValidIPChecksum(ipHeader);
+}
+
+bool PacketHelper::IsValidIPChecksum(iphdr_ptr ipHeader)
+{
+	if (ntohs(ipHeader->ip_len)>MAX_ETHER_FRAME-sizeof ether_header)
+		return false; //big IP!
+
+	BYTE buffer[MAX_ETHER_FRAME];
+	iphdr_ptr ipPacket = (iphdr_ptr)buffer;
+	memcpy(ipPacket, ipHeader, ntohs(ipHeader->ip_len));
+	PacketHelper::RecalculateIPChecksum((iphdr_ptr)ipPacket, false);
+	return ipPacket->ip_sum==ipPacket->ip_sum;
+}
+
+
 void PacketHelper::RecalculateIPChecksum(iphdr_ptr pIpHeader, bool calculateProtoCheckSum)
 {
+	if (ntohs(pIpHeader->ip_len)>MAX_ETHER_FRAME-sizeof ether_header)
+		return ; //big IP!
+
+
 	if (calculateProtoCheckSum)
 	{
 		if (pIpHeader->ip_p==IPPROTO_TCP) RecalculateTCPChecksum(pIpHeader);

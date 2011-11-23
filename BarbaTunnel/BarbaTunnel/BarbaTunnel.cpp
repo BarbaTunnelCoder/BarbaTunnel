@@ -189,22 +189,28 @@ int main(int argc, char* argv[])
 		WaitForSingleObject ( hEvent, INFINITE );
 		while(api.ReadPacket(&barbaApp->CurrentRequest))
 		{
-			PINTERMEDIATE_BUFFER buffer = barbaApp->CurrentRequest.EthPacket.Buffer;
-			bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
+			__try
+			{
+				PINTERMEDIATE_BUFFER buffer = barbaApp->CurrentRequest.EthPacket.Buffer;
+				bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
 
-			//check commands
-			if (barbaApp->CheckTerminateCommands(buffer))
-				terminate = true;
+				//check commands
+				if (barbaApp->CheckTerminateCommands(buffer))
+					terminate = true;
 
+				//process packet
+				barbaApp->ProcessPacket(buffer);
 
-			//process packet
-			barbaApp->ProcessPacket(buffer);
-
-			//send packet
-			if (send)
-				api.SendPacketToAdapter(&barbaApp->CurrentRequest);
-			else
-				api.SendPacketToMstcp(&barbaApp->CurrentRequest);
+				//send packet
+				if (send)
+					api.SendPacketToAdapter(&barbaApp->CurrentRequest);
+				else
+					api.SendPacketToMstcp(&barbaApp->CurrentRequest);
+			}
+			__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
+			{
+				_tprintf(_T("Application throw unhandled exception! packet dropped.\n"));
+			}
 		}
 		ResetEvent(hEvent);
 	}

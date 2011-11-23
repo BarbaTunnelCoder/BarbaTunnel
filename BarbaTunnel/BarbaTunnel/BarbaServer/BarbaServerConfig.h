@@ -22,7 +22,6 @@ public:
 
 	bool DebugMode;
 	IpRange VirtualIpRange;
-	int AdapterIndex;
 	BYTE Key[BARBA_MAX_KEYLEN];
 	int KeyCount;
 	bool LoadFile(LPCTSTR file);
