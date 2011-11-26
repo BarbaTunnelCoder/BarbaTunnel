@@ -9,10 +9,17 @@ void BarbaClientConnection::CryptPacket(PacketHelper* packet)
 
 void BarbaClientConnection::ReportConnection()
 {
-	TCHAR ip[100];
-	PacketHelper::ConvertIpToString(Config->ServerIp, ip, _countof(ip));
+	TCHAR serverIp[100];
+	PacketHelper::ConvertIpToString(Config->ServerIp, serverIp, _countof(serverIp));
 	LPCTSTR mode = BarbaMode_ToString(ConfigItem->Mode);
-	printf(_T("New connection! %s - %s:%d\n"), ip, mode, ConfigItem->TunnelPort);
+	LPCTSTR connectionName = _tcslen(ConfigItem->Name)>0 ? ConfigItem->Name : _T("Connection");
+	TCHAR serverName[BARBA_MAX_CONFIGNAME];
+	if (_tcslen(Config->ServerName)>0)
+		_stprintf_s(serverName, _T("%s (%s)"), Config->ServerName, serverIp);
+	else
+		_stprintf_s(serverName, _T("%s"), serverIp);
+	BarbaLog(_T("New %s, Server: %s, Protocol: %s:%d"), connectionName, serverName, mode, this->ConfigItem->TunnelPort);
+	BarbaNotify(_T("New %s\r\nServer: %s\r\nProtocol: %s:%d"), connectionName, serverName, mode, this->ConfigItem->TunnelPort);
 }
 
 bool BarbaClientConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer)

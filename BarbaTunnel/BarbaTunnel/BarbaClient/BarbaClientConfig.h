@@ -7,6 +7,7 @@ class BarbaClientConfigItem
 {
 public:
 	BarbaModeEnum Mode;
+	TCHAR Name[BARBA_MAX_CONFIGNAME];
 	u_char GetTunnelProtocol();
 	bool IsTunnelMode() { return Mode==BarbaModeTcpTunnel || Mode==BarbaModeUdpTunnel; }
 	bool IsRedirectMode() { return Mode==BarbaModeTcpRedirect || Mode==BarbaModeUdpRedirect; }
@@ -24,6 +25,7 @@ class BarbaClientConfig
 public:
 	BarbaClientConfig();
 	DWORD ServerIp;
+	TCHAR ServerName[BARBA_MAX_CONFIGNAME];
 	BYTE Key[BARBA_MAX_KEYLEN];
 	int KeyCount;
 	BarbaClientConfigItem Items[BARBA_MAX_CONFIGITEMS];

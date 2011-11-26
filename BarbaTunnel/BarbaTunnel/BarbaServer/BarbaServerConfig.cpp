@@ -8,6 +8,7 @@ BarbaServerConfigItem::BarbaServerConfigItem()
 	this->ListenPortsCount = 0;
 	this->Enabled = true;
 	this->RealPort = 0;
+	this->Name[0] = 0;
 }
 
 BarbaServerConfig::BarbaServerConfig()
@@ -68,9 +69,10 @@ bool BarbaServerConfig::LoadFile(LPCTSTR file)
 		BarbaServerConfigItem* item = &this->Items[this->ItemsCount];
 		item->Mode = BarbaMode_FromString(modeString);
 		item->Enabled = GetPrivateProfileInt(sectionName, "Enabled", 1, file)!=0;
+		GetPrivateProfileString(sectionName, _T("Name"), _T(""), item->Name, _countof(item->Name), file);
+		item->RealPort = (u_short)GetPrivateProfileInt(sectionName, "RealPort", 0, file);
 		if (!item->Enabled)
 			continue;
-		item->RealPort = (u_short)GetPrivateProfileInt(sectionName, "RealPort", 0, file);
 
 		//ListenPorts
 		TCHAR listenPorts[BARBA_MAX_PORTITEM*10];

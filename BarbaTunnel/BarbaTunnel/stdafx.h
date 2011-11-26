@@ -13,6 +13,7 @@
 
 #include <windows.h>
 #include <shellapi.h>
+#include <shlobj.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <tchar.h>

@@ -111,19 +111,39 @@ int BarbaUtils::ConvertHexStringToBuffer(TCHAR* hexString, BYTE* buffer, int buf
 	return bufferIndex;
 }
 
-bool BarbaUtils::SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine, int nShow, LPCTSTR lpszWorkDirectory, LPCTSTR lpVerb, HWND hWnd)
+bool BarbaUtils::SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine, int nShow, LPCTSTR lpszWorkDirectory, LPCTSTR lpVerb, HWND hWnd, DWORD* lpExitCode)
 {
+	DWORD ExitCode = 0;
+	if (lpExitCode==NULL)
+		lpExitCode = &ExitCode;
+
 	SHELLEXECUTEINFO s;
 	memset (&s,0,sizeof s);
 
-	s.cbSize=sizeof SHELLEXECUTEINFO;
-	s.fMask= 0;
-	s.hwnd=hWnd;
-	s.lpVerb=lpVerb;
+	s.cbSize = sizeof SHELLEXECUTEINFO;
+	s.fMask = SEE_MASK_NOASYNC | SEE_MASK_NOCLOSEPROCESS;
+	s.hwnd = hWnd;
+	s.lpVerb = lpVerb;
 	s.lpFile = fileName;
 	s.lpParameters = commandLine;
 	s.lpDirectory = lpszWorkDirectory;
-	s.nShow=nShow;
+	s.nShow = nShow;
+	bool ret = ShellExecuteEx(&s) != FALSE;
 
-	return ShellExecuteEx(&s)!=FALSE;
+	if (lpExitCode!=NULL)
+	{
+		while(TRUE)
+		{
+			WaitForSingleObject(s.hProcess, INFINITE);
+			GetExitCodeProcess(s.hProcess, lpExitCode);
+			if ( *lpExitCode!=STILL_ACTIVE )
+				break;
+		}
+	}
+
+	//close process handle
+	if (s.hProcess!=NULL)
+		CloseHandle(s.hProcess);
+
+	return ret;
 }

@@ -10,6 +10,7 @@ public:
 	bool IsRedirectMode() { return Mode==BarbaModeTcpRedirect || Mode==BarbaModeTcpRedirect; }
 	BarbaModeEnum Mode;
 	PortRange ListenPorts[BARBA_MAX_PORTITEM];
+	TCHAR Name[BARBA_MAX_CONFIGNAME];
 	int ListenPortsCount;
 	u_short RealPort; //valid when mode is UDP-Redirect or TCP-Redirect mode
 	bool Enabled;
