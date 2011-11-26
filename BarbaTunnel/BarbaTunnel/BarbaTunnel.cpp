@@ -105,7 +105,6 @@ void ReleaseInterface()
 
 bool Test()
 {
-	Foo("%d--%d", 2, 1);
 	//BarbaLog
 
 	//StartCommandListener();
