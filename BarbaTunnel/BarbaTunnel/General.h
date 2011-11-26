@@ -6,8 +6,9 @@
 #define BARBA_MAX_PORTITEM 100
 #define BARBA_MAX_KEYLEN 1500
 #define BARBA_MAX_VIRTUALIP 0xFFFF
+#define BARBA_MAX_CONFIGNAME 100
 #define BARBA_CURRENT_VERSION 1
-#define BARBA_CONNECTION_TIMEOUT (3*3600*1000)
+#define BARBA_CONNECTION_TIMEOUT (1*3600*1000)
 
 //BarbaModeEnum
 enum BarbaModeEnum
@@ -45,7 +46,7 @@ struct ProtocolPort
 struct BarbaHeader
 {
 	GUID Signature;
-	BYTE Version;
+	BYTE Version;	
 };
 
 
@@ -53,3 +54,5 @@ BarbaModeEnum BarbaMode_FromString(LPCTSTR mode);
 LPCTSTR BarbaMode_ToString(BarbaModeEnum mode);
 u_char BarbaMode_GetProtocol(BarbaModeEnum mode);
 GUID* GetBarbaSign();
+void BarbaLog(LPCTSTR msg, ...);
+void BarbaNotify(LPCTSTR msg, ...);

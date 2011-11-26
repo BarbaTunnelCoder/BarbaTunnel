@@ -9,6 +9,8 @@ BarbaClientConfigItem::BarbaClientConfigItem()
 	TunnelPort = 0;
 	RealPort = 0;
 	Enabled = false;
+	Name[0] = 0;
+
 }
 
 u_char BarbaClientConfigItem::GetTunnelProtocol()
@@ -82,6 +84,7 @@ BarbaClientConfig* BarbaClientConfigManager::FindByServerIP(DWORD ip)
 BarbaClientConfig::BarbaClientConfig()
 {
 	ServerIp = 0;
+	ServerName[0] = 0;
 	KeyCount = 0;
 	ItemsCount = 0;
 }
@@ -94,6 +97,10 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	if (this->ServerIp==0)
 		return false;
 
+	//Name
+	GetPrivateProfileString(_T("General"), _T("ServerName"), _T(""), ServerName, _countof(ServerName), file);
+
+	//Key
 	TCHAR hexKey[BARBA_MAX_KEYLEN*2];
 	GetPrivateProfileString(_T("General"), _T("Key"), _T(""), hexKey, _countof(hexKey), file);
 	this->KeyCount = BarbaUtils::ConvertHexStringToBuffer(hexKey, this->Key, _countof(this->Key));
@@ -123,10 +130,11 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 		item->Mode = BarbaMode_FromString(modeString);
 		item->TunnelPort = (u_short)GetPrivateProfileInt(sectionName, "TunnelPort", 0, file);
 		item->RealPort = (u_short)GetPrivateProfileInt(sectionName, "RealPort", 0, file);
+		GetPrivateProfileString(sectionName, _T("Name2"), _T(""), item->Name, _countof(item->Name), file);
 		if (!item->Enabled || item->Mode==BarbaModeNone)
 			continue;
 
-		//GrabProtocols
+		//Name
 		TCHAR grabProtocols[1000];
 		GetPrivateProfileString(sectionName, _T("GrabProtocols"), _T(""), grabProtocols, _countof(grabProtocols), file);
 		ParseGrabProtocols(item, grabProtocols);

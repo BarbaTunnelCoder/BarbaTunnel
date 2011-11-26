@@ -10,7 +10,8 @@ HANDLE				hEvent;
 bool IsBarbaServer;
 BarbaClientApp barbaClientApp;
 BarbaServerApp barbaServerApp;
-BarbaApp* barbaApp;
+BarbaApp* barbaApp = NULL;
+void StartCommandListener();
 
 bool CheckAdapterIndex()
 {
@@ -102,8 +103,14 @@ void ReleaseInterface()
 	api.FlushAdapterPacketQueue (AdList.m_nAdapterHandle[CurrentAdapterIndex]);
 }
 
+bool Test()
+{
+	Foo("%d--%d", 2, 1);
+	//BarbaLog
 
-RAS_LINKS RasLinks;
+	//StartCommandListener();
+	return true;
+}
 
 int main(int argc, char* argv[])
 {
@@ -136,6 +143,7 @@ int main(int argc, char* argv[])
 		else if (_stricmp(argv[i], "/setmtu")==0)
 		{
 			SetMTU();
+			barbaApp->Comm.CreateFilesWithAdminPrompt();
 			return 0;
 		}
 	}
@@ -145,11 +153,17 @@ int main(int argc, char* argv[])
 	{
 		TCHAR file[MAX_PATH];
 		GetModuleFileName(NULL, file, _countof(file));
-		printf ("Set new MTU decrement: %d\n", barbaApp->GetMTUDecrement());
+		TCHAR msg[200];
+		_stprintf_s(msg, "Try to set new MTU decrement: %d\n", barbaApp->GetMTUDecrement());
+		BarbaLog(msg);
 		BarbaUtils::SimpleShellExecute(file, _T("/setmtu"), SW_HIDE, NULL, _T("runas"));
 		return 0;
 	}
-	
+
+	//try prepare Comm Files
+	if (!barbaApp->Comm.CreateFiles() && !barbaApp->Comm.CreateFilesWithAdminPrompt())
+		BarbaLog(_T("Could not prepare Barbacomm files!"));
+
 	//get adapter list
 	api.GetTcpipBoundAdaptersInfo ( &AdList );
 	if (!CheckAdapterIndex())
@@ -176,11 +190,14 @@ int main(int argc, char* argv[])
 	api.SetAdapterMode(&Mode);
 
 	//print info
-	printf(_T("Barba %s Started\n"), IsBarbaServer ? _T("Server") : _T("Client"));
-	printf(_T("Version: %d\n"), BARBA_CURRENT_VERSION);
 	TCHAR adapterName[ADAPTER_NAME_SIZE];
 	CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[CurrentAdapterIndex], adapterName, _countof(adapterName));
-	printf(_T("Adpater Name: %s\n"), adapterName);
+	LPCTSTR barbaName = IsBarbaServer ? _T("Barba Server") : _T("Barba Client");
+	BarbaLog(_T("%s Started...\r\nVersion: %d\r\nAdapter: %s\r\nReady!"), barbaName, BARBA_CURRENT_VERSION, adapterName);
+	BarbaNotify(_T("%s Ready\r\nVersion: %d\r\nAdpater: %s"), barbaName, BARBA_CURRENT_VERSION, adapterName);
+
+	//start command listener
+	StartCommandListener();
 
 
 	bool terminate = false;
@@ -196,7 +213,10 @@ int main(int argc, char* argv[])
 
 				//check commands
 				if (barbaApp->CheckTerminateCommands(buffer))
+				{
+					BarbaLog(_T("Terminate Command Received."));
 					terminate = true;
+				}
 
 				//process packet
 				barbaApp->ProcessPacket(buffer);
@@ -209,13 +229,75 @@ int main(int argc, char* argv[])
 			}
 			__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
 			{
-				_tprintf(_T("Application throw unhandled exception! packet dropped.\n"));
+				BarbaLog(_T("Application throw unhandled exception! packet dropped.\n"));
 			}
 		}
 		ResetEvent(hEvent);
 	}
 
-	printf ("Filtering complete\n");
+	BarbaLog(_T("Finish."));
 	return 0;
+}
+
+DWORD CALLBACK CommandListenerThread(LPVOID /*lpdwThreadParam*/)
+{
+	SECURITY_DESCRIPTOR sd = { 0 };
+	::InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION);
+	::SetSecurityDescriptorDacl(&sd, TRUE, 0, FALSE);
+	SECURITY_ATTRIBUTES sa = { 0 };
+	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+	sa.lpSecurityDescriptor = &sd;
+
+	BarbaComm c;
+	HANDLE eventHandle = CreateEvent(&sa, FALSE, FALSE, _T("Global\\BarbaTunnel_CommandEvent"));
+	while (WaitForSingleObject ( eventHandle, INFINITE ))
+	{
+	}
+	return 0;
+}
+
+void StartCommandListener()
+{
+	DWORD threadId;
+	CreateThread(NULL, 0, CommandListenerThread, NULL, 0, &threadId);
+}
+
+
+void BarbaLog(LPCTSTR format, ...)
+{
+	va_list argp;
+	va_start(argp, format);
+	CHAR msg[10000];
+	_vstprintf_s(msg, format, argp);
+	va_end(argp);
+
+	if (barbaApp!=NULL)
+	{
+		barbaApp->Comm.Log(msg, false);
+	}
+	else
+	{
+		_tprintf_s(msg);
+		_tprintf_s(_T("\r\n"));
+	}
+}
+
+void BarbaNotify(LPCTSTR format, ...)
+{
+	va_list argp;
+	va_start(argp, format);
+	CHAR msg[10000];
+	_vstprintf_s(msg, format, argp);
+	va_end(argp);
+
+	if (barbaApp!=NULL)
+	{
+		barbaApp->Comm.Log(msg, true);
+	}
+	else
+	{
+		_tprintf_s(msg);
+		_tprintf_s(_T("\r\n"));
+	}
 }
 

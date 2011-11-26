@@ -14,8 +14,10 @@ void BarbaServerConnection::ReportConnection()
 	PacketHelper::ConvertIpToString(this->ClientIp, ip, _countof(ip));
 	TCHAR virtualIp[50];
 	PacketHelper::ConvertIpToString(this->ClientVirtualIp, virtualIp, _countof(virtualIp));
+	LPCTSTR connectionName = _tcslen(ConfigItem->Name)>0 ? ConfigItem->Name : _T("Connection");
 	LPCTSTR mode = BarbaMode_ToString(ConfigItem->Mode);
-	printf(_T("New connection! %s - %s:%d, Virtual IP: %s\n"), ip, mode, this->ClientTunnelPort, virtualIp);
+	BarbaLog(_T("New %s! %s - %s:%d, Virtual IP: %s"), connectionName, ip, mode, this->ClientTunnelPort, virtualIp);
+	BarbaNotify(_T("New %s\r\nClient IP: %s\r\nClient Virtual IP: %s\r\nProtocol: %s:%d"), connectionName, ip, virtualIp, mode, this->ClientTunnelPort);
 }
 
 bool BarbaServerConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer)

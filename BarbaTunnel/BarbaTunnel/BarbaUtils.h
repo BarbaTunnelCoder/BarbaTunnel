@@ -11,6 +11,6 @@ public:
 	//@return number of bytes copied to buffer
 	static int ConvertHexStringToBuffer(TCHAR* hexString, BYTE* buffer, int bufferCount);
 	// @param lphProcess return handle to opened process; if not NULL user must close handle after use it
-	static bool SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine=_T(""), int nShow=SW_SHOWNORMAL, LPCTSTR lpszWorkDirectory = NULL, LPCTSTR lpVerb=NULL, HWND hWnd=NULL);
+	static bool SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine=_T(""), int nShow=SW_SHOWNORMAL, LPCTSTR lpszWorkDirectory = NULL, LPCTSTR lpVerb=NULL, HWND hWnd=NULL, DWORD* lpExitCode=NULL);
 
 };

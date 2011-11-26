@@ -82,7 +82,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="icon1.ico" />
     <None Include="ReadMe.txt">
       <DeploymentContent>false</DeploymentContent>
     </None>
@@ -92,6 +91,7 @@
     <ClInclude Include="BarbaClient\BarbaClientApp.h" />
     <ClInclude Include="BarbaClient\BarbaClientConfig.h" />
     <ClInclude Include="BarbaClient\BarbaClientConnection.h" />
+    <ClInclude Include="BarbaComm.h" />
     <ClInclude Include="BarbaCrypt.h" />
     <ClInclude Include="BarbaServer\BarbaServerApp.h" />
     <ClInclude Include="BarbaServer\BarbaServerConnection.h" />
@@ -109,6 +109,7 @@
     <ClCompile Include="BarbaClient\BarbaClientApp.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientConfig.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientConnection.cpp" />
+    <ClCompile Include="BarbaComm.cpp" />
     <ClCompile Include="BarbaCrypt.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerApp.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerConfig.cpp" />

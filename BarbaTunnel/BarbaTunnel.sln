@@ -5,15 +5,23 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BarbaTunnel", "BarbaTunnel\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BarbaMonitor", "BarbaMonitor\BarbaMonitor.csproj", "{CA8CFBC1-0A2A-44F3-B7C3-3F33FF1FBBA7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BarbaService", "BarbaService\BarbaService.csproj", "{E9771B53-0287-4311-82FA-0AADDD61D794}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 2
+		SccNumberOfProjects = 4
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs34
 		SccLocalPath0 = .
 		SccProjectUniqueName1 = BarbaTunnel\\BarbaTunnel.vcxproj
 		SccProjectName1 = BarbaTunnel
 		SccLocalPath1 = BarbaTunnel
+		SccProjectUniqueName2 = BarbaMonitor\\BarbaMonitor.csproj
+		SccProjectName2 = BarbaMonitor
+		SccLocalPath2 = BarbaMonitor
+		SccProjectUniqueName3 = BarbaService\\BarbaService.csproj
+		SccProjectName3 = BarbaService
+		SccLocalPath3 = BarbaService
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -44,6 +52,16 @@ Global
 		{CA8CFBC1-0A2A-44F3-B7C3-3F33FF1FBBA7}.Release|Win32.ActiveCfg = Release|x86
 		{CA8CFBC1-0A2A-44F3-B7C3-3F33FF1FBBA7}.Release|x86.ActiveCfg = Release|x86
 		{CA8CFBC1-0A2A-44F3-B7C3-3F33FF1FBBA7}.Release|x86.Build.0 = Release|x86
+		{E9771B53-0287-4311-82FA-0AADDD61D794}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{E9771B53-0287-4311-82FA-0AADDD61D794}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{E9771B53-0287-4311-82FA-0AADDD61D794}.Debug|Win32.ActiveCfg = Debug|x86
+		{E9771B53-0287-4311-82FA-0AADDD61D794}.Debug|x86.ActiveCfg = Debug|x86
+		{E9771B53-0287-4311-82FA-0AADDD61D794}.Debug|x86.Build.0 = Debug|x86
+		{E9771B53-0287-4311-82FA-0AADDD61D794}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{E9771B53-0287-4311-82FA-0AADDD61D794}.Release|Mixed Platforms.Build.0 = Release|x86
+		{E9771B53-0287-4311-82FA-0AADDD61D794}.Release|Win32.ActiveCfg = Release|x86
+		{E9771B53-0287-4311-82FA-0AADDD61D794}.Release|x86.ActiveCfg = Release|x86
+		{E9771B53-0287-4311-82FA-0AADDD61D794}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
