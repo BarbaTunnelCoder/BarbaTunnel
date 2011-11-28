@@ -213,7 +213,7 @@ void PacketHelper::RecalculateIPChecksum(iphdr_ptr pIpHeader, bool calculateProt
 		if (pIpHeader->ip_p==IPPROTO_TCP) RecalculateTCPChecksum(pIpHeader);
 		else if (pIpHeader->ip_p==IPPROTO_UDP) RecalculateUDPChecksum(pIpHeader);
 		else if (pIpHeader->ip_p==IPPROTO_ICMP) RecalculateICMPChecksum(pIpHeader);
-		else printf("Unknown protocol for checksum!\n"); 
+		//else _tprintf_s("Unknown protocol for checksum!\n"); 
 	}
 
 

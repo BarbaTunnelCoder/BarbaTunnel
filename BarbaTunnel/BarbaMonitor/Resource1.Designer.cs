@@ -60,9 +60,23 @@ namespace BarbaMonitor {
             }
         }
         
-        internal static System.Drawing.Icon NotifyIcon {
+        internal static System.Drawing.Icon Status_Idle {
             get {
-                object obj = ResourceManager.GetObject("NotifyIcon", resourceCulture);
+                object obj = ResourceManager.GetObject("Status_Idle", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Icon Status_Started {
+            get {
+                object obj = ResourceManager.GetObject("Status_Started", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Icon Status_Stopped {
+            get {
+                object obj = ResourceManager.GetObject("Status_Stopped", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
             }
         }

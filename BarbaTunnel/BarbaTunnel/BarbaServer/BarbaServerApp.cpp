@@ -14,13 +14,14 @@ BarbaServerApp::~BarbaServerApp(void)
 {
 }
 
-void BarbaServerApp::Init()
+void BarbaServerApp::Initialize()
 {
 	if (theServerApp!=NULL)
 	{
 		throw _T("BarbaServerApp Already Initialized!");
 	}
 	theServerApp = this;
+	BarbaApp::Initialize();
 
 	TCHAR moduleFolder[MAX_PATH];
 	BarbaUtils::GetModuleFolder(moduleFolder);

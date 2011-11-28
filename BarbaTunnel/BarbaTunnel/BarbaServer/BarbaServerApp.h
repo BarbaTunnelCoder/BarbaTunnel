@@ -12,7 +12,7 @@ public:
 
 	BarbaServerConfig Config;
 	BarbaServerConnectionManager ConnectionManager;
-	void Init();
+	void Initialize();
 	void ProcessPacket(INTERMEDIATE_BUFFER* packet);
 	BarbaVirtualIpManager VirtualIpManager;
 

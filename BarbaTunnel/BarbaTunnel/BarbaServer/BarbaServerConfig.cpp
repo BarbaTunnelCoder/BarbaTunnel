@@ -13,7 +13,6 @@ BarbaServerConfigItem::BarbaServerConfigItem()
 
 BarbaServerConfig::BarbaServerConfig()
 {
-	DebugMode = 0;
 	VirtualIpRange.EndIp = 0;
 	VirtualIpRange.StartIp = 0;
 	KeyCount = 0;
@@ -23,7 +22,7 @@ BarbaServerConfig::BarbaServerConfig()
 
 bool BarbaServerConfig::LoadFile(LPCTSTR file)
 {
-	DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, file)!=0;
+	AutoStartDelayMinutes = GetPrivateProfileInt(_T("General"), _T("AutoStartDelayMinutes"), 0, file);
 
 	//Key
 	TCHAR hexKey[BARBA_MAX_KEYLEN*2];
