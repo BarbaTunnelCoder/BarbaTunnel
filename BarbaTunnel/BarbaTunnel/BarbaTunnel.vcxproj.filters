@@ -66,6 +66,9 @@
     <ClInclude Include="BarbaComm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BarbaConfigItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -108,6 +111,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BarbaComm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaConfigItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

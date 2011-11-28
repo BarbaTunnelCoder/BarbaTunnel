@@ -44,7 +44,7 @@ bool BarbaClientApp::IsGrabPacket(PacketHelper* packet, BarbaClientConfigItem* c
 	}
 
 
-	for (int j=0; j<configItem->GrabProtocolsCount; j++)
+	for (size_t j=0; j<configItem->GrabProtocolsCount; j++)
 	{
 		//check GrabProtocols for tunnel modes
 		ProtocolPort* protocolPort = &configItem->GrabProtocols[j];

@@ -1,22 +1,32 @@
 #include "StdAfx.h"
 #include "BarbaClientConfig.h"
 #include "PacketHelper.h"
+#include "BarbaUtils.h"
 
 BarbaClientConfigItem::BarbaClientConfigItem()
 {
 	GrabProtocolsCount = 0;
-	Mode = BarbaModeNone;
-	TunnelPort = 0;
-	RealPort = 0;
-	Enabled = false;
-	Name[0] = 0;
-
+	memset(GrabProtocols, 0, _countof(GrabProtocols));
+	LastTunnelPortIndex = 0;
 }
 
-u_char BarbaClientConfigItem::GetTunnelProtocol()
+u_short BarbaClientConfigItem::GetNewTunnelPort()
 {
-	return BarbaMode_GetProtocol(this->Mode);
+	int newPortIndex = LastTunnelPortIndex % GetTotalTunnelPortsCount();
+	for (size_t i=0; i<TunnelPortsCount; i++)
+	{
+		int count = TunnelPorts[i].EndPort - TunnelPorts[i].StartPort + 1;
+		if (newPortIndex<count)
+		{
+			LastTunnelPortIndex++;
+			return (u_short)(TunnelPorts[i].StartPort + newPortIndex);
+		}
+		newPortIndex -= count;
+	}
+
+	return 0;
 }
+
 
 void BarbaClientConfig::ParseGrabProtocols(BarbaClientConfigItem* item, LPCTSTR value)
 {
@@ -114,24 +124,13 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 		TCHAR sectionName[50];
 		_stprintf_s(sectionName, _countof(sectionName), _T("Item%d"), i+1);
 
-		//fail if mode not found
-		TCHAR modeString[100];
-		int res = GetPrivateProfileString(sectionName, _T("Mode"), _T(""), modeString, _countof(modeString), file);
-		if (res==0) 
-		{
-			notfoundCounter++;
-			continue;
-		}
-		notfoundCounter = 0;
-
 		//read item
 		BarbaClientConfigItem* item = &this->Items[this->ItemsCount];
-		item->Enabled = GetPrivateProfileInt(sectionName, "Enabled", 1, file)!=0;
-		item->Mode = BarbaMode_FromString(modeString);
-		item->TunnelPort = (u_short)GetPrivateProfileInt(sectionName, "TunnelPort", 0, file);
-		item->RealPort = (u_short)GetPrivateProfileInt(sectionName, "RealPort", 0, file);
-		GetPrivateProfileString(sectionName, _T("Name"), _T(""), item->Name, _countof(item->Name), file);
-		if (!item->Enabled || item->Mode==BarbaModeNone)
+		bool load = item->Load(sectionName, file);
+		if (!load)
+			notfoundCounter++;
+
+		if (!load || !item->Enabled || item->Mode==BarbaModeNone || item->GetTotalTunnelPortsCount()==0)
 			continue;
 
 		//Name
@@ -139,6 +138,7 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 		GetPrivateProfileString(sectionName, _T("GrabProtocols"), _T(""), grabProtocols, _countof(grabProtocols), file);
 		ParseGrabProtocols(item, grabProtocols);
 		this->ItemsCount++;
+
 	}
 
 	return this->ItemsCount>0;

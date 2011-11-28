@@ -1,4 +1,5 @@
 #pragma once
+#include "General.h"
 
 class BarbaUtils
 {
@@ -13,5 +14,7 @@ public:
 	// @param lphProcess return handle to opened process; if not NULL user must close handle after use it
 	static bool SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine=_T(""), int nShow=SW_SHOWNORMAL, LPCTSTR lpszWorkDirectory = NULL, LPCTSTR lpVerb=NULL, HWND hWnd=NULL, DWORD* lpExitCode=NULL);
 	static bool SimpleShellExecuteAndWait(LPCTSTR fileName, LPCTSTR commandLine=_T(""), int nShow=SW_SHOWNORMAL, LPCTSTR lpszWorkDirectory = NULL, LPCTSTR lpVerb=NULL, HWND hWnd=NULL);
-
+	//@param value: StartPort-EndPort,StartPort-EndPort,StartPort-EndPort
+	//return number of parsed portRanges
+	static size_t ParsePortRanges(LPCTSTR value, PortRange* portRanges, size_t portRangeCount);
 };
