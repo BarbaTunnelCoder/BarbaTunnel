@@ -7,7 +7,7 @@ class BarbaClientApp : public BarbaApp
 {
 public:
 	BarbaClientApp();
-	void Init();
+	void Initialize();
 	BarbaClientConfigManager ConfigManager;
 	BarbaClientConnectionManager ConnectionManager;
 	GUID* GetBarbaSign();

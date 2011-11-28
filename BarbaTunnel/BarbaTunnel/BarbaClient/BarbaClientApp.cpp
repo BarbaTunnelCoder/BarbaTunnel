@@ -8,13 +8,14 @@ BarbaClientApp::BarbaClientApp()
 {
 }
 
-void BarbaClientApp::Init()
+void BarbaClientApp::Initialize()
 {
 	if (theClientApp!=NULL)
 	{
 		throw _T("BarbaClientApp Already Initialized!");
 	}
 	theClientApp = this;
+	BarbaApp::Initialize();
 
 	TCHAR moduleFolder[MAX_PATH];
 	BarbaUtils::GetModuleFolder(moduleFolder);

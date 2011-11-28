@@ -10,14 +10,12 @@ HANDLE				hEvent;
 bool IsBarbaServer;
 BarbaClientApp barbaClientApp;
 BarbaServerApp barbaServerApp;
-BarbaApp* barbaApp = NULL;
-void StartCommandListener();
 
 bool CheckAdapterIndex()
 {
-	if (barbaApp->AdapterIndex-1>=0 && barbaApp->AdapterIndex-1<(int)AdList.m_nAdapterCount)
+	if (theApp->GetAdapterIndex()-1>=0 && theApp->GetAdapterIndex()-1<(int)AdList.m_nAdapterCount)
 	{
-		CurrentAdapterIndex = barbaApp->AdapterIndex-1;
+		CurrentAdapterIndex = theApp->GetAdapterIndex()-1;
 		return true;
 	}
 
@@ -61,14 +59,16 @@ bool CheckAdapterIndex()
 	_tcscat_s(msg, _T("\nDo you want to open config.ini file now?"));
 	if (MessageBox(NULL, msg, _T("Barbatunnel"), MB_ICONWARNING|MB_YESNO)==IDYES)
 	{
-		BarbaUtils::SimpleShellExecute(barbaApp->GetConfigFile(), NULL, SW_SHOW, NULL, _T("edit"));
+		BarbaUtils::SimpleShellExecute(theApp->GetConfigFile(), NULL, SW_SHOW, NULL, _T("edit"));
 	}
 	return false;
 }
 
-void SetMTU()
+bool SetMTU()
 {
-	api.SetMTUDecrement( barbaApp->GetMTUDecrement() ) ;
+	api.SetMTUDecrement( theApp->GetMTUDecrement() ) ;
+	if (api.GetMTUDecrement()!=theApp->GetMTUDecrement())
+		return false;
 
 	LPCTSTR msg = 
 		_T("Barbatunnel set new MTU decrement to have enough space for adding Barba header to your packet.\n\n")
@@ -78,6 +78,8 @@ void SetMTU()
 	{
 		BarbaUtils::SimpleShellExecute(_T("shutdown.exe"), _T("/r /t 0 /d p:4:2"), SW_HIDE);
 	}
+
+	return true;
 }
 
 
@@ -113,55 +115,76 @@ bool Test()
 
 int main(int argc, char* argv[])
 {
-	//set process priority
-	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+	//find IsBarbaServer
+	IsBarbaServer = GetPrivateProfileInt(_T("General"), _T("ServerMode"), 0, BarbaApp::GetConfigFile())!=0;
 
-	//check is driver loaded
-	if(!api.IsDriverLoaded())
+	//create App
+	theApp = IsBarbaServer ? (BarbaApp*)&barbaServerApp : (BarbaApp*)&barbaClientApp ;
+	theApp->Initialize();
+
+	//check is already running
+	if (theApp->Comm.IsAlreadyRunning())
 	{
-		printf ("Driver not installed on this system of failed to load.\n");
+		BarbaLog(_T("Barbatunnel already running!"));
 		return 0;
 	}
-
-	//create BarbaApp
-	for (int i=0; i<argc; i++)
-	{
-		if (_stricmp(argv[i], "/server")==0)
-			IsBarbaServer = true;
-	}
-	barbaApp = IsBarbaServer ? (BarbaApp*)&barbaServerApp : (BarbaApp*)&barbaClientApp ;
-	barbaApp->Init();
 
 	//process other command line
 	for (int i=0; i<argc; i++)
 	{
-		if (_stricmp(argv[i], "/debug")==0)
-		{
-			barbaApp->IsDebugMode = true;
-		}
-		else if (_stricmp(argv[i], "/setmtu")==0)
+		if (_tcsicmp(argv[i], _T("/setmtu"))==0)
 		{
 			SetMTU();
-			barbaApp->Comm.CreateFilesWithAdminPrompt();
+			theApp->Comm.CreateFilesWithAdminPrompt();
 			return 0;
+		}
+		else if (_tcsicmp(argv[i], _T("/delaystart"))==0 && IsBarbaServer)
+		{
+			DWORD delayMin = theServerApp->Config.AutoStartDelayMinutes;
+			theApp->Comm.SetStatus(_T("Waiting"));
+			BarbaLog(_T("Barba Server waiting for AutoStartDelayMinutes (%d minutes)."), delayMin);
+			Sleep(delayMin * 60* 1000);
 		}
 	}
 
 	//try to set MTU as administrator
-	if (barbaApp->GetMTUDecrement() > api.GetMTUDecrement()  )
+	if (theApp->GetMTUDecrement() > api.GetMTUDecrement()  )
 	{
-		TCHAR file[MAX_PATH];
-		GetModuleFileName(NULL, file, _countof(file));
-		TCHAR msg[200];
-		_stprintf_s(msg, "Try to set new MTU decrement: %d\n", barbaApp->GetMTUDecrement());
-		BarbaLog(msg);
-		BarbaUtils::SimpleShellExecute(file, _T("/setmtu"), SW_HIDE, NULL, _T("runas"));
+		BarbaLog(_T("Try to set new MTU decrement: %d"), theApp->GetMTUDecrement());
+		if (!SetMTU())
+		{
+			theApp->Dispose();
+			BarbaLog(_T("Could not set new MTU decrement. Retry with administrator prompt."));
+			BarbaUtils::SimpleShellExecute(BarbaApp::GetModuleFile(), _T("/setmtu"), SW_HIDE, NULL, _T("runas"));
+		}
 		return 0;
 	}
 
 	//try prepare Comm Files
-	if (!barbaApp->Comm.CreateFiles() && !barbaApp->Comm.CreateFilesWithAdminPrompt())
+	if (!theApp->Comm.CreateFiles() && !theApp->Comm.CreateFilesWithAdminPrompt())
 		BarbaLog(_T("Could not prepare Barbacomm files!"));
+
+	//create command listener event
+	SECURITY_DESCRIPTOR sd = { 0 };
+	InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION);
+	SetSecurityDescriptorDacl(&sd, TRUE, 0, FALSE);
+	SECURITY_ATTRIBUTES sa = { 0 };
+	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+	sa.lpSecurityDescriptor = &sd;
+	HANDLE commandEventHandle = CreateEvent(&sa, FALSE, FALSE, _T("Global\\BarbaTunnel_CommandEvent"));
+	if (commandEventHandle==NULL)
+	{
+		BarbaLog(_T("Could not create Global\\BarbaTunnel_CommandEvent!"));
+		return 0;
+	}
+
+	//check is driver loaded (let after Comm Files created)
+	if(!api.IsDriverLoaded())
+	{
+		BarbaLog(_T("Error: Driver not installed on this system or failed to load!\r\nPlease go to http://www.ntndis.com/w&p.php?id=7 and install WinpkFilter driver."));
+		BarbaNotify(_T("Error: Driver not installed!\r\nDriver not installed on this system or failed to load!"));
+		return 0;
+	}
 
 	//get adapter list
 	api.GetTcpipBoundAdaptersInfo ( &AdList );
@@ -178,125 +201,111 @@ int main(int argc, char* argv[])
 	// Set event for helper driver
 	if ((!hEvent)||(!api.SetPacketEvent((HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex], hEvent)))
 	{
-		printf ("Failed to create notification event or set it for driver.\n");
+		BarbaLog(_T("Failed to create notification event or set it for driver."));
 		return 0;
 	}
 
 	atexit (ReleaseInterface);
 	
 	// Initialize Request
-	barbaApp->CurrentRequest.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
+	theApp->CurrentRequest.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
 	api.SetAdapterMode(&Mode);
 
-	//print info
+	//report info
 	TCHAR adapterName[ADAPTER_NAME_SIZE];
 	CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[CurrentAdapterIndex], adapterName, _countof(adapterName));
 	LPCTSTR barbaName = IsBarbaServer ? _T("Barba Server") : _T("Barba Client");
 	BarbaLog(_T("%s Started...\r\nVersion: %d\r\nAdapter: %s\r\nReady!"), barbaName, BARBA_CURRENT_VERSION, adapterName);
-	BarbaNotify(_T("%s Ready\r\nVersion: %d\r\nAdpater: %s"), barbaName, BARBA_CURRENT_VERSION, adapterName);
+	BarbaNotify(_T("%s Started\r\nVersion: %d\r\nAdpater: %s"), barbaName, BARBA_CURRENT_VERSION, adapterName);
+	theApp->Comm.SetStatus(_T("Started"));
 
-	//start command listener
-	StartCommandListener();
+	//set current process priority to process network packets as fast as possible
+	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 
+	//Handle
+	HANDLE events[2];
+	events[0] = hEvent;
+	events[1] = commandEventHandle;
 
+	BarbaComm::CommandEnum barbaCommand = BarbaComm::CommandNone;
 	bool terminate = false;
 	while (!terminate)
 	{
-		WaitForSingleObject ( hEvent, INFINITE );
-		while(api.ReadPacket(&barbaApp->CurrentRequest))
+		DWORD res = WaitForMultipleObjects(_countof(events), events, FALSE, INFINITE);
+		if (res==WAIT_OBJECT_0-0)
 		{
-			__try
+			while(api.ReadPacket(&theApp->CurrentRequest))
 			{
-				PINTERMEDIATE_BUFFER buffer = barbaApp->CurrentRequest.EthPacket.Buffer;
-				bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
-
-				//check commands
-				if (barbaApp->CheckTerminateCommands(buffer))
+				__try
 				{
-					BarbaLog(_T("Terminate Command Received."));
-					terminate = true;
+					PINTERMEDIATE_BUFFER buffer = theApp->CurrentRequest.EthPacket.Buffer;
+					bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
+
+					//check commands
+					if (theApp->IsDebugMode() && theApp->CheckTerminateCommands(buffer))
+					{
+						BarbaLog(_T("Terminate Command Received."));
+						terminate = true;
+					}
+
+					//process packet
+					theApp->ProcessPacket(buffer);
+
+					//send packet
+					if (send)
+						api.SendPacketToAdapter(&theApp->CurrentRequest);
+					else
+						api.SendPacketToMstcp(&theApp->CurrentRequest);
 				}
-
-				//process packet
-				barbaApp->ProcessPacket(buffer);
-
-				//send packet
-				if (send)
-					api.SendPacketToAdapter(&barbaApp->CurrentRequest);
-				else
-					api.SendPacketToMstcp(&barbaApp->CurrentRequest);
+				__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
+				{
+					BarbaLog(_T("Application throw unhandled exception! packet dropped.\n"));
+				}
 			}
-			__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
-			{
-				BarbaLog(_T("Application throw unhandled exception! packet dropped.\n"));
-			}
+			ResetEvent(hEvent);
 		}
-		ResetEvent(hEvent);
+		else 
+		{
+			barbaCommand = theApp->Comm.GetCommand();
+			if (barbaCommand==BarbaComm::CommandRestart || barbaCommand==BarbaComm::CommandStop)
+				terminate = true;
+			ResetEvent(commandEventHandle);
+		}
 	}
 
-	BarbaLog(_T("Finish."));
-	return 0;
-}
+	//report finish
+	BarbaLog(_T("Barbatunnel Stopped."));
+	if (theApp!=NULL)
+		theApp->Comm.SetStatus(_T("Stopped"));
 
-DWORD CALLBACK CommandListenerThread(LPVOID /*lpdwThreadParam*/)
-{
-	SECURITY_DESCRIPTOR sd = { 0 };
-	::InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION);
-	::SetSecurityDescriptorDacl(&sd, TRUE, 0, FALSE);
-	SECURITY_ATTRIBUTES sa = { 0 };
-	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-	sa.lpSecurityDescriptor = &sd;
-
-	BarbaComm c;
-	HANDLE eventHandle = CreateEvent(&sa, FALSE, FALSE, _T("Global\\BarbaTunnel_CommandEvent"));
-	while (WaitForSingleObject ( eventHandle, INFINITE ))
+	//report restarting
+	HANDLE newThreadHandle = NULL;
+	if (barbaCommand==BarbaComm::CommandRestart)
 	{
-	}
-	return 0;
-}
-
-void StartCommandListener()
-{
-	DWORD threadId;
-	CreateThread(NULL, 0, CommandListenerThread, NULL, 0, &threadId);
-}
-
-
-void BarbaLog(LPCTSTR format, ...)
-{
-	va_list argp;
-	va_start(argp, format);
-	CHAR msg[10000];
-	_vstprintf_s(msg, format, argp);
-	va_end(argp);
-
-	if (barbaApp!=NULL)
-	{
-		barbaApp->Comm.Log(msg, false);
+		BarbaLog(_T("Barbatunnel Restarting..."));
+		STARTUPINFO inf = {0};
+		inf.cb = sizeof STARTUPINFO;
+		GetStartupInfo(&inf);
+		PROCESS_INFORMATION pi = {0};
+		if (CreateProcess(BarbaApp::GetModuleFile(), _T(""), NULL, NULL, FALSE, 0, NULL, NULL, &inf, &pi))
+			newThreadHandle = pi.hThread;
+		else
+			BarbaLog(_T("Failed to restart Barbatunnel!"));
 	}
 	else
 	{
-		_tprintf_s(msg);
-		_tprintf_s(_T("\r\n"));
+		BarbaNotify(_T("%s Stopped\r\nBarbatunnel Stopped"), barbaName);
 	}
+
+	//cleanup
+	theApp->Dispose();
+	CloseHandle(commandEventHandle);
+
+	//restarting after dispose
+	if (newThreadHandle!=NULL)
+		ResumeThread(newThreadHandle);
+	return 0;
 }
 
-void BarbaNotify(LPCTSTR format, ...)
-{
-	va_list argp;
-	va_start(argp, format);
-	CHAR msg[10000];
-	_vstprintf_s(msg, format, argp);
-	va_end(argp);
 
-	if (barbaApp!=NULL)
-	{
-		barbaApp->Comm.Log(msg, true);
-	}
-	else
-	{
-		_tprintf_s(msg);
-		_tprintf_s(_T("\r\n"));
-	}
-}
 

@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <tchar.h>
+#include <time.h>
 #include "WinpkFilter\Common.h"
 #include "WinpkFilter\ndisapi.h"
 #include "WinpkFilter\iphlp.h"

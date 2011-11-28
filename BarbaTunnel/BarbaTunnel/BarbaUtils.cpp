@@ -111,17 +111,20 @@ int BarbaUtils::ConvertHexStringToBuffer(TCHAR* hexString, BYTE* buffer, int buf
 	return bufferIndex;
 }
 
+bool BarbaUtils::SimpleShellExecuteAndWait(LPCTSTR fileName, LPCTSTR commandLine, int nShow, LPCTSTR lpszWorkDirectory, LPCTSTR lpVerb, HWND hWnd)
+{
+	DWORD exitCode;
+	return SimpleShellExecute(fileName, commandLine, nShow, lpszWorkDirectory, lpVerb, hWnd, &exitCode);
+}
+
+
 bool BarbaUtils::SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine, int nShow, LPCTSTR lpszWorkDirectory, LPCTSTR lpVerb, HWND hWnd, DWORD* lpExitCode)
 {
-	DWORD ExitCode = 0;
-	if (lpExitCode==NULL)
-		lpExitCode = &ExitCode;
-
 	SHELLEXECUTEINFO s;
 	memset (&s,0,sizeof s);
 
 	s.cbSize = sizeof SHELLEXECUTEINFO;
-	s.fMask = SEE_MASK_NOASYNC | SEE_MASK_NOCLOSEPROCESS;
+	s.fMask = (lpExitCode!=NULL) ? SEE_MASK_NOCLOSEPROCESS : 0;
 	s.hwnd = hWnd;
 	s.lpVerb = lpVerb;
 	s.lpFile = fileName;
@@ -132,7 +135,7 @@ bool BarbaUtils::SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine, int n
 
 	if (lpExitCode!=NULL)
 	{
-		while(TRUE)
+		for(;;)
 		{
 			WaitForSingleObject(s.hProcess, INFINITE);
 			GetExitCodeProcess(s.hProcess, lpExitCode);

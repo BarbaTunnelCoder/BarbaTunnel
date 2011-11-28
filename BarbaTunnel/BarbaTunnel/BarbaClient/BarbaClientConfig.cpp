@@ -130,7 +130,7 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 		item->Mode = BarbaMode_FromString(modeString);
 		item->TunnelPort = (u_short)GetPrivateProfileInt(sectionName, "TunnelPort", 0, file);
 		item->RealPort = (u_short)GetPrivateProfileInt(sectionName, "RealPort", 0, file);
-		GetPrivateProfileString(sectionName, _T("Name2"), _T(""), item->Name, _countof(item->Name), file);
+		GetPrivateProfileString(sectionName, _T("Name"), _T(""), item->Name, _countof(item->Name), file);
 		if (!item->Enabled || item->Mode==BarbaModeNone)
 			continue;
 

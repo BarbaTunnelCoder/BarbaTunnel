@@ -20,8 +20,7 @@ class BarbaServerConfig
 {
 public:
 	BarbaServerConfig();
-
-	bool DebugMode;
+	DWORD AutoStartDelayMinutes;
 	IpRange VirtualIpRange;
 	BYTE Key[BARBA_MAX_KEYLEN];
 	int KeyCount;
