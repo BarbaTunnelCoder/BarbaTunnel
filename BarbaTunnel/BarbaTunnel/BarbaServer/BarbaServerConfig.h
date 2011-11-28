@@ -1,19 +1,10 @@
 #pragma once
-#include "General.h"
+#include "BarbaConfigItem.h"
 
-class BarbaServerConfigItem
+class BarbaServerConfigItem : public BarbaConfigItem
 {
 public:
 	BarbaServerConfigItem();
-	u_char GetTunnelProtocol() {return BarbaMode_GetProtocol(this->Mode);}
-	bool IsTunnelMode() { return Mode==BarbaModeTcpTunnel || Mode==BarbaModeUdpTunnel; }
-	bool IsRedirectMode() { return Mode==BarbaModeTcpRedirect || Mode==BarbaModeTcpRedirect; }
-	BarbaModeEnum Mode;
-	PortRange ListenPorts[BARBA_MAX_PORTITEM];
-	TCHAR Name[BARBA_MAX_CONFIGNAME];
-	int ListenPortsCount;
-	u_short RealPort; //valid when mode is UDP-Redirect or TCP-Redirect mode
-	bool Enabled;
 };
 
 class BarbaServerConfig
@@ -23,13 +14,9 @@ public:
 	DWORD AutoStartDelayMinutes;
 	IpRange VirtualIpRange;
 	BYTE Key[BARBA_MAX_KEYLEN];
-	int KeyCount;
+	size_t KeyCount;
 	bool LoadFile(LPCTSTR file);
 
 	BarbaServerConfigItem Items[BARBA_MAX_CONFIGITEMS];
-	int ItemsCount;
-
-private:
-	//@param value: Protocol:Port,Protocol:Port ; eg: TCP:80,TCP:429,TCP:*,1:0
-	static void ParseListenPorts(BarbaServerConfigItem* item, LPCTSTR value);
+	size_t ItemsCount;
 };

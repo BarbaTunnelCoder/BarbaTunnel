@@ -4,11 +4,7 @@
 
 BarbaServerConfigItem::BarbaServerConfigItem()
 {
-	this->Mode = BarbaModeNone;
-	this->ListenPortsCount = 0;
-	this->Enabled = true;
 	this->RealPort = 0;
-	this->Name[0] = 0;
 }
 
 BarbaServerConfig::BarbaServerConfig()
@@ -54,52 +50,22 @@ bool BarbaServerConfig::LoadFile(LPCTSTR file)
 		TCHAR sectionName[50];
 		_stprintf_s(sectionName, _countof(sectionName), _T("Item%d"), i+1);
 
-		//fail if mode not found
-		TCHAR modeString[100];
-		int res = GetPrivateProfileString(sectionName, _T("Mode"), _T(""), modeString, _countof(modeString), file);
-		if (res==0) 
-		{
-			notfoundCounter++;
-			continue;
-		}
-		notfoundCounter = 0;
-
 		//read item
 		BarbaServerConfigItem* item = &this->Items[this->ItemsCount];
-		item->Mode = BarbaMode_FromString(modeString);
-		item->Enabled = GetPrivateProfileInt(sectionName, "Enabled", 1, file)!=0;
-		GetPrivateProfileString(sectionName, _T("Name"), _T(""), item->Name, _countof(item->Name), file);
-		item->RealPort = (u_short)GetPrivateProfileInt(sectionName, "RealPort", 0, file);
-		if (!item->Enabled)
+		bool load = item->Load(sectionName, file);
+		if (!load)
+			notfoundCounter++;
+
+		if (!load || !item->Enabled || item->Mode==BarbaModeNone || item->GetTotalTunnelPortsCount()==0)
 			continue;
 
 		//ListenPorts
-		TCHAR listenPorts[BARBA_MAX_PORTITEM*10];
-		GetPrivateProfileString(sectionName, _T("ListenPorts"), _T(""), listenPorts, _countof(listenPorts), file);
-		ParseListenPorts(item, listenPorts);
+		TCHAR tunnelPorts[BARBA_MAX_PORTITEM*10];
+		GetPrivateProfileString(sectionName, _T("TunnelPorts"), _T(""), tunnelPorts, _countof(tunnelPorts), file);
+		item->TunnelPortsCount = BarbaUtils::ParsePortRanges(tunnelPorts, item->TunnelPorts, _countof(item->TunnelPorts));
 		this->ItemsCount++;
 	}
 
 	return true;
 }
 
-void BarbaServerConfig::ParseListenPorts(BarbaServerConfigItem* item, LPCTSTR value)
-{
-	item->ListenPortsCount = 0;
-	
-	TCHAR buffer[1000];
-	_tcscpy_s(buffer, value);
-
-	TCHAR* currentPos = NULL;
-	LPCTSTR token = _tcstok_s(buffer, _T(","), &currentPos);
-		
-	while (token!=NULL && item->ListenPortsCount<_countof(item->ListenPorts))
-	{
-		PortRange* portRange = &item->ListenPorts[item->ListenPortsCount];
-		if (BarbaUtils::GetPortRange(token, &portRange->StartPort, &portRange->EndPort))
-		{
-			item->ListenPortsCount++;
-		}
-		token = _tcstok_s(NULL, _T(","), &currentPos);
-	}
-}

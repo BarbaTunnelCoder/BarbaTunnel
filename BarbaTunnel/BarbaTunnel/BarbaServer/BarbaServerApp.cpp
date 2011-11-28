@@ -33,7 +33,7 @@ void BarbaServerApp::Initialize()
 
 BarbaServerConfigItem* BarbaServerApp::IsGrabPacket(PacketHelper* packet)
 {
-	for (int i=0; i<this->Config.ItemsCount; i++)
+	for (size_t i=0; i<this->Config.ItemsCount; i++)
 	{
 		BarbaServerConfigItem* item = &this->Config.Items[i];
 		//check protocol
@@ -42,9 +42,9 @@ BarbaServerConfigItem* BarbaServerApp::IsGrabPacket(PacketHelper* packet)
 
 		//check port
 		u_short port = packet->GetDesPort();
-		for (int j=0; j<item->ListenPortsCount; j++)
+		for (size_t j=0; j<item->TunnelPortsCount; j++)
 		{
-			if (port>=item->ListenPorts[j].StartPort && port<=item->ListenPorts[j].EndPort)
+			if (port>=item->TunnelPorts[j].StartPort && port<=item->TunnelPorts[j].EndPort)
 				return item;
 		}
 	}

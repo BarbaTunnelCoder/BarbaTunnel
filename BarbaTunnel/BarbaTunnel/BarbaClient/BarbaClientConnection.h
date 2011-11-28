@@ -11,12 +11,14 @@ public:
 		ConfigItem = NULL;
 		LasNegotiationTime = 0;
 		ClientPort = 0;
+		TunnelPort = 0;
 	}
 
 	BarbaClientConfig* Config;
 	BarbaClientConfigItem* ConfigItem;
 	DWORD LasNegotiationTime;
 	u_short ClientPort;
+	u_short TunnelPort;
 	bool ProcessPacket(INTERMEDIATE_BUFFER* packet);
 	void ReportConnection();
 
@@ -98,6 +100,7 @@ public:
 		conn->Config = config;
 		conn->ConfigItem = configItem;
 		conn->ClientPort = packet->GetSrcPort();
+		conn->TunnelPort = conn->ConfigItem->GetNewTunnelPort();
 		conn->ReportConnection();
 		conn->LasNegotiationTime = GetTickCount();
 		Connections[ConnectionsCount++] = conn;

@@ -1,22 +1,17 @@
 #pragma once
-#include "General.h"
-#include "BarbaUtils.h"
+#include "BarbaConfigItem.h"
 
 //BarbaClientConfigItem
-class BarbaClientConfigItem
+class BarbaClientConfigItem : public BarbaConfigItem
 {
 public:
-	BarbaModeEnum Mode;
-	TCHAR Name[BARBA_MAX_CONFIGNAME];
-	u_char GetTunnelProtocol();
-	bool IsTunnelMode() { return Mode==BarbaModeTcpTunnel || Mode==BarbaModeUdpTunnel; }
-	bool IsRedirectMode() { return Mode==BarbaModeTcpRedirect || Mode==BarbaModeUdpRedirect; }
-	u_short TunnelPort;
+	u_short GetNewTunnelPort();
 	ProtocolPort GrabProtocols[BARBA_MAX_PORTITEM]; //valid when mode is UDP-Tunnel or TCP-Tunnel mode
-	int GrabProtocolsCount;
-	u_short RealPort; //valid when mode is UDP-Redirect or TCP-Redirect mode
-	bool Enabled;
+	size_t GrabProtocolsCount;
 	BarbaClientConfigItem();
+
+private:
+	DWORD LastTunnelPortIndex;
 };
 
 //BarbaClientConfig

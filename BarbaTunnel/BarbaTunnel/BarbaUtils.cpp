@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "General.h"
 #include "BarbaUtils.h"
 #include "PacketHelper.h"
 
@@ -32,7 +33,7 @@ bool BarbaUtils::GetPortRange(LPCTSTR value, u_short* startPort, u_short* endPor
 	}
 
 
-	return *startPort!=0;
+	return *startPort!=0 && (*endPort-*startPort)>=0;
 }
 
 bool BarbaUtils::GetProtocolAndPort(LPCTSTR value, BYTE* protocol, u_short* port)
@@ -149,4 +150,27 @@ bool BarbaUtils::SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine, int n
 		CloseHandle(s.hProcess);
 
 	return ret;
+}
+
+size_t BarbaUtils::ParsePortRanges(LPCTSTR value, PortRange* portRanges, size_t portRangeCount)
+{
+	size_t count = 0;
+	
+	TCHAR buffer[1000];
+	_tcscpy_s(buffer, value);
+	TCHAR* currentPos = NULL;
+	LPCTSTR token = _tcstok_s(buffer, _T(","), &currentPos);
+		
+	while (token!=NULL && count<portRangeCount)
+	{
+		PortRange* portRange = &portRanges[count];
+		if (BarbaUtils::GetPortRange(token, &portRange->StartPort, &portRange->EndPort))
+		{
+			count++;
+		}
+		token = _tcstok_s(NULL, _T(","), &currentPos);
+	}
+
+	return count;
+
 }

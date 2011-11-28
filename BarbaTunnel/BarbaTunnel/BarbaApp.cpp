@@ -76,4 +76,3 @@ void BarbaApp::Initialize()
 {
 	Comm.Initialize();
 }
-

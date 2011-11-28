@@ -18,8 +18,8 @@ void BarbaClientConnection::ReportConnection()
 		_stprintf_s(serverName, _T("%s (%s)"), Config->ServerName, serverIp);
 	else
 		_stprintf_s(serverName, _T("%s"), serverIp);
-	BarbaLog(_T("New %s, Server: %s, Protocol: %s:%d"), connectionName, serverName, mode, this->ConfigItem->TunnelPort);
-	BarbaNotify(_T("New %s\r\nServer: %s\r\nProtocol: %s:%d"), connectionName, serverName, mode, this->ConfigItem->TunnelPort);
+	BarbaLog(_T("New %s, Server: %s, Protocol: %s:%d"), connectionName, serverName, mode, this->TunnelPort);
+	BarbaNotify(_T("New %s\r\nServer: %s\r\nProtocol: %s:%d"), connectionName, serverName, mode, this->TunnelPort);
 }
 
 bool BarbaClientConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer)
@@ -43,7 +43,7 @@ bool BarbaClientConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* bar
 	barbaPacket.SetSrcIp(packet->GetSrcIp());
 	barbaPacket.SetDesIp(this->Config->ServerIp);
 	barbaPacket.SetSrcPort(this->ClientPort);
-	barbaPacket.SetDesPort(this->ConfigItem->TunnelPort);
+	barbaPacket.SetDesPort(this->TunnelPort);
 	barbaPacket.SetUdpPayload((BYTE*)packet->ipHeader, packet->GetIpLen());
 	CryptPacket(&barbaPacket);
 	return true;
@@ -75,7 +75,7 @@ bool BarbaClientConnection::ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuf
 
 	if (send)
 	{
-		packet.SetDesPort(this->ConfigItem->TunnelPort);
+		packet.SetDesPort(this->TunnelPort);
 		CryptPacket(&packet);
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
