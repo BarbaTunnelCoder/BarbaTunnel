@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Security.AccessControl;
 using System.Threading;
 using System.Runtime.InteropServices;
 using System.IO;
-using System.Windows;
 
 namespace BarbaMonitor
 {
@@ -168,20 +166,14 @@ namespace BarbaMonitor
 
         public void Initialize()
         {
-            //bool create;
-            //var sec = new EventWaitHandleSecurity();
-            //sec.SetAccessRule(new EventWaitHandleAccessRule("everyone", EventWaitHandleRights.FullControl, AccessControlType.Allow));
-            //NotifyEvent = new EventWaitHandle(false, EventResetMode.ManualReset, "Global\\BarbaTunnel_NotifyEvent", out create, sec);
-            //LogEvent = new EventWaitHandle(false, EventResetMode.ManualReset, "Global\\BarbaTunnel_LogEvent", out create, sec);
-            //_WaitForLogTread = new Thread(new ThreadStart(WaitForLogTreadMethod));
-            //_WaitForLogTread.Start();
             CreateFileWatcher();
             UpdateStatus();
         }
 
         public void Dispose()
         {
-            _FileWatcher.Dispose();
+            if (_FileWatcher!=null)
+                _FileWatcher.Dispose();
         }
 
         public String ReadNotify(out String title)
