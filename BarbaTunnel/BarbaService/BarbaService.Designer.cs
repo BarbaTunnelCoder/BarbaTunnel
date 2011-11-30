@@ -1,6 +1,6 @@
-﻿namespace BarbaService
+﻿namespace BarbaTunnel.Service
 {
-    partial class Service1
+    partial class BarbaService
     {
         /// <summary> 
         /// Required designer variable.
@@ -28,8 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
-            this.ServiceName = "Service1";
+            // 
+            // BarbaService
+            // 
+            this.ServiceName = "BarbaService";
+
         }
 
         #endregion

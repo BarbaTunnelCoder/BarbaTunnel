@@ -39,7 +39,7 @@ bool BarbaClientConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* bar
 	barbaPacket.ipHeader->ip_ttl = packet->ipHeader->ip_ttl;
 	barbaPacket.ipHeader->ip_v = packet->ipHeader->ip_v;
 	barbaPacket.ipHeader->ip_id = 56;
-	barbaPacket.ipHeader->ip_off = 0;
+	barbaPacket.ipHeader->ip_off = packet->ipHeader->ip_off;
 	barbaPacket.SetSrcIp(packet->GetSrcIp());
 	barbaPacket.SetDesIp(this->Config->ServerIp);
 	barbaPacket.SetSrcPort(this->ClientPort);
@@ -76,6 +76,7 @@ bool BarbaClientConnection::ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuf
 	if (send)
 	{
 		packet.SetDesPort(this->TunnelPort);
+		packet.SetSrcPort(this->ClientPort);
 		CryptPacket(&packet);
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
@@ -86,6 +87,7 @@ bool BarbaClientConnection::ProcessPacketRedirect(INTERMEDIATE_BUFFER* packetBuf
 		if (!packet.IsValidChecksum())
 			return false;
 		packet.SetSrcPort(this->ConfigItem->RealPort);
+		packet.SetDesPort(this->OrgClientPort);
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
 	}
@@ -126,4 +128,20 @@ bool BarbaClientConnection::ProcessPacketUdpTunnel(INTERMEDIATE_BUFFER* packetBu
 		return true;
 	}
 
+}
+
+BarbaClientConnection* BarbaClientConnectionManager::CreateConnection(PacketHelper* packet, BarbaClientConfig* config, BarbaClientConfigItem* configItem)
+{
+	CleanTimeoutConnections();
+
+	BarbaClientConnection* conn = new BarbaClientConnection();
+	conn->Config = config;
+	conn->ConfigItem = configItem;
+	conn->ClientPort = 1419;
+	conn->OrgClientPort = packet->GetSrcPort();
+	conn->TunnelPort = conn->ConfigItem->GetNewTunnelPort();
+	conn->ReportConnection();
+	conn->LasNegotiationTime = GetTickCount();
+	Connections[ConnectionsCount++] = conn;
+	return conn;
 }

@@ -67,6 +67,9 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 	if (!packet.IsIp())
 		return;
 
+	//DWORD testIp =
+	//if (packet.IsTcp() && packet.GetDesIp()==PacketHelper::ConvertStringIp(_T("?") && packet.GetS
+
 	if (send)
 	{
 		BarbaClientConfig* config = ConfigManager.FindByServerIP(packet.GetDesIp());
@@ -76,7 +79,7 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 
 		//create new connection if not found
 		//in Redirect mode, the connection should always match the client port, to permit reestablish the connection
-		connection = ConnectionManager.FindByConfigItem(configItem, configItem->IsRedirectMode() ? packet.GetSrcPort() : 0);
+		connection = ConnectionManager.FindByConfigItem(configItem, /*configItem->IsRedirectMode() ? packet.GetSrcPort() :*/ 0);
 		if (connection==NULL)
 			connection = ConnectionManager.CreateConnection(&packet, config, configItem);
 	}

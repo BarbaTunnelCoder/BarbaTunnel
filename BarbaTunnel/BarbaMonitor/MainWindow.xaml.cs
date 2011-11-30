@@ -17,8 +17,9 @@ using System.Security.Principal;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Windows.Threading;
+using BarbaTunnel.CommLib;
 
-namespace BarbaMonitor
+namespace BarbaTunnel.Monitor
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -38,14 +39,18 @@ namespace BarbaMonitor
             BarbaComm.NotifyChanged += new EventHandler(BarbaComm_Notified);
             BarbaComm.LogChanged += new EventHandler(BarbaComm_LogAdded);
             BarbaComm.StatusChanged += new EventHandler(BarbaComm_StatusChanged);
-            BarbaNotify.NotifyIcon.DoubleClick += new EventHandler(NotifyIcon_DoubleClick);
-            BarbaNotify.NotifyIcon.Click += new EventHandler(NotifyIcon_DoubleClick);
-            BarbaNotify.ExitMenu.Click += delegate(object sender, EventArgs args) { ExitMode = true; this.Close(); };
+            //BarbaNotify.NotifyIcon.DoubleClick += new EventHandler(NotifyIcon_DoubleClick);
+            BarbaNotify.NotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_MouseClick);
+            BarbaNotify.NotifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_MouseClick);
+            BarbaNotify.MainWindowMenu.Click += delegate(object sender, EventArgs args) { this.Visibility = System.Windows.Visibility.Visible; this.Activate(); };
+            BarbaNotify.ExitMenu.Click += delegate(object sender, EventArgs args) { this.DoStopAndExit(); };
             BarbaNotify.StartMenu.Click += delegate(object sender, EventArgs args) { this.DoStart(); };
             BarbaNotify.RestartMenu.Click += delegate(object sender, EventArgs args) { this.DoRestart(); };
             BarbaNotify.StopMenu.Click += delegate(object sender, EventArgs args) { this.DoStop(); };
             InitializeComponent();
             BarbaComm.Initialize();
+            if (BarbaComm.Status == BarbaStatus.Stopped)
+                DoStart();
         }
 
         void UpdateStatus()
@@ -53,18 +58,21 @@ namespace BarbaMonitor
             BarbaStatus status = BarbaComm.Status;
             if (status == BarbaStatus.Stopped)
             {
-                BarbaNotify.NotifyIcon.Icon = Resource1.Status_Stopped;
                 statusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                BarbaNotify.NotifyIcon.Icon = new System.Drawing.Icon(Resource1.Status_Stopped, new System.Drawing.Size(16, 16));
+                Icon = StopIcon.Source;
             }
             else if (status == BarbaStatus.Idle)
             {
-                BarbaNotify.NotifyIcon.Icon = Resource1.Status_Idle;
                 statusTextBlock.Foreground = new SolidColorBrush(Colors.Orange);
+                BarbaNotify.NotifyIcon.Icon = new System.Drawing.Icon(Resource1.Status_Idle, new System.Drawing.Size(16, 16));
+                Icon = IdleIcon.Source;
             }
             else
             {
                 statusTextBlock.Foreground = new SolidColorBrush(Colors.Green);
-                BarbaNotify.NotifyIcon.Icon = Resource1.Status_Started;
+                BarbaNotify.NotifyIcon.Icon = new System.Drawing.Icon(Resource1.Status_Started, new System.Drawing.Size(16, 16));
+                Icon = StartIcon.Source;
             }
 
             BarbaNotify.StartMenu.Enabled = startButton.IsEnabled = status == BarbaStatus.Stopped;
@@ -121,23 +129,53 @@ namespace BarbaMonitor
             }
         }
 
+        void NotifyIcon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Left)
+            {
+                this.Visibility = System.Windows.Visibility.Visible;
+                this.Activate();
+            }
+        }
+
 
         void NotifyIcon_DoubleClick(object sender, EventArgs e)
         {
             this.Visibility = System.Windows.Visibility.Visible;
+            this.Activate();
         }
 
         void MainWindow_Closed(object sender, EventArgs e)
         {
+            if (BarbaComm.Status != BarbaStatus.Stopped)
+                BarbaComm.Stop();
+
             BarbaComm.Dispose();
             BarbaNotify.Dispose();
+        }
+
+        void DoStopAndExit()
+        {
+            try
+            {
+                if (BarbaComm.Status != BarbaStatus.Stopped)
+                    BarbaComm.Stop();
+
+                this.ExitMode = true;
+                this.Close();
+
+            }
+            catch { }
         }
 
         void DoStart()
         {
             try
             {
-                BarbaComm.Start();
+                if (BarbaComm.IsServiceRunnig)
+                    BarbaComm.StartByService();
+                else
+                    BarbaComm.Start();
             }
             catch (Exception err)
             {

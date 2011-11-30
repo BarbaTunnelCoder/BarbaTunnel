@@ -6,7 +6,7 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System.IO;
 
-namespace BarbaMonitor
+namespace BarbaTunnel.CommLib
 {
     public enum BarbaStatus
     {
@@ -16,7 +16,7 @@ namespace BarbaMonitor
         Idle,
     }
 
-    class BarbaComm : IDisposable
+    public class BarbaComm : IDisposable
     {
         [DllImport("KERNEL32.DLL", EntryPoint = "GetPrivateProfileStringW", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
         private static extern int GetPrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, StringBuilder retVal, int nSize, string lpFilename);
@@ -106,6 +106,11 @@ namespace BarbaMonitor
             return EventWaitHandle.OpenExisting("Global\\BarbaTunnel_CommandEvent");
         }
 
+        private EventWaitHandle OpenServiceEvent()
+        {
+            return EventWaitHandle.OpenExisting("Global\\BarbaTunnel_ServiceEvent");
+        }
+
         public void Start()
         {
             System.Diagnostics.Process p = new System.Diagnostics.Process();
@@ -145,13 +150,43 @@ namespace BarbaMonitor
             catch { }
         }
 
+        public void StartByService()
+        {
+            var res = OpenServiceEvent();
+            if (res != null)
+            {
+                res.Set();
+                res.Close();
+            }
+        }
+
+        public bool IsServiceRunnig
+        {
+            get
+            {
+                try
+                {
+                    var res = OpenServiceEvent();
+                    if (res != null)
+                        res.Close();
+                    return res != null;
+                }
+                catch
+                {
+
+                    return false;
+                }
+            }
+        }
+
+
         bool IsRunnig
         {
             get
             {
                 try
                 {
-                    var res = EventWaitHandle.OpenExisting("Global\\BarbaTunnel_CommandEvent");
+                    var res = OpenCommandEvent();
                     if (res != null)
                         res.Close();
                     return res != null;
@@ -166,8 +201,16 @@ namespace BarbaMonitor
 
         public void Initialize()
         {
-            CreateFileWatcher();
-            UpdateStatus();
+            Initialize(true);
+        }
+
+        public void Initialize(bool enableStatusChangeEvent)
+        {
+            if (enableStatusChangeEvent)
+            {
+                CreateFileWatcher();
+                UpdateStatus();
+            }
         }
 
         public void Dispose()
