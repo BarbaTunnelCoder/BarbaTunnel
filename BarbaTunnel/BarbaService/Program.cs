@@ -4,7 +4,7 @@ using System.Linq;
 using System.ServiceProcess;
 using System.Text;
 
-namespace BarbaService
+namespace BarbaTunnel.Service
 {
     static class Program
     {
@@ -16,7 +16,7 @@ namespace BarbaService
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[] 
 			{ 
-				new Service1() 
+				new BarbaService() 
 			};
             ServiceBase.Run(ServicesToRun);
         }
