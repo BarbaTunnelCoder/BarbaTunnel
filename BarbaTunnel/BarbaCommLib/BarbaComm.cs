@@ -41,7 +41,6 @@ namespace BarbaTunnel.CommLib
         public BarbaComm()
         {
             Status = BarbaStatus.Stopped;
-            _StatusTimer = new Timer(StatusChecker, null, 0, 1000);
         }
 
         void CreateFileWatcher()
@@ -63,24 +62,33 @@ namespace BarbaTunnel.CommLib
 
         void StatusChecker(Object stateInfo)
         {
-            if (!this.IsRunnig && this.Status != BarbaStatus.Stopped)
-            {
-                this.Status = BarbaStatus.Stopped;
-                if (StatusChanged != null)
-                    StatusChanged(this, new EventArgs());
-            }
+            UpdateStatus();
         }
 
         void UpdateStatus()
         {
-            StringBuilder st = new StringBuilder(100);
-            GetPrivateProfileString("General", "Status", "", st, 100, CommFilePath);
-            if (String.IsNullOrEmpty(st.ToString()))
-                return;
-
             try
             {
+                //check running before read status
+                if (!this.IsRunnig && this.Status != BarbaStatus.Stopped)
+                {
+                    this.Status = BarbaStatus.Stopped;
+                    if (StatusChanged != null)
+                        StatusChanged(this, new EventArgs());
+                }
+
+                //read status
+                StringBuilder st = new StringBuilder(100);
+                GetPrivateProfileString("General", "Status", "", st, 100, CommFilePath);
+                if (String.IsNullOrEmpty(st.ToString()))
+                    return;
+
                 BarbaStatus status = IsRunnig ? (BarbaStatus)Enum.Parse(typeof(BarbaStatus), st.ToString(), false) : BarbaStatus.Stopped;
+                //check idle state
+                if (status == BarbaStatus.Started && IsIdle)
+                    status = BarbaStatus.Idle;
+
+                //update status if it change
                 if (this.Status != status)
                 {
                     this.Status = status;
@@ -113,10 +121,23 @@ namespace BarbaTunnel.CommLib
 
         public void Start()
         {
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = BarbaTunnelFilePath;
-            p.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            p.Start();
+            Start(false);
+        }
+
+        /// <summary>
+        /// Tell BarbaServer to delay, ignore for barba client
+        /// </summary>
+        public void Start(bool delayMode)
+        {
+            try
+            {
+                System.Diagnostics.Process p = new System.Diagnostics.Process();
+                p.StartInfo.FileName = BarbaTunnelFilePath;
+                p.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                if (delayMode) p.StartInfo.Arguments = "/delaystart";
+                p.Start();
+            }
+            catch { }
         }
 
         public void Restart()
@@ -209,14 +230,15 @@ namespace BarbaTunnel.CommLib
             if (enableStatusChangeEvent)
             {
                 CreateFileWatcher();
+                _StatusTimer = new Timer(StatusChecker, null, 0, 1000);
                 UpdateStatus();
             }
         }
 
         public void Dispose()
         {
-            if (_FileWatcher!=null)
-                _FileWatcher.Dispose();
+            //if (_FileWatcher != null)
+            //_FileWatcher.Dispose(); //do not dispose it here; it may wait much time to finish
         }
 
         public String ReadNotify(out String title)
@@ -248,6 +270,34 @@ namespace BarbaTunnel.CommLib
                 return "";
             }
         }
+
+        DateTime ReadLastWorkTime()
+        {
+            StringBuilder st = new StringBuilder(100);
+            GetPrivateProfileString("General", "LastWorkTime", "", st, 100, CommFilePath);
+            if (String.IsNullOrEmpty(st.ToString()))
+                return new DateTime();
+            Int64 ctime = Convert.ToInt64(st.ToString());
+            return CTimeToDate(ctime);
+        }
+
+        bool IsIdle
+        {
+            get
+            {
+                DateTime lastWorkTime = ReadLastWorkTime();
+                return DateTime.Now.Subtract(lastWorkTime).TotalSeconds > 5 * 60 * 60; //5min
+
+            }
+        }
+
+        static DateTime CTimeToDate(Int64 ctime)
+        {
+            TimeSpan span = TimeSpan.FromTicks(ctime * TimeSpan.TicksPerSecond);
+            DateTime t = new DateTime(1970, 1, 1).Add(span);
+            return TimeZone.CurrentTimeZone.ToLocalTime(t);
+        }
+
 
     }
 }

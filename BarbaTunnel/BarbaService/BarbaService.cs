@@ -37,7 +37,7 @@ namespace BarbaTunnel.Service
             //when BarbaService is running, BarbaTunnel should run by service not by user monitor
             InitServiceEvent();
 
-            BarbaComm.Start();
+            BarbaComm.Start(true);
         }
 
         protected override void OnStop()
