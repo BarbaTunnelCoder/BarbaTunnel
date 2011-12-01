@@ -286,7 +286,7 @@ namespace BarbaTunnel.CommLib
             get
             {
                 DateTime lastWorkTime = ReadLastWorkTime();
-                return DateTime.Now.Subtract(lastWorkTime).TotalSeconds > 5 * 60 * 60; //5min
+                return DateTime.Now.Subtract(lastWorkTime).TotalSeconds > 5 * 60; //5min
 
             }
         }
