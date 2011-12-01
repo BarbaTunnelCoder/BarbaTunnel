@@ -10,6 +10,7 @@ HANDLE				hEvent;
 bool IsBarbaServer;
 BarbaClientApp barbaClientApp;
 BarbaServerApp barbaServerApp;
+bool ShowMtuError = true;
 
 bool CheckAdapterIndex()
 {
@@ -57,7 +58,7 @@ bool CheckAdapterIndex()
 	}
 
 	_tcscat_s(msg, _T("\nDo you want to open config.ini file now?"));
-	if (MessageBox(NULL, msg, _T("Barbatunnel"), MB_ICONWARNING|MB_YESNO)==IDYES)
+	if (MessageBox(NULL, msg, _T("BarbaTunnel"), MB_ICONWARNING|MB_YESNO)==IDYES)
 	{
 		BarbaUtils::SimpleShellExecute(theApp->GetConfigFile(), NULL, SW_SHOW, NULL, _T("edit"));
 	}
@@ -71,7 +72,7 @@ bool SetMTU()
 		return false;
 
 	LPCTSTR msg = 
-		_T("Barbatunnel set new MTU decrement to have enough space for adding Barba header to your packet.\n\n")
+		_T("BarbaTunnel set new MTU decrement to have enough space for adding Barba header to your packet.\n\n")
 		_T("You must restart Windows so the new MTU decrement can effect.\n\nDo you want to restart now?");
 
 	if (MessageBox(NULL, msg, _T("Barabtunnel"), MB_ICONQUESTION|MB_YESNO)==IDYES)
@@ -125,11 +126,12 @@ int main(int argc, char* argv[])
 	//check is already running
 	if (theApp->Comm.IsAlreadyRunning())
 	{
-		BarbaLog(_T("Barbatunnel already running!"));
+		BarbaLog(_T("BarbaTunnel already running!"));
 		return 0;
 	}
 
 	//process other command line
+	bool delayStart = false;
 	for (int i=0; i<argc; i++)
 	{
 		if (_tcsicmp(argv[i], _T("/setmtu"))==0)
@@ -140,10 +142,7 @@ int main(int argc, char* argv[])
 		}
 		else if (_tcsicmp(argv[i], _T("/delaystart"))==0 && IsBarbaServer)
 		{
-			DWORD delayMin = theServerApp->Config.AutoStartDelayMinutes;
-			theApp->Comm.SetStatus(_T("Waiting"));
-			BarbaLog(_T("Barba Server waiting for AutoStartDelayMinutes (%d minutes)."), delayMin);
-			Sleep(delayMin * 60* 1000);
+			delayStart = true;
 		}
 	}
 
@@ -176,6 +175,16 @@ int main(int argc, char* argv[])
 	{
 		BarbaLog(_T("Could not create Global\\BarbaTunnel_CommandEvent!"));
 		return 0;
+	}
+
+	//wait for server
+	if (delayStart && IsBarbaServer)
+	{
+		DWORD delayMin = theServerApp->Config.AutoStartDelayMinutes;
+		theApp->Comm.SetStatus(_T("Waiting"));
+		BarbaLog(_T("Barba Server is waiting for AutoStartDelayMinutes (%d minutes)."), delayMin);
+		BarbaNotify(_T("Barba Server is waiting\r\nBarba Server is waiting for %d minutes."), delayMin);
+		Sleep(delayMin * 60* 1000);
 	}
 
 	//check is driver loaded (let after Comm Files created)
@@ -248,6 +257,14 @@ int main(int argc, char* argv[])
 						terminate = true;
 					}
 
+					//check MTU
+					if (send && (buffer->m_Length + theApp->GetMTUDecrement())>MAX_ETHER_FRAME && ShowMtuError)
+					{
+						ShowMtuError = false;
+						BarbaLog(_T("Error: Large outgoing packet size! Are you sure your system has been restarted?"));
+						BarbaNotify(_T("Error: Large outgoing packet size!\r\nAre you sure your system has been restarted?"));
+					}
+
 					//process packet
 					theApp->ProcessPacket(buffer);
 
@@ -274,7 +291,7 @@ int main(int argc, char* argv[])
 	}
 
 	//report finish
-	BarbaLog(_T("Barbatunnel Stopped."));
+	BarbaLog(_T("BarbaTunnel Stopped."));
 	if (theApp!=NULL)
 		theApp->Comm.SetStatus(_T("Stopped"));
 
@@ -282,7 +299,7 @@ int main(int argc, char* argv[])
 	HANDLE newThreadHandle = NULL;
 	if (barbaCommand==BarbaComm::CommandRestart)
 	{
-		BarbaLog(_T("Barbatunnel Restarting..."));
+		BarbaLog(_T("BarbaTunnel Restarting..."));
 		STARTUPINFO inf = {0};
 		inf.cb = sizeof STARTUPINFO;
 		GetStartupInfo(&inf);
@@ -290,11 +307,11 @@ int main(int argc, char* argv[])
 		if (CreateProcess(BarbaApp::GetModuleFile(), _T(""), NULL, NULL, FALSE, 0, NULL, NULL, &inf, &pi))
 			newThreadHandle = pi.hThread;
 		else
-			BarbaLog(_T("Failed to restart Barbatunnel!"));
+			BarbaLog(_T("Failed to restart BarbaTunnel!"));
 	}
 	else
 	{
-		BarbaNotify(_T("%s Stopped\r\nBarbatunnel Stopped"), barbaName);
+		BarbaNotify(_T("%s Stopped\r\nBarbaTunnel Stopped"), barbaName);
 	}
 
 	//cleanup

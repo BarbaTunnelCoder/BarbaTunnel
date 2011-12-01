@@ -12,7 +12,7 @@ BarbaClientConfigItem::BarbaClientConfigItem()
 
 u_short BarbaClientConfigItem::GetNewTunnelPort()
 {
-	int newPortIndex = LastTunnelPortIndex % GetTotalTunnelPortsCount();
+	int newPortIndex = (rand()*rand() % GetTotalTunnelPortsCount());
 	for (size_t i=0; i<TunnelPortsCount; i++)
 	{
 		int count = TunnelPorts[i].EndPort - TunnelPorts[i].StartPort + 1;
@@ -24,7 +24,7 @@ u_short BarbaClientConfigItem::GetNewTunnelPort()
 		newPortIndex -= count;
 	}
 
-	return 0;
+	//return 0;
 }
 
 

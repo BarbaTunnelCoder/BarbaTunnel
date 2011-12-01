@@ -8,12 +8,13 @@ BarbaComm::BarbaComm(void)
 	_IsAlreadyRunning = false;
 	LogFileHandle = NULL;
 	NotifyFileHandle = NULL;
+	_LastWorkingTick = 0;
 	_CommandEventHandle = NULL;
 	TCHAR programData[MAX_PATH];
 	BOOL res = SHGetSpecialFolderPath(NULL, programData, CSIDL_COMMON_APPDATA, TRUE);
 	if (res)
 	{
-		_stprintf_s(_WorkFolderPath, _T("%s\\Barbatunnel"), programData);
+		_stprintf_s(_WorkFolderPath, _T("%s\\BarbaTunnel"), programData);
 		_stprintf_s(_CommFilePath, _T("%s\\comm.txt"), _WorkFolderPath);
 		_stprintf_s(_LogFilePath, _T("%s\\report.txt"), _WorkFolderPath);
 		_stprintf_s(_NotifyFilePath, _T("%s\\notify.txt"), _WorkFolderPath);
@@ -53,6 +54,19 @@ void BarbaComm::InitializeEvents()
 	if (_CommandEventHandle==NULL) BarbaLog(_T("Could not create Global\\BarbaTunnel_CommandEvent!\n"));
 }
 
+void BarbaComm::SetWorkingState(ULONG length, bool send)
+{
+	if (GetTickCount()-_LastWorkingTick>BARBA_REFRESH_WORKTIME)
+	{
+		_LastWorkingTick = GetTickCount();
+		time_t curTime = 0;
+		time(&curTime);
+		TCHAR ctimeBuf[100];
+		_stprintf_s(ctimeBuf, _T("%llu"), curTime);
+		WritePrivateProfileString(_T("General"), _T("LastWorkTime"), ctimeBuf, GetCommFilePath());
+	}
+}
+
 void BarbaComm::SetStatus(LPCTSTR status)
 {
 	//Status
@@ -87,6 +101,9 @@ void BarbaComm::Log(LPCTSTR msg, bool notify)
 	}
 	else
 	{
+		if (GetFileSize(LogFileHandle, NULL)>BARBA_MAX_LOGFILESIZE)
+			SetEndOfFile(0); //reset if reach limit
+
 		_tprintf_s(msg);
 		_tprintf_s(_T("\r\n"));
 		WriteFile(LogFileHandle, msgUtf8, strlen(msgUtf8), &writeLen, NULL);

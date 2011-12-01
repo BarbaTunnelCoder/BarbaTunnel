@@ -29,7 +29,8 @@ namespace BarbaTunnel.Monitor
         BarbaComm BarbaComm = new BarbaComm();
         BarbaNotify BarbaNotify = new BarbaNotify();
 
-        public String AppName { get { return "Barbatunnel Monitor"; } }
+        public String AppName { get { return "BarbaTunnel Monitor"; } }
+
 
         bool ExitMode = false;
         public MainWindow()
@@ -39,7 +40,6 @@ namespace BarbaTunnel.Monitor
             BarbaComm.NotifyChanged += new EventHandler(BarbaComm_Notified);
             BarbaComm.LogChanged += new EventHandler(BarbaComm_LogAdded);
             BarbaComm.StatusChanged += new EventHandler(BarbaComm_StatusChanged);
-            //BarbaNotify.NotifyIcon.DoubleClick += new EventHandler(NotifyIcon_DoubleClick);
             BarbaNotify.NotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_MouseClick);
             BarbaNotify.NotifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_MouseClick);
             BarbaNotify.MainWindowMenu.Click += delegate(object sender, EventArgs args) { this.Visibility = System.Windows.Visibility.Visible; this.Activate(); };
@@ -62,7 +62,7 @@ namespace BarbaTunnel.Monitor
                 BarbaNotify.NotifyIcon.Icon = new System.Drawing.Icon(Resource1.Status_Stopped, new System.Drawing.Size(16, 16));
                 Icon = StopIcon.Source;
             }
-            else if (status == BarbaStatus.Idle)
+            else if (status == BarbaStatus.Idle || status == BarbaStatus.Waiting)
             {
                 statusTextBlock.Foreground = new SolidColorBrush(Colors.Orange);
                 BarbaNotify.NotifyIcon.Icon = new System.Drawing.Icon(Resource1.Status_Idle, new System.Drawing.Size(16, 16));
@@ -75,11 +75,11 @@ namespace BarbaTunnel.Monitor
                 Icon = StartIcon.Source;
             }
 
-            BarbaNotify.StartMenu.Enabled = startButton.IsEnabled = status == BarbaStatus.Stopped;
-            BarbaNotify.StopMenu.Enabled = stopButton.IsEnabled = status != BarbaStatus.Stopped;
-            BarbaNotify.RestartMenu.Enabled = restartButton.IsEnabled = status != BarbaStatus.Stopped;
+            BarbaNotify.StartMenu.Enabled = startButton.IsEnabled = status == BarbaStatus.Stopped && status != BarbaStatus.Waiting;
+            BarbaNotify.StopMenu.Enabled = stopButton.IsEnabled = status != BarbaStatus.Stopped && status != BarbaStatus.Waiting;
+            BarbaNotify.RestartMenu.Enabled = restartButton.IsEnabled = status != BarbaStatus.Stopped && status != BarbaStatus.Waiting;
             statusTextBlock.Text = BarbaComm.Status.ToString();
-            BarbaNotify.NotifyIcon.Text = "Barbatunnel is " + BarbaComm.Status.ToString();
+            BarbaNotify.NotifyIcon.Text = "BarbaTunnel is " + BarbaComm.Status.ToString();
         }
 
         void BarbaComm_StatusChanged(object sender, EventArgs e)
@@ -121,10 +121,11 @@ namespace BarbaTunnel.Monitor
             if (!String.IsNullOrEmpty(title) && !String.IsNullOrEmpty(text))
             {
                 var tipIcon = System.Windows.Forms.ToolTipIcon.Info;
-                if (title.IndexOf("error:", StringComparison.InvariantCultureIgnoreCase) != -1)
+                if (title.IndexOf("error:", StringComparison.InvariantCultureIgnoreCase) != -1 || title.IndexOf("stopped", StringComparison.InvariantCultureIgnoreCase) != -1)
                 {
                     tipIcon = System.Windows.Forms.ToolTipIcon.Error;
                 }
+
                 BarbaNotify.NotifyIcon.ShowBalloonTip(10, title, text, tipIcon);
             }
         }
@@ -147,9 +148,6 @@ namespace BarbaTunnel.Monitor
 
         void MainWindow_Closed(object sender, EventArgs e)
         {
-            if (BarbaComm.Status != BarbaStatus.Stopped)
-                BarbaComm.Stop();
-
             BarbaComm.Dispose();
             BarbaNotify.Dispose();
         }
@@ -163,7 +161,6 @@ namespace BarbaTunnel.Monitor
 
                 this.ExitMode = true;
                 this.Close();
-
             }
             catch { }
         }

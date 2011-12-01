@@ -54,17 +54,26 @@ bool BarbaClientConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* bar
 //@return true if it process the packet
 bool BarbaClientConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 {
-	this->LasNegotiationTime = GetTickCount();
+	bool ret = false;
+	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
 
 	switch(ConfigItem->Mode){
 	case BarbaModeTcpRedirect:
 	case BarbaModeUdpRedirect:
-		return ProcessPacketRedirect(packetBuffer);
+		ret = ProcessPacketRedirect(packetBuffer);
+		break;
 	
 	case BarbaModeUdpTunnel:
-		return ProcessPacketUdpTunnel(packetBuffer);
+		ret = ProcessPacketUdpTunnel(packetBuffer);
+		break;
 	}
 
+	if (ret)
+	{
+		this->LasNegotiationTime = GetTickCount();
+		theApp->Comm.SetWorkingState(packetBuffer->m_Length, send);
+	}
+	
 	return false;
 }
 

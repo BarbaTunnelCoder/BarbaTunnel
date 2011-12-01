@@ -25,8 +25,8 @@ public:
 
 	void ReleaseIp(DWORD Ip)
 	{
-		int index = VirtualIpRange->EndIp - Ip;
-		if (index>0)
+		int index = ntohl(Ip) - ntohl(VirtualIpRange->StartIp);
+		if (index>0 && index<BARBA_MAX_VIRTUALIP)
 			VirtualIps[index] = false;
 	}
 
