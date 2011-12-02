@@ -54,7 +54,7 @@ void BarbaComm::InitializeEvents()
 	if (_CommandEventHandle==NULL) BarbaLog(_T("Could not create Global\\BarbaTunnel_CommandEvent!\n"));
 }
 
-void BarbaComm::SetWorkingState(ULONG length, bool send)
+void BarbaComm::SetWorkingState(ULONG /*length*/, bool /*send*/)
 {
 	if (GetTickCount()-_LastWorkingTick>BARBA_REFRESH_WORKTIME)
 	{
