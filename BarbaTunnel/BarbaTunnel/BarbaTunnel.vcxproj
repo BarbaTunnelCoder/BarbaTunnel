@@ -106,6 +106,9 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="BarbaServer\BarbaVirtualIp.h" />
+    <ClInclude Include="WinpkFilter\Common.h" />
+    <ClInclude Include="WinpkFilter\iphlp.h" />
+    <ClInclude Include="WinpkFilter\ndisapi.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BarbaApp.cpp" />
@@ -129,6 +132,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BarbaTunnel.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="WinpkFilter\ndisapi.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
