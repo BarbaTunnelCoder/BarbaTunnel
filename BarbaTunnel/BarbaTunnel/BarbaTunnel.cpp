@@ -268,11 +268,15 @@ int main(int argc, char* argv[])
 					//process packet
 					theApp->ProcessPacket(buffer);
 
-					//send packet
-					if (send)
-						api.SendPacketToAdapter(&theApp->CurrentRequest);
-					else
-						api.SendPacketToMstcp(&theApp->CurrentRequest);
+					//drop zero length packets
+					if (theApp->CurrentRequest.EthPacket.Buffer->m_Length!=0)
+					{
+						//send packet
+						if (send)
+							api.SendPacketToAdapter(&theApp->CurrentRequest);
+						else
+							api.SendPacketToMstcp(&theApp->CurrentRequest);
+					}
 				}
 				__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
 				{
