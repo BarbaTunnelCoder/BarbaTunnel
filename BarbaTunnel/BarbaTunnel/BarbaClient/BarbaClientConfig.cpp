@@ -24,7 +24,7 @@ u_short BarbaClientConfigItem::GetNewTunnelPort()
 		newPortIndex -= count;
 	}
 
-	//return 0;
+	return 0;
 }
 
 
