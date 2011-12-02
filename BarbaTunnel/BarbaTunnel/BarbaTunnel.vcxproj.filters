@@ -69,6 +69,15 @@
     <ClInclude Include="BarbaConfigItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WinpkFilter\Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinpkFilter\iphlp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinpkFilter\ndisapi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -121,5 +130,8 @@
     <ResourceCompile Include="BarbaTunnel.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="WinpkFilter\ndisapi.lib" />
   </ItemGroup>
 </Project>
