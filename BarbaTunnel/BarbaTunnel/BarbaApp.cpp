@@ -5,7 +5,7 @@ BarbaApp* theApp = NULL;
 
 BarbaApp::BarbaApp(void)
 {
-	srand(time(0));
+	srand((UINT)time(0));
 	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetModuleFolder());
 	ZeroMemory ( &CurrentRequest, sizeof(ETH_REQUEST) );
 	ZeroMemory ( &_PacketBuffer, sizeof(INTERMEDIATE_BUFFER) );
