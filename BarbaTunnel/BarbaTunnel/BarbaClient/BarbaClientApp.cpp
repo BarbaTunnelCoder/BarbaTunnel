@@ -67,8 +67,37 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 	if (!packet.IsIp())
 		return;
 
-	//DWORD testIp =
-	//if (packet.IsTcp() && packet.GetDesIp()==PacketHelper::ConvertStringIp(_T("?") && packet.GetS
+	/* sniff test
+	DWORD testIp = PacketHelper::ConvertStringIp("?.0.0.0");
+	DWORD testIp2 = PacketHelper::ConvertStringIp("?.?.?.?");
+	static int i = 0;
+	bool grab = (packet.GetDesIp()==testIp && packet.GetDesPort()==80) || (packet.GetSrcIp()==testIp && packet.GetSrcPort()==80);
+	grab |= (packet.GetDesIp()==testIp2 && packet.GetDesPort()==443) || (packet.GetSrcIp()==testIp2 && packet.GetSrcPort()==443);
+
+	if (i<200 && packet.IsTcp() && grab)
+	{
+		BYTE a[MAX_ETHER_FRAME] = {0};
+		memcpy(a, packet.GetTcpPayload(), min(packet.GetTcpPayloadLen(), 10));
+
+		if (packet.GetTcpPayloadLen()>3 && strncmp((char*)packet.GetTcpPayload(), "HTTP/1.1", 4)==0)
+			i=i;
+
+
+		i++;
+		u_char flags = packet.tcpHeader->th_flags;
+		printf("%s, FIN:%d, SYN:%d, RST:%d, PSH:%d, ACK:%d, seq:%u, ack:%u Len:%d, Data:%s\n", 
+			send ? "Send" : "Receive",
+			(flags&TH_FIN)!=0, 
+			(flags&TH_SYN)!=0, 
+			(flags&TH_RST)!=0, 
+			(flags&TH_PSH)!=0, 
+			(flags&TH_ACK)!=0, 
+			htonl(packet.tcpHeader->th_seq),
+			htonl(packet.tcpHeader->th_ack),
+			packet.GetTcpPayloadLen(),
+			a);
+	}
+	*/
 
 	if (send)
 	{
