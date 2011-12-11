@@ -5,12 +5,14 @@ class BarbaServerConfigItem : public BarbaConfigItem
 {
 public:
 	BarbaServerConfigItem();
+	virtual ~BarbaServerConfigItem(){}
 };
 
 class BarbaServerConfig
 {
 public:
 	BarbaServerConfig();
+	virtual ~BarbaServerConfig(){}
 	DWORD AutoStartDelayMinutes;
 	IpRange VirtualIpRange;
 	BYTE Key[BARBA_MAX_KEYLEN];

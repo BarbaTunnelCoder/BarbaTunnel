@@ -53,7 +53,7 @@ typedef struct in_addr IN_ADDR, *PIN_ADDR;
 #define IPPROTO_RAW             255             /* raw IP packet */
 #define IPPROTO_MAX             256
 
-
+/*
 struct   in_addr {
     union   {
          struct{
@@ -74,6 +74,7 @@ struct sockaddr {
     unsigned short sa_family;
     char           sa_data[14];
 };
+*/
 
 
 // Ethernet Header

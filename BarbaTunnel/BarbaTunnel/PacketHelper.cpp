@@ -1,42 +1,42 @@
 #include "StdAfx.h"
 #include "PacketHelper.h"
 
-u_short ntohs( u_short netshort )
-{
-	PUCHAR	pBuffer;
-	u_short	nResult;
-
-	nResult = 0;
-	pBuffer = (PUCHAR )&netshort;
-
-	nResult = ( (pBuffer[ 0 ] << 8) & 0xFF00 )
-		| ( pBuffer[ 1 ] & 0x00FF );
-
-	return( nResult );
-}
-
-u_short htons( u_short netshort )
-{
-	return ntohs(netshort);
-}
-
-DWORD htonl( DWORD hostlong )
-{
-	ULONG nResult = hostlong >> 16;
-	USHORT upper = (USHORT) nResult & 0x0000FFFF;
-	USHORT lower = (USHORT) hostlong & 0x0000FFFF;
-
-	upper = htons( upper );
-	lower = htons( lower );
-
-    nResult = 0x10000 * lower + upper;
-	return( nResult );
-}
-
-DWORD ntohl( DWORD netshort )
-{
-	return htonl(netshort);
-}
+//u_short ntohs( u_short netshort )
+//{
+//	PUCHAR	pBuffer;
+//	u_short	nResult;
+//
+//	nResult = 0;
+//	pBuffer = (PUCHAR )&netshort;
+//
+//	nResult = ( (pBuffer[ 0 ] << 8) & 0xFF00 )
+//		| ( pBuffer[ 1 ] & 0x00FF );
+//
+//	return( nResult );
+//}
+//
+//u_short htons( u_short netshort )
+//{
+//	return ntohs(netshort);
+//}
+//
+//DWORD htonl( DWORD hostlong )
+//{
+//	ULONG nResult = hostlong >> 16;
+//	USHORT upper = (USHORT) nResult & 0x0000FFFF;
+//	USHORT lower = (USHORT) hostlong & 0x0000FFFF;
+//
+//	upper = htons( upper );
+//	lower = htons( lower );
+//
+//    nResult = 0x10000 * lower + upper;
+//	return( nResult );
+//}
+//
+//DWORD ntohl( DWORD netshort )
+//{
+//	return htonl(netshort);
+//}
 
 void PacketHelper::Reinit()
 {

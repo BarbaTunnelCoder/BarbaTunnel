@@ -27,7 +27,7 @@ void BarbaServerApp::Initialize()
 	BarbaUtils::GetModuleFolder(moduleFolder);
 
 	TCHAR file[MAX_PATH];
-	_stprintf_s(file, _countof(file), _T("%s\\server.ini"), moduleFolder);
+	_stprintf_s(file, _countof(file), _T("%s\\server\\server.ini"), moduleFolder);
 	Config.LoadFile(file);
 }
 

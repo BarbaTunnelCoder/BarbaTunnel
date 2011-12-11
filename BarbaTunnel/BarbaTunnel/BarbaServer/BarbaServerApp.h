@@ -8,7 +8,7 @@ class BarbaServerApp : public BarbaApp
 {
 public:
 	BarbaServerApp(void);
-	~BarbaServerApp(void);
+	virtual ~BarbaServerApp(void);
 
 	BarbaServerConfig Config;
 	BarbaServerConnectionManager ConnectionManager;

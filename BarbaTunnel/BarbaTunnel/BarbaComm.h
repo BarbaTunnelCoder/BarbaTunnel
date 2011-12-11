@@ -23,7 +23,7 @@ private:
 
 public:
 	BarbaComm(void);
-	~BarbaComm(void);
+	virtual ~BarbaComm(void);
 	void Initialize();
 	LPCTSTR GetNotifyFilePath() {return _NotifyFilePath;}
 	LPCTSTR GetLogFilePath() {return _LogFilePath;}
