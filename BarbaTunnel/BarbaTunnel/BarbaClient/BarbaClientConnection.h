@@ -14,6 +14,7 @@ public:
 		TunnelPort = 0;
 		OrgClientPort = 0;
 	}
+	~BarbaClientConnection(){}
 
 	BarbaClientConfig* Config;
 	BarbaClientConfigItem* ConfigItem;

@@ -5,6 +5,7 @@
 class BarbaClientConfigItem : public BarbaConfigItem
 {
 public:
+	virtual ~BarbaClientConfigItem(){}
 	u_short GetNewTunnelPort();
 	ProtocolPort GrabProtocols[BARBA_MAX_PORTITEM]; //valid when mode is UDP-Tunnel or TCP-Tunnel mode
 	size_t GrabProtocolsCount;

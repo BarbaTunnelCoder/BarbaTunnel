@@ -328,5 +328,18 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+bool BarbaSendPacketToAdapter(PacketHelper* packet, PINTERMEDIATE_BUFFER bufTemplate)
+{
+	INTERMEDIATE_BUFFER intBuf;
+	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_SEND;
+	intBuf.m_Flags = 0;//bufTemplate->m_Flags;
+	intBuf.m_qLink = bufTemplate->m_qLink;
+	intBuf.m_Length = min(MAX_ETHER_FRAME, packet->GetPacketLen());
+	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
 
+	ETH_REQUEST req;
+	req.hAdapterHandle = theApp->CurrentRequest.hAdapterHandle;
+	req.EthPacket.Buffer = &intBuf;
+	return api.SendPacketToAdapter(&req)!=FALSE;
+}
 

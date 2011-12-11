@@ -5,6 +5,7 @@ class BarbaConfigItem
 {
 public:
 	BarbaConfigItem();
+	virtual ~BarbaConfigItem() {}
 	u_short RealPort; //valid when mode is UDP-Redirect or TCP-Redirect mode
 	size_t GetTotalTunnelPortsCount();
 	u_char GetTunnelProtocol() {return BarbaMode_GetProtocol(this->Mode);}

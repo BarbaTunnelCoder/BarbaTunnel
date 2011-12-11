@@ -7,6 +7,7 @@ class BarbaClientApp : public BarbaApp
 {
 public:
 	BarbaClientApp();
+	virtual ~BarbaClientApp(){}
 	void Initialize();
 	BarbaClientConfigManager ConfigManager;
 	BarbaClientConnectionManager ConnectionManager;

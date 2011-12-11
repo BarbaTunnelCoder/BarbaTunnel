@@ -58,3 +58,4 @@ u_char BarbaMode_GetProtocol(BarbaModeEnum mode);
 GUID* GetBarbaSign();
 void BarbaLog(LPCTSTR msg, ...);
 void BarbaNotify(LPCTSTR msg, ...);
+

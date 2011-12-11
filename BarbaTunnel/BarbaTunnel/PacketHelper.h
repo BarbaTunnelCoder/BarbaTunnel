@@ -1,9 +1,9 @@
 #pragma once
 
-u_short ntohs( u_short netshort );
-u_short htons( u_short value );
-DWORD htonl( DWORD value );
-DWORD ntohl( DWORD value );
+//u_short ntohs( u_short netshort );
+//u_short htons( u_short value );
+//DWORD htonl( DWORD value );
+//DWORD ntohl( DWORD value );
 
 class PacketHelper
 {
@@ -43,13 +43,16 @@ public:
 	void RecalculateChecksum();
 	bool IsValidChecksum();
 
-	
 	bool IsTcp() { return tcpHeader!=NULL;}
 	size_t GetTcpPayloadLen() { return GetIpLen() - ipHeader->ip_hl*4 - tcpHeader->th_off*4; }
 	BYTE* GetTcpPayload() {  return (BYTE*)tcpHeader + tcpHeader->th_off*4; }
 	void SetTcpPayload(BYTE* payload, size_t len);
 	BYTE* GetTcpExtraHeader(); 
-	size_t GetTcpExtraHeaderLen(); 
+	size_t GetTcpExtraHeaderLen();
+	tcp_seq GetTcpAct() { return ntohl(tcpHeader->th_ack); }
+	void SetTcpAct(tcp_seq value) { tcpHeader->th_ack = htonl(value); }
+	tcp_seq GetTcpSeq() { return ntohl(tcpHeader->th_seq); }
+	void SetTcpSeq(tcp_seq value) { tcpHeader->th_seq = htonl(value); }
 
 	bool IsUdp() { return udpHeader!=NULL;}
 	size_t GetUdpPayloadLen() { return ntohs(udpHeader->length) - sizeof(udphdr); }
