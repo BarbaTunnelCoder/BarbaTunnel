@@ -23,20 +23,22 @@ protected:
 	};
 
 public:
-	size_t MaxSendMessageBuffer;
 	//@maxConnenction number of simultaneous connection for each outgoing and incoming, eg: 2 mean 2 connection for send and 2 connection for receive so the total will be 4
 	explicit BarbaCourier(u_short maxConnenction);
 	virtual void Send(BYTE* buffer, size_t bufferCount);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
 	void InitFakeRequests(LPCSTR httpGetTemplate, LPCSTR httpPostTemplate);
+	size_t GetSentBytesCount() {return this->SentBytesCount;}
+	size_t GetReceiveBytesCount() {return this->ReceiveBytesCount;}
 	
 	//Call this method to delete object, This method will signal all created thread to finish their job
 	//This method will call asynchronously. do not use the object after call it 
 	void Delete();
 
 private:
-	unsigned int SentBytesCount;
-	unsigned int ReceiveBytesCount;
+	size_t MaxSendMessageBuffer;
+	size_t SentBytesCount;
+	size_t ReceiveBytesCount;
 	SimpleEvent SendEvent;
 	SimpleSafeList<Message*> Messages;
 	static unsigned int __stdcall DeleteThread(void* object);

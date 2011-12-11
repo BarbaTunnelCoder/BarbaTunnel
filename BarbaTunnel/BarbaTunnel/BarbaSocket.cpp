@@ -3,6 +3,8 @@
 
 BarbaSocket::BarbaSocket()
 {
+	this->SentBytesCount = 0;
+	this->ReceiveBytesCount = 0;
 	InitializeLib();
 	_Socket = ::socket(AF_INET,SOCK_STREAM, IPPROTO_TCP);
 	if (_Socket == INVALID_SOCKET)
@@ -72,6 +74,7 @@ int BarbaSocket::Receive(BYTE* buf, size_t bufCount, bool waitAll)
 	int ret = ::recv(_Socket, (char*)buf, bufCount, flags);
 	if (ret==SOCKET_ERROR)
 		ThrowSocketError();
+	this->ReceiveBytesCount += ret;
 	return ret;
 }
 
@@ -80,6 +83,7 @@ int BarbaSocket::Send(BYTE* buf, size_t bufCount)
 	int ret = send(_Socket, (char*)buf, bufCount, 0);
 	if (ret==SOCKET_ERROR)
 		ThrowSocketError();
+	this->SentBytesCount += ret;
 	return ret;
 }
 

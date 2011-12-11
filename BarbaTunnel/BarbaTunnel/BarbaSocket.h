@@ -11,6 +11,8 @@ public:
 	bool IsWritable();
 	//@return empty string if not found
 	std::string ReadHttpHeader(int maxlen=5000);
+	size_t GetSentBytesCount() {return this->SentBytesCount;}
+	size_t GetReceiveBytesCount() {return this->ReceiveBytesCount;}
 
 	static bool InitializeLib(); 
 	static void UninitializeLib(); 
@@ -18,6 +20,8 @@ public:
 	BarbaSocket();
 
 protected:
+	size_t SentBytesCount;
+	size_t ReceiveBytesCount;
 	SOCKET _Socket;
 	void ThrowSocketError(int er);
 	void ThrowSocketError();
