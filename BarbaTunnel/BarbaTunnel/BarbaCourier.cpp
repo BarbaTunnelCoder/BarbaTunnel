@@ -5,7 +5,7 @@ BarbaCourier::BarbaCourier(u_short maxConnenction)
 	: SendEvent(true, true)
 	, DisposeEvent(true, false)
 {
-	this->MaxSendMessageBuffer = 100;
+	this->MaxSendMessageBuffer = INFINITE;
 	this->SentBytesCount = 0;
 	this->ReceiveBytesCount = 0;
 	this->MaxConnection = maxConnenction;
