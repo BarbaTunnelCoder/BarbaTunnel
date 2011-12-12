@@ -1,11 +1,13 @@
 #include "StdAfx.h"
 #include "BarbaCourier.h"
+#include "StringUtil.h"
 
-BarbaCourier::BarbaCourier(u_short maxConnenction)
+BarbaCourier::BarbaCourier(u_short maxConnenction, size_t threadsStackSize)
 	: SendEvent(true, true)
 	, DisposeEvent(true, false)
 {
-	this->MaxSendMessageBuffer = INFINITE;
+	this->ThreadsStackSize = threadsStackSize;
+	this->MaxMessageBuffer = INFINITE;
 	this->SentBytesCount = 0;
 	this->ReceiveBytesCount = 0;
 	this->MaxConnection = maxConnenction;
@@ -19,9 +21,9 @@ unsigned BarbaCourier::DeleteThread(void* object)
 	return 0;
 }
 
-void BarbaCourier::Delete()
+HANDLE BarbaCourier::Delete()
 {
-	_beginthreadex(0, 128 ,DeleteThread, (void*)this,0, NULL);
+	return (HANDLE)_beginthreadex(0, this->ThreadsStackSize, DeleteThread, (void*)this, 0, NULL);
 }
 
 
@@ -70,6 +72,7 @@ void BarbaCourier::Dispose()
 	while (thread!=NULL)
 	{
 		WaitForSingleObject(thread, INFINITE);
+		CloseHandle(thread);
 		thread = this->Threads.RemoveHead();
 	}
 }
@@ -77,6 +80,8 @@ void BarbaCourier::Dispose()
 
 void BarbaCourier::Send(BYTE* buffer, size_t bufferCount)
 {
+	if (bufferCount>BarbaCourier_MaxMessageLength)
+		throw _T("Message is too big!");
 	Send(new Message(buffer, bufferCount));
 }
 
@@ -89,18 +94,10 @@ void BarbaCourier::Send(Message* message, bool highPriority)
 		Messages.AddTail(message);
 
 	//check maximum send buffer
-	if (Messages.GetCount()>MaxSendMessageBuffer)
+	if (Messages.GetCount()>MaxMessageBuffer)
 		Messages.RemoveHead();
 
 	SendEvent.Set();
-}
-
-void replaceAll(std::string& str, const std::string& from, const std::string& to) {
-    size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
-        str.replace(start_pos, from.length(), to);
-        start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
-    }
 }
 
 
@@ -117,13 +114,13 @@ void BarbaCourier::InitFakeRequests(LPCSTR httpGetRequest, LPCSTR httpPostReques
 
 	FakeHttpGetTemplate.append(n);
 	FakeHttpGetTemplate.append(n);
-	replaceAll(FakeHttpGetTemplate, r, e);
-	replaceAll(FakeHttpGetTemplate, n, rn);
+	StringUtil::ReplaceAll(FakeHttpGetTemplate, r, e);
+	StringUtil::ReplaceAll(FakeHttpGetTemplate, n, rn);
 
 	FakeHttpPostTemplate.append(n);
 	FakeHttpPostTemplate.append(n);
-	replaceAll(FakeHttpPostTemplate, r, e);
-	replaceAll(FakeHttpPostTemplate, n, rn);
+	StringUtil::ReplaceAll(FakeHttpPostTemplate, r, e);
+	StringUtil::ReplaceAll(FakeHttpPostTemplate, n, rn);
 }
 
 void BarbaCourier::Receive(BYTE* /*buffer*/, size_t /*bufferCount*/)
@@ -157,8 +154,13 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket)
 		{
 			try
 			{
-				//try to send message
-				int sentCount = barbaSocket->Send(message->Buffer, message->Count);
+				//add message length to start of packet, then add message itself
+				BYTE sendPacket[BarbaCourier_MaxMessageLength+2];
+				memcpy_s(sendPacket, 2, &message->Count, 2);
+				memcpy_s(sendPacket+2, BarbaCourier_MaxMessageLength, &message, message->Count);
+
+				//try to send packet [Len+Message]
+				int sentCount = barbaSocket->Send(sendPacket, message->Count+2);
 				this->SentBytesCount += sentCount;
 				
 				//delete sent message
@@ -187,12 +189,22 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 	{
 		try
 		{
-			BYTE buf[1000];
-			int recieveCount = barbaSocket->Receive(buf, _countof(buf), true);
-			if (recieveCount==0)
+			u_short messageLen = 0;
+			if (barbaSocket->Receive((BYTE*)&messageLen, 2, true)!=2)
 				break;
-			this->ReceiveBytesCount += recieveCount;
-			this->Receive(buf, recieveCount);
+
+			//check received message len
+			if (messageLen>BarbaCourier_MaxMessageLength)
+				throw _T("Out of sync!");
+
+			//read message
+			BYTE messageBuf[BarbaCourier_MaxMessageLength];
+			int receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
+			if (receiveCount!=messageLen)
+				throw _T("Out of sync!");
+
+			this->ReceiveBytesCount += receiveCount + 2;
+			this->Receive(messageBuf, receiveCount);
 		}
 		catch (...)
 		{
@@ -212,11 +224,11 @@ BarbaCourierClient::BarbaCourierClient(DWORD remoteIp, u_short remotePort, u_sho
 	{
 		//create outgoing connection thread
 		ClientThreadData* outgoingThreadData = new ClientThreadData(this, true);
-		Threads.AddTail( (HANDLE)_beginthreadex(NULL, 128, WorkerThread, outgoingThreadData, 0, NULL));
+		Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->ThreadsStackSize, WorkerThread, outgoingThreadData, 0, NULL));
 
 		//create incoming connection thread
 		ClientThreadData* incomingThreadData = new ClientThreadData(this, false);
-		Threads.AddTail( (HANDLE)_beginthreadex(NULL, 128, WorkerThread, incomingThreadData, 0, NULL));
+		Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->ThreadsStackSize, WorkerThread, incomingThreadData, 0, NULL));
 	}
 }
 
@@ -250,7 +262,7 @@ unsigned int BarbaCourierClient::WorkerThread(void* clientThreadData)
 		try
 		{
 			//create socket
-			_tprintf_s(_T("New connection!\n"));
+			_tprintf_s(_T("New connection!\n")); //check
 			socket = NULL;
 			socket = new BarbaSocketClient(_this->RemoteIp, _this->RemotePort);
 
@@ -288,7 +300,7 @@ unsigned int BarbaCourierClient::WorkerThread(void* clientThreadData)
 	}
 
 	delete threadData;
-	_tprintf_s(_T("Thread Fin!\n"));
+	_tprintf_s(_T("Thread Fin!\n")); //check
 	return 0;
 }
 
@@ -321,7 +333,7 @@ bool BarbaCourierServer::AddSocket(BarbaSocket* barbaSocket, bool isOutgoing)
 
 	//create incoming connection thread
 	ServerThreadData* threadData = new ServerThreadData(this, barbaSocket, isOutgoing);
-	Threads.AddTail( (HANDLE)_beginthreadex(NULL, 128, WorkerThread, (void*)threadData, 0, NULL));
+	Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->ThreadsStackSize, WorkerThread, (void*)threadData, 0, NULL));
 	return true;
 }
 
@@ -355,6 +367,6 @@ unsigned int BarbaCourierServer::WorkerThread(void* serverThreadData)
 	_this->Sockets.Remove(barbaSocket);
 	delete barbaSocket;
 	delete threadData;
-	printf("Connection closed\n");
+	printf("Connection closed\n"); //check
 	return 0;
 }

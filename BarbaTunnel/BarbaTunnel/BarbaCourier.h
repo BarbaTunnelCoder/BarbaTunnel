@@ -3,6 +3,7 @@
 #include "SimpleEvent.h"
 #include "SimpleSafeList.h"
 
+#define BarbaCourier_MaxMessageLength  1600
 
 //BarbaCourier
 class BarbaCourier
@@ -13,18 +14,16 @@ protected:
 	public:
 		Message(BYTE* buffer, size_t count)
 		{
-			this->Buffer = new BYTE[count]; 
-			memcpy_s(this->Buffer, count, buffer, count); 
+			memcpy_s(this->Buffer, _countof(this->Buffer), buffer, count); 
 			this->Count=count;
 		}
-		~Message() {delete this->Buffer;}
-		BYTE* Buffer;
+		BYTE Buffer[BarbaCourier_MaxMessageLength];
 		size_t Count;
 	};
 
 public:
 	//@maxConnenction number of simultaneous connection for each outgoing and incoming, eg: 2 mean 2 connection for send and 2 connection for receive so the total will be 4
-	explicit BarbaCourier(u_short maxConnenction);
+	explicit BarbaCourier(u_short maxConnenction, size_t threadsStackSize=128000);
 	virtual void Send(BYTE* buffer, size_t bufferCount);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
 	void InitFakeRequests(LPCSTR httpGetTemplate, LPCSTR httpPostTemplate);
@@ -33,10 +32,11 @@ public:
 	
 	//Call this method to delete object, This method will signal all created thread to finish their job
 	//This method will call asynchronously. do not use the object after call it 
-	void Delete();
+	//@return the handle for deleting thread
+	HANDLE Delete();
 
 private:
-	size_t MaxSendMessageBuffer;
+	size_t MaxMessageBuffer;
 	size_t SentBytesCount;
 	size_t ReceiveBytesCount;
 	SimpleEvent SendEvent;
@@ -53,6 +53,7 @@ protected:
 	SimpleSafeList<BarbaSocket*> Sockets;
 	SimpleSafeList<HANDLE> Threads;
 	size_t MaxConnection;
+	size_t ThreadsStackSize;
 	SimpleEvent DisposeEvent;
 
 	std::string FakeHttpGetTemplate;
