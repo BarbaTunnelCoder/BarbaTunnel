@@ -1,20 +1,20 @@
 #include "StdAfx.h"
-#include "BarbaHttpServer.h"
+#include "BarbaServerHttp.h"
 #include "BarbaServerApp.h"
 
 
-BarbaHttpServer::BarbaHttpServer(void)
+BarbaServerHttp::BarbaServerHttp(void)
 	: DisposeEvent(true, false)
 {
 }
 
 
-BarbaHttpServer::~BarbaHttpServer(void)
+BarbaServerHttp::~BarbaServerHttp(void)
 {
 	Dispose();
 }
 
-void BarbaHttpServer::Dispose()
+void BarbaServerHttp::Dispose()
 {
 	//signal disposing
 	DisposeEvent.Set();
@@ -46,16 +46,16 @@ void BarbaHttpServer::Dispose()
 }
 
 
-bool BarbaHttpServer::IsDisposing()
+bool BarbaServerHttp::IsDisposing()
 {
 	return DisposeEvent.Wait(0)==WAIT_OBJECT_0;
 }
 
 
-unsigned int BarbaHttpServer::ListenerThread(void* data)
+unsigned int BarbaServerHttp::ListenerThread(void* data)
 {
 	ListenerThreadData* threadData = (ListenerThreadData*)data;
-	BarbaHttpServer* _this = (BarbaHttpServer*)threadData->HttpServer;
+	BarbaServerHttp* _this = (BarbaServerHttp*)threadData->HttpServer;
 	BarbaSocketServer* listenerSocket = (BarbaSocketServer*)threadData->SocketServer;
 
 	try
@@ -87,7 +87,7 @@ unsigned int BarbaHttpServer::ListenerThread(void* data)
 	return 0;
 }
 
-void BarbaHttpServer::AddListenerPort(u_short port)
+void BarbaServerHttp::AddListenerPort(u_short port)
 {
 	BarbaSocketServer* listenSocket = new BarbaSocketServer(port);
 	ListenerSockets.AddTail(listenSocket);
@@ -96,7 +96,7 @@ void BarbaHttpServer::AddListenerPort(u_short port)
 }
 
 /*
-unsigned int BarbaHttpServer::SocketAnswerThread(void* data)
+unsigned int BarbaServerHttp::SocketAnswerThread(void* data)
 {
 	SocketListnerThreadData* threadData = (SocketListnerThreadData*)data;
 	BarbaServerApp* _this = (BarbaServerApp*)threadData->Socket;
