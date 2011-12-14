@@ -13,7 +13,14 @@ BarbaApp::BarbaApp(void)
 
 	_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetConfigFile());
 	_IsDebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetConfigFile())!=0;
+	BarbaSocket::InitializeLib();
 }
+
+BarbaApp::~BarbaApp(void)
+{
+	BarbaSocket::UninitializeLib();
+}
+
 
 LPCTSTR BarbaApp::GetConfigFile()
 {
@@ -45,9 +52,6 @@ LPCTSTR BarbaApp::GetModuleFolder()
 	return moduleFolder;
 }
 
-BarbaApp::~BarbaApp(void)
-{
-}
 
 bool BarbaApp::CheckTerminateCommands(INTERMEDIATE_BUFFER* packetBuffer)
 {

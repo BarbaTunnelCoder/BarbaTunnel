@@ -1,5 +1,6 @@
 #pragma once
 #include "General.h"
+#include "BarbaSocket.h"
 #include "BarbaUtils.h"
 #include "PacketHelper.h"
 #include "BarbaComm.h"
@@ -23,6 +24,9 @@ public:
 	int GetAdapterIndex() {return _AdapterIndex;}
 	BarbaComm Comm;
 	ETH_REQUEST CurrentRequest;
+
+	//store thread for clean shutdown; the process will wait for all of this thread to complete
+	void AddThread(HANDLE threadHandle);
 
 private:
 	int _AdapterIndex;

@@ -128,10 +128,10 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 		BarbaClientConfigItem* item = &this->Items[this->ItemsCount];
 		bool load = item->Load(sectionName, file);
 		if (!load)
+		{
 			notfoundCounter++;
-
-		if (!load || !item->Enabled || item->Mode==BarbaModeNone || item->GetTotalTunnelPortsCount()==0)
 			continue;
+		}
 
 		//Name
 		TCHAR grabProtocols[1000];

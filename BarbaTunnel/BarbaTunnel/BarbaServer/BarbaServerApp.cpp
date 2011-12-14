@@ -29,6 +29,9 @@ void BarbaServerApp::Initialize()
 	TCHAR file[MAX_PATH];
 	_stprintf_s(file, _countof(file), _T("%s\\server\\server.ini"), moduleFolder);
 	Config.LoadFile(file);
+
+	//Initialize HttpServer
+	InitHttpServer();
 }
 
 BarbaServerConfigItem* BarbaServerApp::IsGrabPacket(PacketHelper* packet)
@@ -80,5 +83,48 @@ void BarbaServerApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 	if (connection!=NULL)
 	{
 		connection->ProcessPacket(packetBuffer);
+	}
+}
+
+
+
+
+void BarbaServerApp::InitHttpServer()
+{
+
+	//Initialize listeners
+	int createdSocket = 0;
+	for (size_t i=0; i<theServerApp->Config.ItemsCount; i++)
+	{
+		BarbaServerConfigItem* item = &theServerApp->Config.Items[i];
+		if (item->Mode!=BarbaModeHttpTunnel)
+			continue;
+
+		//Initialize HttpServer to listen to ports
+		for (size_t j=0; j<item->TunnelPortsCount; j++)
+		{
+			PortRange* portRange = &item->TunnelPorts[j];
+			for (u_short port=portRange->StartPort; port<=portRange->EndPort; port++)
+			{
+				//check added port count
+				if (createdSocket>=BARBA_MAX_SERVERLISTENSOCKET)
+				{
+					BarbaLog(_T("BarbaServer could not listen more than %d ports!"), BARBA_MAX_SERVERLISTENSOCKET);
+					j = item->TunnelPortsCount;
+					break;
+				}
+
+				//add port
+				try
+				{
+					HttpServer.AddListenerPort(port);
+					createdSocket++;
+				}
+				catch (...)
+				{
+					BarbaLog(_T("Error: BarbaServer could not listen to TCP port %d!"), portRange->StartPort);
+				}
+			}
+		}// for j
 	}
 }
