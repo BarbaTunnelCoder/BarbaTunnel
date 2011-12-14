@@ -7,10 +7,12 @@
 #define BARBA_MAX_KEYLEN 1500
 #define BARBA_MAX_VIRTUALIP 0xFFFF
 #define BARBA_MAX_CONFIGNAME 100
+#define BARBA_MAX_SERVERLISTENSOCKET 50
 #define BARBA_MAX_LOGFILESIZE (1 * 1000000) //1MB
 #define BARBA_CURRENT_VERSION 1
 #define BARBA_CONNECTION_TIMEOUT (60*60*1000)
-#define BARBA_REFRESH_WORKTIME (1*60*1000)
+#define BARBA_WorkingStateRefreshTime (1*60*1000)
+#define BARBA_SocketThreadStackSize (128*1000)
 
 //BarbaModeEnum
 enum BarbaModeEnum
@@ -20,6 +22,7 @@ enum BarbaModeEnum
 	BarbaModeUdpRedirect,
 	BarbaModeTcpTunnel,
 	BarbaModeTcpRedirect,
+	BarbaModeHttpTunnel,
 };
 
 //PortRange

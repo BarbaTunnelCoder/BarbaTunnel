@@ -54,10 +54,10 @@ bool BarbaServerConfig::LoadFile(LPCTSTR file)
 		BarbaServerConfigItem* item = &this->Items[this->ItemsCount];
 		bool load = item->Load(sectionName, file);
 		if (!load)
+		{
 			notfoundCounter++;
-
-		if (!load || !item->Enabled || item->Mode==BarbaModeNone || item->GetTotalTunnelPortsCount()==0)
 			continue;
+		}
 
 		//ListenPorts
 		TCHAR tunnelPorts[BARBA_MAX_PORTITEM*10];

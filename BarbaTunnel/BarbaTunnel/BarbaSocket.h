@@ -13,6 +13,9 @@ public:
 	std::string ReadHttpHeader(int maxlen=5000);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
 	size_t GetReceiveBytesCount() {return this->ReceiveBytesCount;}
+	void SetNoDelay(bool value);
+	void SetReceiveTimeOut(long second);
+	void SetSendTimeOut(long second);
 
 	static bool InitializeLib(); 
 	static void UninitializeLib(); 

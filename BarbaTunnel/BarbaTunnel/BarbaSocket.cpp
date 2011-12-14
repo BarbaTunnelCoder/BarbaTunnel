@@ -34,6 +34,34 @@ bool BarbaSocket::IsWritable()
 	return send(this->_Socket, NULL, 0, 0)!=SOCKET_ERROR;
 }
 
+void BarbaSocket::SetReceiveTimeOut(long second)
+{
+	timeval tv;
+	tv.tv_sec  = second;  
+	tv.tv_usec = 0;
+	int res = setsockopt(this->_Socket, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
+	if (res==SOCKET_ERROR)
+		ThrowSocketError();
+}
+
+void BarbaSocket::SetSendTimeOut(long second)
+{
+	timeval tv;
+	tv.tv_sec  = second;  
+	tv.tv_usec = 0;
+	int res = setsockopt( this->_Socket, SOL_SOCKET, SO_SNDTIMEO, (char*)&tv, sizeof(tv));
+	if (res==SOCKET_ERROR)
+		ThrowSocketError();
+}
+
+void BarbaSocket::SetNoDelay(bool value)
+{
+	int flag = value ? 1 : 0;
+	int res = setsockopt(this->_Socket, IPPROTO_TCP, TCP_NODELAY, (char *) &flag,  sizeof(int));
+	if (res==SOCKET_ERROR)
+		ThrowSocketError();
+}
+
 
 void BarbaSocket::Close()
 {
@@ -149,6 +177,6 @@ BarbaSocket* BarbaSocketServer::Accept()
 	if (newSocket == INVALID_SOCKET) 
 		ThrowSocketError();
 
-  BarbaSocket* ret = new BarbaSocket(newSocket);
-  return ret;
+	BarbaSocket* ret = new BarbaSocket(newSocket);
+	return ret;
 }

@@ -12,6 +12,7 @@ BarbaModeEnum BarbaMode_FromString(LPCTSTR mode)
 {
 	if (_tcsicmp(mode, _T("UDP-Tunnel"))==0) return BarbaModeUdpTunnel;
 	else if (_tcsicmp(mode, _T("TCP-Tunnel"))==0) return BarbaModeTcpTunnel;
+	else if (_tcsicmp(mode, _T("HTTP-Tunnel"))==0) return BarbaModeHttpTunnel;
 	else if (_tcsicmp(mode, _T("UDP-Redirect"))==0) return BarbaModeUdpRedirect;
 	else if (_tcsicmp(mode, _T("TCP-Redirect"))==0) return BarbaModeTcpRedirect;
 	else return BarbaModeNone;
@@ -21,6 +22,7 @@ BarbaModeEnum BarbaMode_FromString(LPCTSTR mode)
 {
 	switch(mode){
 	case BarbaModeUdpTunnel: return _T("UDP-Tunnel");
+	case BarbaModeHttpTunnel: return _T("HTTP-Tunnel");
 	case BarbaModeTcpTunnel: return _T("TCP-Tunnel");
 	case BarbaModeUdpRedirect: return _T("UDP-Redirect");
 	case BarbaModeTcpRedirect: return _T("TCP-Redirect");

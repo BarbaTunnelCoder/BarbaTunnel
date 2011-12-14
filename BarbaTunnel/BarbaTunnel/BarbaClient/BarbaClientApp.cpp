@@ -59,6 +59,7 @@ bool BarbaClientApp::IsGrabPacket(PacketHelper* packet, BarbaClientConfigItem* c
 }
 
 
+bool BarbaSendPacketToAdapter(PacketHelper* packet, PINTERMEDIATE_BUFFER bufTemplate);
 void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 {
 	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
@@ -67,8 +68,40 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 	if (!packet.IsIp())
 		return;
 
-	/* sniff test
-	DWORD testIp = PacketHelper::ConvertStringIp("?.0.0.0");
+	//if (packet.IsTcp())
+		//printf("mode: %s, win:%d\n", send ? "Send" : "Receive", htons( packet.tcpHeader->th_win));
+
+	//return;
+
+	static bool init = false;
+	DWORD testIp = PacketHelper::ConvertStringIp("68.87.64.49");
+	if (/*!send &&*/ packet.IsTcp() && (packet.GetSrcIp()==testIp || packet.GetDesIp()==testIp) )
+	{
+		char* data = (char*)packet.GetTcpPayload();
+		if (packet.GetTcpPayloadLen()>5 && (strnicmp(data, "POST ", 4)==0 || strnicmp(data, "GET ", 4)==0 || strnicmp(data, "HTTP ", 4)==0 ))
+			//init =true;
+		//if (packet.GetTcpPayloadLen()>5 && (strnicmp(data, "GET ", 4)==0 || strnicmp(data, "POST ", 4)==0))
+		//if (init)
+		{
+			char buf[2000] = {0};
+			strncpy(buf, data, packet.GetTcpPayloadLen());
+			printf("************\n%s\n***********", buf);
+		}
+	}
+	return;
+
+	//if (packet.GetDesIp()==testIp && packet.GetSrcPort()!=24547 && 0)
+	//{
+	//	init = true;
+	//	tcpConn.InitClient(packet.GetSrcIp(), 80, 24547, packetBuffer);
+	//	u_short pp  = packet.GetSrcPort();
+	//	packetBuffer->m_Length = 0;
+	//	return;
+	//}
+
+
+	//sniff test
+	//DWORD testIp = PacketHelper::ConvertStringIp("?.0.0.0");
 	DWORD testIp2 = PacketHelper::ConvertStringIp("?.?.?.?");
 	static int i = 0;
 	bool grab = (packet.GetDesIp()==testIp && packet.GetDesPort()==80) || (packet.GetSrcIp()==testIp && packet.GetSrcPort()==80);
@@ -97,7 +130,6 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 			packet.GetTcpPayloadLen(),
 			a);
 	}
-	*/
 
 	if (send)
 	{

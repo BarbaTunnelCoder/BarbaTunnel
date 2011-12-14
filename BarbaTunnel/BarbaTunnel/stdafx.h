@@ -24,3 +24,8 @@
 #include "WinpkFilter\Common.h"
 #include "WinpkFilter\ndisapi.h"
 #include "WinpkFilter\iphlp.h"
+
+// memory leak detection ** dont forget call : _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+#ifdef _DEBUG
+    #define new new( _CLIENT_BLOCK, __FILE__, __LINE__)
+#endif // _DEBUG

@@ -56,7 +56,7 @@ void BarbaComm::InitializeEvents()
 
 void BarbaComm::SetWorkingState(ULONG /*length*/, bool /*send*/)
 {
-	if (GetTickCount()-_LastWorkingTick>BARBA_REFRESH_WORKTIME)
+	if (GetTickCount()-_LastWorkingTick>BARBA_WorkingStateRefreshTime)
 	{
 		_LastWorkingTick = GetTickCount();
 		time_t curTime = 0;
