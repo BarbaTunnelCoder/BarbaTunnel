@@ -93,13 +93,13 @@
     <ClInclude Include="SimpleCriticalSection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaServer\BarbaHttpServer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="StringUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaServer\BarbaHttpServerCourier.h">
+    <ClInclude Include="BarbaServer\BarbaServerHttp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaServer\BarbaServerHttpCourier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -155,10 +155,10 @@
     <ClCompile Include="BarbaCourier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarbaServer\BarbaHttpServer.cpp">
+    <ClCompile Include="BarbaServer\BarbaServerHttp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarbaServer\BarbaHttpServerCourier.cpp">
+    <ClCompile Include="BarbaServer\BarbaServerHttpCourier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

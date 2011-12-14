@@ -1,26 +1,26 @@
 /*
- * BarbaHttpServer class
+ * BarbaServerHttp class
  * this class just used for HTTP-Tunneling
  */
 
 #pragma once
 #include "General.h"
-#include "BarbaHttpServerCourier.h"
+#include "BarbaServerHttpCourier.h"
 
-class BarbaHttpServer
+class BarbaServerHttp
 {
 private:
 	//used to pass data to created thread
 	struct ListenerThreadData
 	{
-		ListenerThreadData(BarbaHttpServer* httpServer, BarbaSocketServer* socketServer) { this->HttpServer=httpServer; this->SocketServer=socketServer; }
-		BarbaHttpServer* HttpServer;
+		ListenerThreadData(BarbaServerHttp* httpServer, BarbaSocketServer* socketServer) { this->HttpServer=httpServer; this->SocketServer=socketServer; }
+		BarbaServerHttp* HttpServer;
 		BarbaSocketServer* SocketServer;
 	};
 
 public:
-	BarbaHttpServer(void);
-	virtual ~BarbaHttpServer(void);
+	BarbaServerHttp(void);
+	virtual ~BarbaServerHttp(void);
 
 
 	//@throw 
