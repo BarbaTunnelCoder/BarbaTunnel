@@ -174,3 +174,12 @@ size_t BarbaUtils::ParsePortRanges(LPCTSTR value, PortRange* portRanges, size_t 
 	return count;
 
 }
+
+bool BarbaUtils::IsThreadAlive(const HANDLE hThread, bool* alive)
+{
+	DWORD dwExitCode = 0;
+	if (!GetExitCodeThread(hThread, &dwExitCode))
+		return false;
+	*alive = dwExitCode==STILL_ACTIVE;
+	return true;
+}

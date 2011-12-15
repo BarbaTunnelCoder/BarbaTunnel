@@ -1,4 +1,6 @@
 #pragma once
+#include "BarbaServerConfig.h"
+#include "PacketHelper.h"
 
 //BarbaServerConnection
 class BarbaServerConnection
@@ -24,7 +26,9 @@ public:
 	BYTE ClientEthAddress[ETH_ALEN]; //Ethernet address of received packet; useful when router not exists
 	DWORD LasNegotiationTime;
 	BarbaServerConfigItem* ConfigItem;
-	bool ProcessPacket(INTERMEDIATE_BUFFER* packet);
+	virtual bool ProcessPacket(INTERMEDIATE_BUFFER* packet);
+	virtual BarbaModeEnum GetMode() {return BarbaModeNone;} //todo should be 0
+	virtual u_long GetSessionId() {return 0;} //todo should be 0
 	void ReportConnection();
 
 private:
@@ -69,6 +73,14 @@ public:
 		return NULL;
 	}
 
+	BarbaServerConnection* FindBySessionId(DWORD sessionId)
+	{
+		for (size_t i=0; i<ConnectionsCount; i++)
+			if (Connections[i]->GetSessionId()==sessionId)
+				return Connections[i];
+		return NULL;
+	}
+	
 	BarbaServerConnection* Find(DWORD clientIp, u_short clientPort, BarbaServerConfigItem* configItem)
 	{
 		for (size_t i=0; i<ConnectionsCount; i++)

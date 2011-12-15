@@ -97,7 +97,10 @@
     <ClInclude Include="BarbaConfigItem.h" />
     <ClInclude Include="BarbaCourier.h" />
     <ClInclude Include="BarbaCrypt.h" />
-    <ClInclude Include="BarbaServer\BarbaServerHttp.h" />
+    <ClInclude Include="BarbaServer\BarbaServerHttpHost.h" />
+    <ClInclude Include="BarbaServer\BarbaServerRedirectConnection.h" />
+    <ClInclude Include="BarbaServer\BarbaServerUdpConnection.h" />
+    <ClInclude Include="BarbaServer\BarbaServerHttpConnection.h" />
     <ClInclude Include="BarbaServer\BarbaServerHttpCourier.h" />
     <ClInclude Include="BarbaServer\BarbaServerApp.h" />
     <ClInclude Include="BarbaServer\BarbaServerConnection.h" />
@@ -127,7 +130,10 @@
     <ClCompile Include="BarbaConfigItem.cpp" />
     <ClCompile Include="BarbaCourier.cpp" />
     <ClCompile Include="BarbaCrypt.cpp" />
-    <ClCompile Include="BarbaServer\BarbaServerHttp.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerRedirectConnection.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerUdpConnection.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerHttpConnection.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerHttpHost.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerHttpCourier.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerApp.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerConfig.cpp" />

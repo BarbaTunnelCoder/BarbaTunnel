@@ -96,10 +96,19 @@
     <ClInclude Include="StringUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaServer\BarbaServerHttp.h">
+    <ClInclude Include="BarbaServer\BarbaServerHttpCourier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaServer\BarbaServerHttpCourier.h">
+    <ClInclude Include="BarbaServer\BarbaServerHttpConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaServer\BarbaServerUdpConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaServer\BarbaServerRedirectConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaServer\BarbaServerHttpHost.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -155,10 +164,19 @@
     <ClCompile Include="BarbaCourier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarbaServer\BarbaServerHttp.cpp">
+    <ClCompile Include="BarbaServer\BarbaServerHttpCourier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarbaServer\BarbaServerHttpCourier.cpp">
+    <ClCompile Include="BarbaServer\BarbaServerHttpConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaServer\BarbaServerUdpConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaServer\BarbaServerRedirectConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaServer\BarbaServerHttpHost.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
