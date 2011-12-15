@@ -1,20 +1,21 @@
 #include "StdAfx.h"
-#include "BarbaServerHttp.h"
+#include "BarbaServerHttpHost.h"
+#include "BarbaServerHttpConnection.h"
 #include "BarbaServerApp.h"
 
 
-BarbaServerHttp::BarbaServerHttp(void)
+BarbaServerHttpHost::BarbaServerHttpHost(void)
 	: DisposeEvent(true, false)
 {
 }
 
 
-BarbaServerHttp::~BarbaServerHttp(void)
+BarbaServerHttpHost::~BarbaServerHttpHost(void)
 {
 	Dispose();
 }
 
-void BarbaServerHttp::Dispose()
+void BarbaServerHttpHost::Dispose()
 {
 	//signal disposing
 	DisposeEvent.Set();
@@ -46,16 +47,58 @@ void BarbaServerHttp::Dispose()
 }
 
 
-bool BarbaServerHttp::IsDisposing()
+bool BarbaServerHttpHost::IsDisposing()
 {
 	return DisposeEvent.Wait(0)==WAIT_OBJECT_0;
 }
 
+unsigned int BarbaServerHttpHost::AnswerThread(void* data)
+{
+	AnswerThreadData* threadData = (AnswerThreadData*)data;
+	BarbaServerHttpHost* _this = (BarbaServerHttpHost*)threadData->HttpServer;
+	BarbaSocket* socket = (BarbaSocket*)threadData->Socket;
 
-unsigned int BarbaServerHttp::ListenerThread(void* data)
+	//read header
+	try
+	{
+		std::string header = socket->ReadHttpHeader();
+		if (!header.empty())
+		{
+			//find session
+			bool isOutgoing = true;
+			u_long sessionId = ExtractSessionId(header.data());
+			if (sessionId==0)
+				throw _T("Could not find sessionId in header!");
+
+			//find connection by session id
+			BarbaServerHttpConnection* conn = (BarbaServerHttpConnection*)theServerApp->ConnectionManager.FindBySessionId(sessionId);
+
+			//create new connection if session not found
+			if (conn==NULL)
+				conn=conn;
+
+			//check connection mode
+			if (conn->GetMode()!=BarbaModeHttpTunnel)
+				throw _T("Invalid mode for connection!");
+
+			if (conn->AddSocket(socket, isOutgoing))
+				return 0;
+		}
+	}
+	catch(...)
+	{
+	}
+
+	socket->Close();
+	delete socket;
+	return 1;
+}
+
+
+unsigned int BarbaServerHttpHost::ListenerThread(void* data)
 {
 	ListenerThreadData* threadData = (ListenerThreadData*)data;
-	BarbaServerHttp* _this = (BarbaServerHttp*)threadData->HttpServer;
+	BarbaServerHttpHost* _this = (BarbaServerHttpHost*)threadData->HttpServer;
 	BarbaSocketServer* listenerSocket = (BarbaSocketServer*)threadData->SocketServer;
 
 	try
@@ -65,13 +108,9 @@ unsigned int BarbaServerHttp::ListenerThread(void* data)
 			BarbaSocket* socket = listenerSocket->Accept();
 			try
 			{
-				//std::string header = socket->ReadHttpHeader();
-				//if (!header.empty())
-				//{
-					//find session
-					//if (!myServer->AddSocket(s, false))
-						//delete s;
-				//}
+				AnswerThreadData* threadData = new AnswerThreadData(_this, socket);
+				_this->AnswerThreads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, AnswerThread, threadData, 0, NULL));
+				CloseFinishedThreadHandle(&_this->AnswerThreads);
 			}
 			catch(...)
 			{
@@ -87,7 +126,7 @@ unsigned int BarbaServerHttp::ListenerThread(void* data)
 	return 0;
 }
 
-void BarbaServerHttp::AddListenerPort(u_short port)
+void BarbaServerHttpHost::AddListenerPort(u_short port)
 {
 	BarbaSocketServer* listenSocket = new BarbaSocketServer(port);
 	ListenerSockets.AddTail(listenSocket);
@@ -95,21 +134,37 @@ void BarbaServerHttp::AddListenerPort(u_short port)
 	ListenerThreads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, ListenerThread, threadData, 0, NULL));
 }
 
-/*
-unsigned int BarbaServerHttp::SocketAnswerThread(void* data)
+void BarbaServerHttpHost::CloseFinishedThreadHandle(SimpleSafeList<HANDLE>* list)
 {
-	SocketListnerThreadData* threadData = (SocketListnerThreadData*)data;
-	BarbaServerApp* _this = (BarbaServerApp*)threadData->Socket;
-	BarbaSocket* socket = (BarbaSocketServer*)threadData->Socket;
-
-	//read header
-	std::string header = socket->ReadHttpHeader();
-
-	//find session
-	//if (!myServer->AddSocket(socket, false))
+	SimpleLock( list->GetCriticalSection() );
+	size_t count = list->GetCount();
+	HANDLE* handles = new HANDLE[count];
+	list->GetAll(handles, &count);
+	for (size_t i=0; i<count; i++)
 	{
-		_this->ServerSockets.Remove(socket);
-		delete socket;
+		bool alive = false;
+		if ( BarbaUtils::IsThreadAlive(handles[i], &alive) && !alive)
+		{
+			list->Remove(handles[i]);
+			CloseHandle(handles[i]);
+		}
 	}
+	delete handles;
 }
-*/
+
+u_long BarbaServerHttpHost::ExtractSessionId(LPCSTR header)
+{
+	const char* key = "session=";
+	const char* start = strstr(header, key);
+	if (start==NULL)
+		return 0;
+	start = start + strlen(key);
+
+	const char* end = strstr(start, ";");
+	if (end==NULL)
+		end = header + strlen(header);
+
+	char sessionBuffer[100];
+	strncpy_s(sessionBuffer, start, end-start);
+	return strtoul(sessionBuffer, 0, 10);
+}
