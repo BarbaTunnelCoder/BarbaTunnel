@@ -17,4 +17,6 @@ public:
 	//@param value: StartPort-EndPort,StartPort-EndPort,StartPort-EndPort
 	//return number of parsed portRanges
 	static size_t ParsePortRanges(LPCTSTR value, PortRange* portRanges, size_t portRangeCount);
+	static bool IsThreadAlive(const HANDLE hThread, bool* alive);
+
 };

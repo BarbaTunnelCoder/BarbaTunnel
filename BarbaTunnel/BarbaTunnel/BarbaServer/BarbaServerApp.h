@@ -3,7 +3,7 @@
 #include "BarbaVirtualIp.h"
 #include "BarbaServerConfig.h"
 #include "BarbaServerConnection.h"
-#include "BarbaServerHttp.h"
+#include "BarbaServerHttpHost.h"
 
 class BarbaServerApp : public BarbaApp
 {
@@ -11,7 +11,7 @@ public:
 	BarbaServerApp(void);
 	virtual ~BarbaServerApp(void);
 
-	BarbaServerHttp HttpServer;
+	BarbaServerHttpHost HttpServer;
 	BarbaServerConfig Config;
 	BarbaServerConnectionManager ConnectionManager;
 	void Initialize();
