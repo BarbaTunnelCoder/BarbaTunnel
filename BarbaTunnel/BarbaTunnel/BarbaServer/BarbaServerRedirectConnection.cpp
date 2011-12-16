@@ -25,6 +25,13 @@ u_short BarbaServerRedirectConnection::GetRealPort()
 	return ConfigItem->RealPort;
 }
 
+bool BarbaServerRedirectConnection::ShouldProcessPacket(PacketHelper* packet)
+{
+	return 
+		(packet->GetDesIp()==this->GetClientVirtualIp()) || //check outgoing packets
+		(packet->GetSrcIp()==this->ClientIp && packet->GetSrcPort()==this->ClientPort && packet->GetDesPort()==this->GetTunnelPort() && packet->ipHeader->ip_p==BarbaMode_GetProtocol(GetMode()) );  //check incoming packets
+}
+
 bool BarbaServerRedirectConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 {
 	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;

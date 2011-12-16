@@ -227,8 +227,8 @@ int main(int argc, char* argv[])
 	TCHAR adapterName[ADAPTER_NAME_SIZE];
 	CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[CurrentAdapterIndex], adapterName, _countof(adapterName));
 	LPCTSTR barbaName = IsBarbaServer ? _T("Barba Server") : _T("Barba Client");
-	BarbaLog(_T("%s Started...\r\nVersion: %d\r\nAdapter: %s\r\nReady!"), barbaName, BARBA_CURRENT_VERSION, adapterName);
-	BarbaNotify(_T("%s Started\r\nVersion: %d\r\nAdpater: %s"), barbaName, BARBA_CURRENT_VERSION, adapterName);
+	BarbaLog(_T("%s Started...\r\nVersion: %s\r\nAdapter: %s\r\nReady!"), barbaName, BARBA_CURRENT_VERSION, adapterName);
+	BarbaNotify(_T("%s Started\r\nVersion: %s\r\nAdpater: %s"), barbaName, BARBA_CURRENT_VERSION, adapterName);
 	theApp->Comm.SetStatus(_T("Started"));
 
 	//set current process priority to process network packets as fast as possible

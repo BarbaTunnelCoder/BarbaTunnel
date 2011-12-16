@@ -12,7 +12,7 @@ BarbaServerHttpCourier::~BarbaServerHttpCourier(void)
 {
 }
 
-void BarbaServerHttpCourier::Receive(BYTE* buffer, size_t bufferCount)
+void BarbaServerHttpCourier::Receive(BYTE* /*buffer*/, size_t /*bufferCount*/)
 {
 }
 

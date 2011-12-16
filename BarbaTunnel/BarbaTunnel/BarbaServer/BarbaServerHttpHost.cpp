@@ -54,7 +54,7 @@ bool BarbaServerHttpHost::IsDisposing()
 unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 {
 	AnswerThreadData* threadData = (AnswerThreadData*)data;
-	BarbaServerHttpHost* _this = (BarbaServerHttpHost*)threadData->HttpServer;
+	//BarbaServerHttpHost* _this = (BarbaServerHttpHost*)threadData->HttpServer;
 	BarbaSocket* socket = (BarbaSocket*)threadData->Socket;
 
 	//read header

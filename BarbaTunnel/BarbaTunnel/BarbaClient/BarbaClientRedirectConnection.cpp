@@ -33,9 +33,9 @@ bool BarbaClientRedirectConnection::ShouldProcessPacket(PacketHelper* packet)
 	//check incoming packets
 	else if (packet->GetSrcIp()==GetServerIp())
 	{
-		return packet->ipHeader->ip_p==this->ConfigItem->GetTunnelProtocol() 
+		return packet->ipHeader->ip_p==BarbaMode_GetProtocol(GetMode())
 			&& packet->GetSrcPort()==this->GetTunnelPort()
-			&&	packet->GetDesPort()==this->ClientPort;
+			&& packet->GetDesPort()==this->ClientPort;
 	}
 	else
 	{

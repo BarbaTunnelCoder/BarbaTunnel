@@ -12,9 +12,7 @@ public:
 	void Initialize(IpRange* virtualIpRange);
 	BarbaServerConnection* FindByVirtualIp(DWORD ip);
 	BarbaServerConnection* FindBySessionId(DWORD sessionId);
-	BarbaServerConnection* Find(DWORD clientIp, u_short clientPort, BarbaModeEnum mode);
 	BarbaServerConnection* CreateConnection(PacketHelper* packet, BarbaServerConfigItem* configItem);
-
 
 private:
 	BarbaServerVirtualIpManager VirtualIpManager;

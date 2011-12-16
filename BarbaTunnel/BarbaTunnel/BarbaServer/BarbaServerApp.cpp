@@ -42,6 +42,7 @@ BarbaServerConfigItem* BarbaServerApp::IsGrabPacket(PacketHelper* packet)
 	for (size_t i=0; i<this->Config.ItemsCount; i++)
 	{
 		BarbaServerConfigItem* item = &this->Config.Items[i];
+		
 		//check protocol
 		if (item->GetTunnelProtocol()!=packet->ipHeader->ip_p)
 			continue;
@@ -60,37 +61,27 @@ BarbaServerConfigItem* BarbaServerApp::IsGrabPacket(PacketHelper* packet)
 
 void BarbaServerApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 {
-	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
 	PacketHelper packet(packetBuffer->m_IBuffer);
-	BarbaServerConnection* connection = NULL;
 	if (!packet.IsIp())
 		return;
 
-	if (send)
-	{
-		connection = ConnectionManager.FindByVirtualIp(packet.GetDesIp());
-	}
-	else
+	//find an open connection to process packet
+	BarbaServerConnection* connection = (BarbaServerConnection*)ConnectionManager.FindByPacketToProcess(&packet);
+	
+	//create new connection if not found
+	if (connection==NULL)
 	{
 		BarbaServerConfigItem* item = IsGrabPacket(&packet);
-		if (item==NULL)
-			return;
-		
-		//find or create connection
-		connection = ConnectionManager.Find(packet.GetSrcIp(), packet.GetSrcPort(), item->Mode);
-		if (connection==NULL)
+		if (item!=NULL)
 			connection = ConnectionManager.CreateConnection(&packet, item);
 	}
-
+	
 	//process packet for connection
 	if (connection!=NULL)
 	{
 		connection->ProcessPacket(packetBuffer);
 	}
 }
-
-
-
 
 void BarbaServerApp::InitHttpServer()
 {
