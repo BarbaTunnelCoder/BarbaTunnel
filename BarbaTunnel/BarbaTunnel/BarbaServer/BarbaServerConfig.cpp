@@ -11,7 +11,6 @@ BarbaServerConfig::BarbaServerConfig()
 {
 	VirtualIpRange.EndIp = 0;
 	VirtualIpRange.StartIp = 0;
-	KeyCount = 0;
 	ItemsCount = 0;
 }
 
@@ -23,7 +22,7 @@ bool BarbaServerConfig::LoadFile(LPCTSTR file)
 	//Key
 	TCHAR hexKey[BARBA_MAX_KEYLEN*2];
 	GetPrivateProfileString(_T("General"), _T("Key"), _T(""), hexKey, _countof(hexKey), file);
-	this->KeyCount = BarbaUtils::ConvertHexStringToBuffer(hexKey, this->Key, _countof(this->Key));
+	this->Key.KeyCount = BarbaUtils::ConvertHexStringToBuffer(hexKey, this->Key.Key, _countof(this->Key.Key));
 
 	//VirtualIpRange
 	TCHAR virtualIpRange[100] = {0};

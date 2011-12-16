@@ -47,6 +47,14 @@ struct ProtocolPort
 	u_short Port; 
 };
 
+
+//BarbaKey
+struct BarbaKey
+{
+	BYTE Key[BARBA_MAX_KEYLEN];
+	size_t KeyCount;
+};
+
 //BarbaHeader
 struct BarbaHeader
 {

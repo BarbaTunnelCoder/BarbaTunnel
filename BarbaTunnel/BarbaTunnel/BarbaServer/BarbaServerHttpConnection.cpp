@@ -1,8 +1,9 @@
 #include "StdAfx.h"
 #include "BarbaServerHttpConnection.h"
 
-BarbaServerHttpConnection::BarbaServerHttpConnection(u_long sessionId)
-	: HttpCourier(4)
+BarbaServerHttpConnection::BarbaServerHttpConnection(LPCTSTR connectionName, BarbaKey* barbaKey, u_long sessionId)
+	: BarbaServerConnection(connectionName, barbaKey)
+	, HttpCourier(4)
 {
 	this->SessionId = sessionId;
 }
@@ -21,7 +22,7 @@ bool BarbaServerHttpConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 
 BarbaModeEnum BarbaServerHttpConnection::GetMode()
 {
-	return BarbaModeEnum::BarbaModeHttpTunnel;
+	return BarbaModeHttpTunnel;
 }
 
 u_long BarbaServerHttpConnection::GetSessionId()

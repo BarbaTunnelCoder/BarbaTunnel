@@ -60,9 +60,6 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaServer\BarbaVirtualIp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BarbaComm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -109,6 +106,33 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BarbaServer\BarbaServerHttpHost.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaServer\BarbaServerConnectionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaServer\BarbaServerVirtualIpManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaClient\BarbaClientUdpConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaClient\BarbaClientRedirectConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaClient\BarbaClientConnectionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaConnectionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaClient\BarbaClientHttpConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaClient\BarbaClientHttpCourier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -177,6 +201,30 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BarbaServer\BarbaServerHttpHost.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaServer\BarbaServerConnectionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaClient\BarbaClientUdpConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaClient\BarbaClientRedirectConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaClient\BarbaClientConnectionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaConnectionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaClient\BarbaClientHttpConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaClient\BarbaClientHttpCourier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -6,7 +6,7 @@ class BarbaServerHttpConnection :
 	public BarbaServerConnection
 {
 public:
-	explicit BarbaServerHttpConnection(u_long sessionId);
+	explicit BarbaServerHttpConnection(LPCTSTR connectionName, BarbaKey* barbaKey, u_long sessionId);
 	virtual ~BarbaServerHttpConnection(void);
 	virtual bool ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer);
 	virtual u_long GetSessionId();

@@ -73,22 +73,22 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 
 	//return;
 
-	static bool init = false;
-	DWORD testIp = PacketHelper::ConvertStringIp("68.87.64.49");
-	if (/*!send &&*/ packet.IsTcp() && (packet.GetSrcIp()==testIp || packet.GetDesIp()==testIp) )
-	{
-		char* data = (char*)packet.GetTcpPayload();
-		if (packet.GetTcpPayloadLen()>5 && (strnicmp(data, "POST ", 4)==0 || strnicmp(data, "GET ", 4)==0 || strnicmp(data, "HTTP ", 4)==0 ))
-			//init =true;
-		//if (packet.GetTcpPayloadLen()>5 && (strnicmp(data, "GET ", 4)==0 || strnicmp(data, "POST ", 4)==0))
-		//if (init)
-		{
-			char buf[2000] = {0};
-			strncpy(buf, data, packet.GetTcpPayloadLen());
-			printf("************\n%s\n***********", buf);
-		}
-	}
-	return;
+	//static bool init = false;
+	//DWORD testIp = PacketHelper::ConvertStringIp("?.?.?.?");
+	//if (/*!send &&*/ packet.IsTcp())// && (packet.GetSrcIp()==testIp || packet.GetDesIp()==testIp) )
+	//{
+	//	char* data = (char*)packet.GetTcpPayload();
+	//	if (packet.GetTcpPayloadLen()>5 && (strnicmp(data, "POST ", 4)==0 || strnicmp(data, "GET ", 4)==0 || strnicmp(data, "HTTP ", 4)==0 ))
+	//		//init =true;
+	//	//if (packet.GetTcpPayloadLen()>5 && (strnicmp(data, "GET ", 4)==0 || strnicmp(data, "POST ", 4)==0))
+	//	//if (init)
+	//	{
+	//		char buf[2000] = {0};
+	//		strncpy(buf, data, packet.GetTcpPayloadLen());
+	//		printf("************\n%s\n***********", buf);
+	//	}
+	//}
+	//return;
 
 	//if (packet.GetDesIp()==testIp && packet.GetSrcPort()!=24547 && 0)
 	//{
@@ -102,7 +102,7 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 
 	//sniff test
 	//DWORD testIp = PacketHelper::ConvertStringIp("?.0.0.0");
-	DWORD testIp2 = PacketHelper::ConvertStringIp("?.?.?.?");
+	/*DWORD testIp2 = PacketHelper::ConvertStringIp("?.?.?.?");
 	static int i = 0;
 	bool grab = (packet.GetDesIp()==testIp && packet.GetDesPort()==80) || (packet.GetSrcIp()==testIp && packet.GetSrcPort()==80);
 	grab |= (packet.GetDesIp()==testIp2 && packet.GetDesPort()==443) || (packet.GetSrcIp()==testIp2 && packet.GetSrcPort()==443);
@@ -129,7 +129,7 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 			htonl(packet.tcpHeader->th_ack),
 			packet.GetTcpPayloadLen(),
 			a);
-	}
+	}*/
 
 	if (send)
 	{
@@ -139,8 +139,7 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 			return;
 
 		//create new connection if not found
-		//in Redirect mode, the connection should always match the client port, to permit reestablish the connection
-		connection = ConnectionManager.FindByConfigItem(configItem, /*configItem->IsRedirectMode() ? packet.GetSrcPort() :*/ 0);
+		connection = ConnectionManager.FindByConfigItem(configItem, 0);
 		if (connection==NULL)
 			connection = ConnectionManager.CreateConnection(&packet, config, configItem);
 	}
