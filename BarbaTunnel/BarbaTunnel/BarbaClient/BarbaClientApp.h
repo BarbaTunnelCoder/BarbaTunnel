@@ -1,7 +1,7 @@
 #pragma once
 #include "BarbaApp.h"
 #include "BarbaClientConfig.h"
-#include "BarbaClientConnection.h"
+#include "BarbaClientConnectionManager.h"
 
 class BarbaClientApp : public BarbaApp
 {

@@ -7,7 +7,6 @@ BarbaClientConfigItem::BarbaClientConfigItem()
 {
 	GrabProtocolsCount = 0;
 	memset(GrabProtocols, 0, _countof(GrabProtocols));
-	LastTunnelPortIndex = 0;
 }
 
 u_short BarbaClientConfigItem::GetNewTunnelPort()
@@ -18,7 +17,6 @@ u_short BarbaClientConfigItem::GetNewTunnelPort()
 		int count = TunnelPorts[i].EndPort - TunnelPorts[i].StartPort + 1;
 		if (newPortIndex<count)
 		{
-			LastTunnelPortIndex++;
 			return (u_short)(TunnelPorts[i].StartPort + newPortIndex);
 		}
 		newPortIndex -= count;
@@ -95,7 +93,6 @@ BarbaClientConfig::BarbaClientConfig()
 {
 	ServerIp = 0;
 	ServerName[0] = 0;
-	KeyCount = 0;
 	ItemsCount = 0;
 }
 
@@ -113,7 +110,7 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	//Key
 	TCHAR hexKey[BARBA_MAX_KEYLEN*2];
 	GetPrivateProfileString(_T("General"), _T("Key"), _T(""), hexKey, _countof(hexKey), file);
-	this->KeyCount = BarbaUtils::ConvertHexStringToBuffer(hexKey, this->Key, _countof(this->Key));
+	this->Key.KeyCount = BarbaUtils::ConvertHexStringToBuffer(hexKey, this->Key.Key, _countof(this->Key.Key));
 
 	//load Items
 	int notfoundCounter = 0;

@@ -90,13 +90,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BarbaApp.h" />
+    <ClInclude Include="BarbaClient\BarbaClientHttpCourier.h" />
+    <ClInclude Include="BarbaClient\BarbaClientHttpConnection.h" />
+    <ClInclude Include="BarbaClient\BarbaClientConnectionManager.h" />
+    <ClInclude Include="BarbaClient\BarbaClientRedirectConnection.h" />
+    <ClInclude Include="BarbaClient\BarbaClientUdpConnection.h" />
     <ClInclude Include="BarbaClient\BarbaClientApp.h" />
     <ClInclude Include="BarbaClient\BarbaClientConfig.h" />
     <ClInclude Include="BarbaClient\BarbaClientConnection.h" />
     <ClInclude Include="BarbaComm.h" />
     <ClInclude Include="BarbaConfigItem.h" />
+    <ClInclude Include="BarbaConnection.h" />
+    <ClInclude Include="BarbaConnectionManager.h" />
     <ClInclude Include="BarbaCourier.h" />
     <ClInclude Include="BarbaCrypt.h" />
+    <ClInclude Include="BarbaServer\BarbaServerConnectionManager.h" />
     <ClInclude Include="BarbaServer\BarbaServerHttpHost.h" />
     <ClInclude Include="BarbaServer\BarbaServerRedirectConnection.h" />
     <ClInclude Include="BarbaServer\BarbaServerUdpConnection.h" />
@@ -116,20 +124,28 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="BarbaServer\BarbaVirtualIp.h" />
+    <ClInclude Include="BarbaServer\BarbaServerVirtualIpManager.h" />
     <ClInclude Include="WinpkFilter\Common.h" />
     <ClInclude Include="WinpkFilter\iphlp.h" />
     <ClInclude Include="WinpkFilter\ndisapi.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BarbaApp.cpp" />
+    <ClCompile Include="BarbaClient\BarbaClientHttpCourier.cpp" />
+    <ClCompile Include="BarbaClient\BarbaClientHttpConnection.cpp" />
+    <ClCompile Include="BarbaClient\BarbaClientConnectionManager.cpp" />
+    <ClCompile Include="BarbaClient\BarbaClientRedirectConnection.cpp" />
+    <ClCompile Include="BarbaClient\BarbaClientUdpConnection.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientApp.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientConfig.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientConnection.cpp" />
     <ClCompile Include="BarbaComm.cpp" />
     <ClCompile Include="BarbaConfigItem.cpp" />
+    <ClCompile Include="BarbaConnection.cpp" />
+    <ClCompile Include="BarbaConnectionManager.cpp" />
     <ClCompile Include="BarbaCourier.cpp" />
     <ClCompile Include="BarbaCrypt.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerConnectionManager.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerRedirectConnection.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerUdpConnection.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerHttpConnection.cpp" />

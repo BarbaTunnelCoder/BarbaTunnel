@@ -10,9 +10,6 @@ public:
 	ProtocolPort GrabProtocols[BARBA_MAX_PORTITEM]; //valid when mode is UDP-Tunnel or TCP-Tunnel mode
 	size_t GrabProtocolsCount;
 	BarbaClientConfigItem();
-
-private:
-	DWORD LastTunnelPortIndex;
 };
 
 //BarbaClientConfig
@@ -22,8 +19,7 @@ public:
 	BarbaClientConfig();
 	DWORD ServerIp;
 	TCHAR ServerName[BARBA_MAX_CONFIGNAME];
-	BYTE Key[BARBA_MAX_KEYLEN];
-	int KeyCount;
+	BarbaKey Key;
 	BarbaClientConfigItem Items[BARBA_MAX_CONFIGITEMS];
 	int ItemsCount;
 	// @return false if could not load file

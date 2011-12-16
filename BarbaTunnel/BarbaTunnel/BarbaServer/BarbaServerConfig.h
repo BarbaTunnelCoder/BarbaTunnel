@@ -15,8 +15,7 @@ public:
 	virtual ~BarbaServerConfig(){}
 	DWORD AutoStartDelayMinutes;
 	IpRange VirtualIpRange;
-	BYTE Key[BARBA_MAX_KEYLEN];
-	size_t KeyCount;
+	BarbaKey Key;
 	bool LoadFile(LPCTSTR file);
 
 	BarbaServerConfigItem Items[BARBA_MAX_CONFIGITEMS];

@@ -5,7 +5,6 @@
 BarbaServerApp* theServerApp = NULL;
 
 BarbaServerApp::BarbaServerApp(void)
-	: VirtualIpManager(&Config.VirtualIpRange)
 {
 }
 
@@ -29,6 +28,10 @@ void BarbaServerApp::Initialize()
 	TCHAR file[MAX_PATH];
 	_stprintf_s(file, _countof(file), _T("%s\\server\\server.ini"), moduleFolder);
 	Config.LoadFile(file);
+
+
+	//Initialize Connection Manager
+	ConnectionManager.Initialize(&Config.VirtualIpRange);
 
 	//Initialize HttpServer
 	InitHttpServer();
@@ -74,7 +77,7 @@ void BarbaServerApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 			return;
 		
 		//find or create connection
-		connection = ConnectionManager.Find(packet.GetSrcIp(), packet.GetSrcPort(), item);
+		connection = ConnectionManager.Find(packet.GetSrcIp(), packet.GetSrcPort(), item->Mode);
 		if (connection==NULL)
 			connection = ConnectionManager.CreateConnection(&packet, item);
 	}

@@ -8,8 +8,10 @@ class SimpleSafeList
 private:
 	std::list<_Ty> _list;
 	SimpleCriticalSection _cs;
+	_Ty* _LockedBuffer;
 
 public:
+	SimpleSafeList() {_LockedBuffer=NULL;}
 	bool IsEmpty() {SimpleLock lock(&_cs); return _list.empty();}
 	void AddHead(_Ty _Val) {SimpleLock lock(&_cs); _list.push_front(_Val);}
 	void AddTail(_Ty _Val) {SimpleLock lock(&_cs); _list.push_back(_Val);}
@@ -45,9 +47,38 @@ public:
 		return _list.size();
 	}
 
+	//pointer to array
+	_Ty* LockBuffer()
+	{
+		_cs.Enter();
+		if (_LockedBuffer==NULL)
+		{
+			_LockedBuffer = new _Ty[_list.size()];
+			size_t size = _list.size();
+			GetAll(_LockedBuffer, &size);
+		}
+		return _LockedBuffer;
+	}
+
+	//pointer to array
+	void UnlockBuffer()
+	{
+		if (_LockedBuffer!=NULL)
+		{
+			delete _LockedBuffer;
+			_cs.Leave();
+		}
+	}
+
+	SimpleCriticalSection* GetCriticalSection() 
+	{
+		return &_cs;
+	}
+
+private:
+	//not thread safe
 	void GetAll(_Ty buffer[], size_t* count)
 	{
-		//SimpleLock lock(&_cs); 
 		if (_list.empty())
 		{
 			*count = 0;
@@ -62,11 +93,5 @@ public:
 		}
 
 		*count = i;
-	}
-
-	
-	SimpleCriticalSection* GetCriticalSection() 
-	{
-		return &_cs;
 	}
 };

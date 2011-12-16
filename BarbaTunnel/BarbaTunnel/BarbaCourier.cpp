@@ -39,11 +39,8 @@ bool BarbaCourier::IsDisposing()
 void BarbaCourier::Dispose()
 {
 	DisposeEvent.Set();
-	SimpleLock lock(this->Sockets.GetCriticalSection());
-	size_t count = this->Sockets.GetCount();
-	BarbaSocket** socketsArray = new BarbaSocket*[count];
-	this->Sockets.GetAll(socketsArray, &count);
-	for (size_t i=0; i<count; i++)
+	BarbaSocket** socketsArray =  this->Sockets.LockBuffer();
+	for (size_t i=0; i<this->Sockets.GetCount(); i++)
 	{
 		try
 		{
@@ -53,8 +50,7 @@ void BarbaCourier::Dispose()
 		{
 		}
 	}
-	lock.Unlock();
-	delete socketsArray;
+	this->Sockets.UnlockBuffer();
 
 	//delete all messages
 	Message* message = this->Messages.RemoveHead();
@@ -87,7 +83,9 @@ void BarbaCourier::Send(BYTE* buffer, size_t bufferCount)
 
 void BarbaCourier::Send(Message* message, bool highPriority)
 {
-	SimpleLock lock(this->Messages.GetCriticalSection());
+	//wait till pulse set
+	SimpleLock lock(Messages.GetCriticalSection());
+
 	if (highPriority)
 		Messages.AddHead(message);
 	else
@@ -95,7 +93,7 @@ void BarbaCourier::Send(Message* message, bool highPriority)
 
 	//check maximum send buffer
 	if (Messages.GetCount()>MaxMessageBuffer)
-		Messages.RemoveHead();
+		delete Messages.RemoveHead();
 
 	SendEvent.Set();
 }
