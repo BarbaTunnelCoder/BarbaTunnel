@@ -2,19 +2,39 @@
 #include "BarbaClientUdpConnection.h"
 
 
-BarbaClientUdpConnection::BarbaClientUdpConnection(LPCTSTR connectionName, BarbaKey* key)
-	: BarbaClientConnection(connectionName, key)
+BarbaClientUdpConnection::BarbaClientUdpConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short clientPort, u_short tunnelPort)
+	: BarbaClientConnection(config, configItem)
 {
+	this->ClientPort = clientPort;
+	this->TunnelPort = tunnelPort;
 }
 
-BarbaModeEnum BarbaClientUdpConnection::GetMode()
+u_short BarbaClientUdpConnection::GetTunnelPort()
 {
-	return BarbaModeUdpTunnel;
+	return this->TunnelPort;
 }
-
 
 BarbaClientUdpConnection::~BarbaClientUdpConnection(void)
 {
+}
+
+bool BarbaClientUdpConnection::ShouldProcessPacket(PacketHelper* packet)
+{
+	//check outgoing packets
+	if (packet->GetDesIp()==GetServerIp())
+	{
+		return ConfigItem->IsGrabPacket(packet);
+	}
+	//check incoming packets
+	else if (packet->GetSrcIp()==GetServerIp())
+	{
+		return packet->ipHeader->ip_p==this->ConfigItem->GetTunnelProtocol() 
+			&&	packet->GetSrcPort()==this->TunnelPort;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool BarbaClientUdpConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer)
@@ -36,7 +56,7 @@ bool BarbaClientUdpConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* 
 	barbaPacket.ipHeader->ip_id = 56;
 	barbaPacket.ipHeader->ip_off = packet->ipHeader->ip_off;
 	barbaPacket.SetSrcIp(packet->GetSrcIp());
-	barbaPacket.SetDesIp(this->Config->ServerIp);
+	barbaPacket.SetDesIp(this->GetServerIp());
 	barbaPacket.SetSrcPort(this->ClientPort);
 	barbaPacket.SetDesPort(this->TunnelPort);
 	barbaPacket.SetUdpPayload((BYTE*)packet->ipHeader, packet->GetIpLen());

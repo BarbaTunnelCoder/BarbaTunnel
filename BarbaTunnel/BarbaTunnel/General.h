@@ -1,4 +1,5 @@
 #pragma once
+#include "PacketHelper.h"
 
 #define BARBA_MAX_CONFIGS 100
 #define BARBA_MAX_CONFIGITEMS 100

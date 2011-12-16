@@ -29,35 +29,11 @@ BarbaClientConfigItem* BarbaClientApp::IsGrabPacket(PacketHelper* packet, BarbaC
 	for (int i=0; i<config->ItemsCount; i++)
 	{
 		BarbaClientConfigItem* item = &config->Items[i];
-		if (IsGrabPacket(packet, item))
+		if (item->IsGrabPacket(packet))
 			return item;
 	}
 	return NULL;
 }
-
-bool BarbaClientApp::IsGrabPacket(PacketHelper* packet, BarbaClientConfigItem* configItem)
-{
-	//check RealPort for redirect modes
-	if (configItem->Mode==BarbaModeTcpRedirect || configItem->Mode==BarbaModeUdpRedirect)
-	{
-		return packet->GetDesPort()==configItem->RealPort;
-	}
-
-
-	for (size_t j=0; j<configItem->GrabProtocolsCount; j++)
-	{
-		//check GrabProtocols for tunnel modes
-		ProtocolPort* protocolPort = &configItem->GrabProtocols[j];
-		if (protocolPort->Protocol==0 || protocolPort->Protocol==packet->ipHeader->ip_p)
-		{
-			if (protocolPort->Port==0 || protocolPort->Port==packet->GetDesPort())
-				return true;
-		}
-	}
-
-	return false;
-}
-
 
 bool BarbaSendPacketToAdapter(PacketHelper* packet, PINTERMEDIATE_BUFFER bufTemplate);
 void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
@@ -100,56 +76,25 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 	//}
 
 
-	//sniff test
-	//DWORD testIp = PacketHelper::ConvertStringIp("?.0.0.0");
-	/*DWORD testIp2 = PacketHelper::ConvertStringIp("?.?.?.?");
-	static int i = 0;
-	bool grab = (packet.GetDesIp()==testIp && packet.GetDesPort()==80) || (packet.GetSrcIp()==testIp && packet.GetSrcPort()==80);
-	grab |= (packet.GetDesIp()==testIp2 && packet.GetDesPort()==443) || (packet.GetSrcIp()==testIp2 && packet.GetSrcPort()==443);
-
-	if (i<200 && packet.IsTcp() && grab)
-	{
-		BYTE a[MAX_ETHER_FRAME] = {0};
-		memcpy(a, packet.GetTcpPayload(), min(packet.GetTcpPayloadLen(), 10));
-
-		if (packet.GetTcpPayloadLen()>3 && strncmp((char*)packet.GetTcpPayload(), "HTTP/1.1", 4)==0)
-			i=i;
-
-
-		i++;
-		u_char flags = packet.tcpHeader->th_flags;
-		printf("%s, FIN:%d, SYN:%d, RST:%d, PSH:%d, ACK:%d, seq:%u, ack:%u Len:%d, Data:%s\n", 
-			send ? "Send" : "Receive",
-			(flags&TH_FIN)!=0, 
-			(flags&TH_SYN)!=0, 
-			(flags&TH_RST)!=0, 
-			(flags&TH_PSH)!=0, 
-			(flags&TH_ACK)!=0, 
-			htonl(packet.tcpHeader->th_seq),
-			htonl(packet.tcpHeader->th_ack),
-			packet.GetTcpPayloadLen(),
-			a);
-	}*/
 
 	if (send)
 	{
-		BarbaClientConfig* config = ConfigManager.FindByServerIP(packet.GetDesIp());
-		BarbaClientConfigItem* configItem = config!=NULL ? IsGrabPacket(&packet, config) : NULL;
-		if (configItem==NULL)
-			return;
+		//find in current connections
+		connection = ConnectionManager.FindByPacketToProcess(&packet);
 
 		//create new connection if not found
-		connection = ConnectionManager.FindByConfigItem(configItem, 0);
 		if (connection==NULL)
-			connection = ConnectionManager.CreateConnection(&packet, config, configItem);
+		{
+			BarbaClientConfig* config = ConfigManager.FindByServerIP(packet.GetDesIp());
+			BarbaClientConfigItem* configItem = config!=NULL ? IsGrabPacket(&packet, config) : NULL;
+			if (configItem!=NULL)
+				connection = ConnectionManager.CreateConnection(&packet, config, configItem);
+		}
 	}
 	else
 	{
-		if (!packet.IsTcp() && !packet.IsUdp())
-			return;
-
 		//find packet that come from tunnel
-		connection = ConnectionManager.Find(packet.GetSrcIp(), packet.ipHeader->ip_p, packet.GetDesPort());
+		connection = ConnectionManager.FindByPacketToProcess(&packet);
 	}
 
 	//process packet for connection

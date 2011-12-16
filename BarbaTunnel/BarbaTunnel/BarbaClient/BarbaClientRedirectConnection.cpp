@@ -2,20 +2,47 @@
 #include "BarbaClientRedirectConnection.h"
 
 
-BarbaClientRedirectConnection::BarbaClientRedirectConnection(LPCTSTR connectionName, BarbaKey* key, BarbaModeEnum mode)
-	: BarbaClientConnection(connectionName, key)
+BarbaClientRedirectConnection::BarbaClientRedirectConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short clientPort, u_short tunnelPort)
+	: BarbaClientConnection(config, configItem)
 {
-	this->Mode = mode;
+	this->ClientPort = clientPort;
+	this->TunnelPort = tunnelPort;
 }
 
-BarbaModeEnum BarbaClientRedirectConnection::GetMode()
+u_short BarbaClientRedirectConnection::GetTunnelPort()
 {
-	return this->Mode;
+	return this->TunnelPort;
+}
+
+u_short BarbaClientRedirectConnection::GetRealPort()
+{
+	return this->ConfigItem->RealPort;
 }
 
 BarbaClientRedirectConnection::~BarbaClientRedirectConnection(void)
 {
 }
+
+bool BarbaClientRedirectConnection::ShouldProcessPacket(PacketHelper* packet)
+{
+	//check outgoing packets
+	if (packet->GetDesIp()==GetServerIp())
+	{
+		return packet->GetSrcPort()==this->ClientPort && ConfigItem->IsGrabPacket(packet);
+	}
+	//check incoming packets
+	else if (packet->GetSrcIp()==GetServerIp())
+	{
+		return packet->ipHeader->ip_p==this->ConfigItem->GetTunnelProtocol() 
+			&& packet->GetSrcPort()==this->GetTunnelPort()
+			&&	packet->GetDesPort()==this->ClientPort;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 
 bool BarbaClientRedirectConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 {
@@ -24,8 +51,7 @@ bool BarbaClientRedirectConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuf
 
 	if (send)
 	{
-		packet.SetDesPort(this->TunnelPort);
-		packet.SetSrcPort(this->ClientPort);
+		packet.SetDesPort(this->GetTunnelPort());
 		CryptPacket(&packet);
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
@@ -36,8 +62,7 @@ bool BarbaClientRedirectConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuf
 		CryptPacket(&packet);
 		if (!packet.IsValidChecksum())
 			return false;
-		packet.SetSrcPort(this->ConfigItem->RealPort);
-		packet.SetDesPort(this->OrgClientPort);
+		packet.SetSrcPort(this->GetRealPort());
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
 		SetWorkingState(packetBuffer->m_Length, send);

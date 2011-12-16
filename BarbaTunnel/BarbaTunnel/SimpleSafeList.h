@@ -11,6 +11,38 @@ private:
 	_Ty* _LockedBuffer;
 
 public:
+	class AutoLockBuffer
+	{
+	public:
+		explicit AutoLockBuffer(SimpleSafeList<_Ty>* list)
+		{
+			this->_List = list;
+			this->_Buffer = list->LockBuffer();
+		}
+		~AutoLockBuffer()
+		{
+			Unlock();
+		}
+
+		_Ty* GetBuffer()
+		{
+			return _Buffer;
+		}
+
+		void Unlock()
+		{
+			if (_Buffer!=NULL)
+			{
+				this->_List->UnlockBuffer();
+				_Buffer = NULL;
+			}
+		}
+	private:
+		SimpleSafeList<_Ty>* _List;
+		_Ty* _Buffer;
+	};
+
+public:
 	SimpleSafeList() {_LockedBuffer=NULL;}
 	bool IsEmpty() {SimpleLock lock(&_cs); return _list.empty();}
 	void AddHead(_Ty _Val) {SimpleLock lock(&_cs); _list.push_front(_Val);}
@@ -51,9 +83,13 @@ public:
 	_Ty* LockBuffer()
 	{
 		_cs.Enter();
+		if (_list.size()==0)
+			return NULL;
+
 		if (_LockedBuffer==NULL)
 		{
 			_LockedBuffer = new _Ty[_list.size()];
+			memset(_LockedBuffer, 0, _list.size());
 			size_t size = _list.size();
 			GetAll(_LockedBuffer, &size);
 		}
@@ -66,6 +102,7 @@ public:
 		if (_LockedBuffer!=NULL)
 		{
 			delete _LockedBuffer;
+			_LockedBuffer = NULL;
 			_cs.Leave();
 		}
 	}

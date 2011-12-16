@@ -2,7 +2,7 @@
 #include "BarbaServerHttpCourier.h"
 
 
-BarbaServerHttpCourier::BarbaServerHttpCourier(int maxConnection)
+BarbaServerHttpCourier::BarbaServerHttpCourier(u_short maxConnection)
 	: BarbaCourierServer(maxConnection)
 {
 }

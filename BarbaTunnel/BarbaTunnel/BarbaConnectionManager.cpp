@@ -26,7 +26,8 @@ void BarbaConnectionManager::AddConnection(BarbaConnection* conn)
 
 void BarbaConnectionManager::CleanTimeoutConnections()
 {
-	BarbaConnection** connections = this->Connections.LockBuffer();
+	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&this->Connections);
+	BarbaConnection** connections = autoLockBuf.GetBuffer();
 	for (size_t i=0; i<this->Connections.GetCount(); i++)
 	{
 		BarbaConnection* conn = connections[i];

@@ -4,21 +4,14 @@
 #include "BarbaApp.h"
 
 
-BarbaConnection::BarbaConnection(LPCTSTR  connectionName, BarbaKey* key)
+BarbaConnection::BarbaConnection()
 {
 	this->LasNegotiationTime = GetTickCount();
-	memcpy_s(&this->Key, sizeof BarbaKey, key, sizeof BarbaKey);
-	_tcscpy_s(this->ConnectionName, connectionName);
 }
 
 
 BarbaConnection::~BarbaConnection(void)
 {
-}
-
-LPCTSTR BarbaConnection::GetConnectionName()
-{
-	return ConnectionName;
 }
 
 DWORD BarbaConnection::GetLasNegotiationTime() 
@@ -28,7 +21,7 @@ DWORD BarbaConnection::GetLasNegotiationTime()
 
 void BarbaConnection::CryptPacket(PacketHelper* packet)
 {
-	BarbaCrypt::CryptPacket(packet, this->Key.Key, this->Key.KeyCount);
+	BarbaCrypt::CryptPacket(packet, GetKey()->Key, GetKey()->KeyCount);
 }
 
 void BarbaConnection::SetWorkingState(ULONG length, bool send)

@@ -41,8 +41,11 @@ bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 	//mode
 	TCHAR modeString[100];
 	int res = GetPrivateProfileString(sectionName, _T("Mode"), _T(""), modeString, _countof(modeString), file);
+	if (res==0)
+		return false; //could not find item
+
 	this->Mode = BarbaMode_FromString(modeString);
-	if (this->Mode!=BarbaModeTcpRedirect && this->Mode!=BarbaModeHttpTunnel && this->Mode!=BarbaModeUdpRedirect && this->Mode!=BarbaModeTcpTunnel)
+	if (this->Mode==BarbaModeTcpTunnel || this->Mode==BarbaModeNone)
 	{
 		BarbaLog(_T("Error: %s mode not supported!"), modeString);
 		return false;

@@ -4,12 +4,15 @@ class BarbaClientRedirectConnection :
 	public BarbaClientConnection
 {
 public:
-	explicit BarbaClientRedirectConnection(LPCTSTR connectionName, BarbaKey* key, BarbaModeEnum mode);
+	explicit BarbaClientRedirectConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short clientPort, u_short tunnelPort);
 	virtual ~BarbaClientRedirectConnection(void);
 	virtual bool ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer);
-	virtual BarbaModeEnum GetMode();
+	virtual bool ShouldProcessPacket(PacketHelper* packet);
+	virtual u_short GetTunnelPort();
+	u_short GetRealPort();
 
 private:
-	BarbaModeEnum Mode;
+	u_short ClientPort;
+	u_short TunnelPort;
 };
 

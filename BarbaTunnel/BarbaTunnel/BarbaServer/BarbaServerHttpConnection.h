@@ -6,11 +6,11 @@ class BarbaServerHttpConnection :
 	public BarbaServerConnection
 {
 public:
-	explicit BarbaServerHttpConnection(LPCTSTR connectionName, BarbaKey* barbaKey, u_long sessionId);
+	explicit BarbaServerHttpConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, u_short clientIp, u_long sessionId);
 	virtual ~BarbaServerHttpConnection(void);
 	virtual bool ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer);
 	virtual u_long GetSessionId();
-	virtual BarbaModeEnum GetMode();
+	virtual bool ShouldProcessPacket(PacketHelper* packet);
 	bool AddSocket(BarbaSocket* Socket, bool isOutgoing);
 
 private:

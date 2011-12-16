@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "General.h"
 #include "BarbaUtils.h"
-#include "PacketHelper.h"
 
 void BarbaUtils::GetModuleFolder(TCHAR* folder)
 {
