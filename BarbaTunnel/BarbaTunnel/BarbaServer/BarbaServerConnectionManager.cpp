@@ -49,24 +49,6 @@ BarbaServerConnection* BarbaServerConnectionManager::FindBySessionId(DWORD sessi
 }
 	
 
-BarbaServerConnection* BarbaServerConnectionManager::Find(DWORD clientIp, u_short clientPort, BarbaModeEnum mode)
-{
-	/*
-	BarbaServerConnection* ret = NULL;
-	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&this->Connections);
-	BarbaServerConnection** connections = (BarbaServerConnection**)autoLockBuf.GetBuffer();
-	for (size_t i=0; i<this->Connections.GetCount() && ret==NULL; i++)
-	{
-		BarbaServerConnection* conn = connections[i];
-		if (conn->ClientIp==clientIp && conn->ClientPort==clientPort && conn->GetMode()==mode)
-			ret = conn;
-	}
-	return ret;
-	*/
-	return 0;
-}
-
-
 BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelper* packet, BarbaServerConfigItem* configItem)
 {
 	CleanTimeoutConnections();

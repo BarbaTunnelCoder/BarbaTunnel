@@ -8,6 +8,7 @@ BarbaServerUdpConnection::BarbaServerUdpConnection(BarbaServerConfigItem* config
 {
 	this->ClientIp = clientIp;
 	this->ClientPort = clientPort;
+	this->ClientLocalIp = 0;
 	this->TunnelPort = tunnelPort;
 	memcpy_s(this->ClientRouteEthAddress, ETH_ALEN, clientRouteEthAddress, ETH_ALEN);
 }
@@ -19,6 +20,13 @@ u_short BarbaServerUdpConnection::GetTunnelPort()
 
 BarbaServerUdpConnection::~BarbaServerUdpConnection(void)
 {
+}
+
+bool BarbaServerUdpConnection::ShouldProcessPacket(PacketHelper* packet)
+{
+	return 
+		(packet->GetDesIp()==this->GetClientVirtualIp()) || //check outgoing packets
+		(packet->GetSrcIp()==this->ClientIp && packet->ipHeader->ip_p==BarbaMode_GetProtocol(GetMode()) && packet->GetSrcPort()==this->ClientPort && packet->GetDesPort()==this->GetTunnelPort() );  //check incoming packets
 }
 
 bool BarbaServerUdpConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer)
@@ -82,9 +90,7 @@ bool BarbaServerUdpConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 
 		//Init First Attempt
 		if (this->ClientLocalIp==0)
-		{
 			this->ClientLocalIp = orgPacket.GetSrcIp();
-		}
 			
 		//prepare for NAT
 		orgPacket.SetSrcIp(this->ClientVirtualIp);

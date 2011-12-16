@@ -7,6 +7,7 @@ public:
 	explicit BarbaServerRedirectConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, 
 		u_long clientIp, u_short clientPort, u_short tunnelPort);
 	virtual ~BarbaServerRedirectConnection(void);
+	virtual bool ShouldProcessPacket(PacketHelper* packet);
 	virtual bool ProcessPacket(INTERMEDIATE_BUFFER* packet);
 	virtual u_short GetTunnelPort();
 	u_short GetRealPort();

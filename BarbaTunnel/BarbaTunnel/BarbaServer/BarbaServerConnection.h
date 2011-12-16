@@ -8,7 +8,6 @@ class BarbaServerConnection : public BarbaConnection
 public:
 	explicit BarbaServerConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, u_long clientIp);
 	virtual ~BarbaServerConnection(){}
-	virtual bool ShouldProcessPacket(PacketHelper* /*packet*/) {return false;}
 	virtual BarbaModeEnum GetMode();
 	virtual BarbaKey* GetKey();
 	virtual LPCTSTR GetName();
