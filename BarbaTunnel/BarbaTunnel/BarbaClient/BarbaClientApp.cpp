@@ -40,7 +40,6 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 {
 	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
 	PacketHelper packet(packetBuffer->m_IBuffer);
-	BarbaClientConnection* connection = NULL;
 	if (!packet.IsIp())
 		return;
 
@@ -76,25 +75,16 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 	//}
 
 
-
-	if (send)
+	//find an open connection to process packet
+	BarbaClientConnection* connection = (BarbaClientConnection*)ConnectionManager.FindByPacketToProcess(&packet);
+	
+	//create new connection if not found
+	if (send && connection==NULL)
 	{
-		//find in current connections
-		connection = ConnectionManager.FindByPacketToProcess(&packet);
-
-		//create new connection if not found
-		if (connection==NULL)
-		{
-			BarbaClientConfig* config = ConfigManager.FindByServerIP(packet.GetDesIp());
-			BarbaClientConfigItem* configItem = config!=NULL ? IsGrabPacket(&packet, config) : NULL;
-			if (configItem!=NULL)
-				connection = ConnectionManager.CreateConnection(&packet, config, configItem);
-		}
-	}
-	else
-	{
-		//find packet that come from tunnel
-		connection = ConnectionManager.FindByPacketToProcess(&packet);
+		BarbaClientConfig* config = ConfigManager.FindByServerIP(packet.GetDesIp());
+		BarbaClientConfigItem* configItem = config!=NULL ? IsGrabPacket(&packet, config) : NULL;
+		if (configItem!=NULL)
+			connection = ConnectionManager.CreateConnection(&packet, config, configItem);
 	}
 
 	//process packet for connection
