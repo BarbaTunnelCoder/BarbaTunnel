@@ -1,12 +1,33 @@
 #include "StdAfx.h"
 #include "BarbaClientConfig.h"
-#include "PacketHelper.h"
 #include "BarbaUtils.h"
 
 BarbaClientConfigItem::BarbaClientConfigItem()
 {
 	GrabProtocolsCount = 0;
 	memset(GrabProtocols, 0, _countof(GrabProtocols));
+}
+
+bool BarbaClientConfigItem::IsGrabPacket(PacketHelper* packet)
+{
+	//check RealPort for redirect modes
+	if (this->Mode==BarbaModeTcpRedirect || this->Mode==BarbaModeUdpRedirect)
+	{
+		return packet->GetDesPort()==this->RealPort;
+	}
+
+	for (size_t i=0; i<this->GrabProtocolsCount; i++)
+	{
+		//check GrabProtocols for tunnel modes
+		ProtocolPort* protocolPort = &this->GrabProtocols[i];
+		if (protocolPort->Protocol==0 || protocolPort->Protocol==packet->ipHeader->ip_p)
+		{
+			if (protocolPort->Port==0 || protocolPort->Port==packet->GetDesPort())
+				return true;
+		}
+	}
+
+	return false;
 }
 
 u_short BarbaClientConfigItem::GetNewTunnelPort()

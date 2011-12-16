@@ -9,7 +9,7 @@
 class BarbaServerHttpCourier : public BarbaCourierServer
 {
 public:
-	explicit BarbaServerHttpCourier(int maxConnection);
+	explicit BarbaServerHttpCourier(u_short maxConnection);
 	virtual ~BarbaServerHttpCourier(void);
 	GUID SessionID;
 

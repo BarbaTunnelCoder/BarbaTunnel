@@ -21,7 +21,8 @@ void BarbaServerHttpHost::Dispose()
 	DisposeEvent.Set();
 
 	//close listener sockets
-	BarbaSocketServer** socketsArray = this->ListenerSockets.LockBuffer();
+	SimpleSafeList<BarbaSocketServer*>::AutoLockBuffer autoLockBuf(&this->ListenerSockets);
+	BarbaSocketServer** socketsArray = autoLockBuf.GetBuffer();
 	for (size_t i=0; i<this->ListenerSockets.GetCount(); i++)
 	{
 		try
@@ -32,7 +33,7 @@ void BarbaServerHttpHost::Dispose()
 		{
 		}
 	}
-	this->ListenerSockets.UnlockBuffer();
+	autoLockBuf.Unlock();
 
 	//wait for all thread to finish
 	HANDLE threadHandle = this->ListenerThreads.RemoveHead();
@@ -134,7 +135,8 @@ void BarbaServerHttpHost::AddListenerPort(u_short port)
 
 void BarbaServerHttpHost::CloseFinishedThreadHandle(SimpleSafeList<HANDLE>* list)
 {
-	HANDLE* handles = list->LockBuffer();
+	SimpleSafeList<HANDLE>::AutoLockBuffer autoLockBuf(list);
+	HANDLE* handles = autoLockBuf.GetBuffer();
 	for (size_t i=0; i<list->GetCount(); i++)
 	{
 		bool alive = false;
@@ -144,7 +146,6 @@ void BarbaServerHttpHost::CloseFinishedThreadHandle(SimpleSafeList<HANDLE>* list
 			CloseHandle(handles[i]);
 		}
 	}
-	list->UnlockBuffer();
 }
 
 u_long BarbaServerHttpHost::ExtractSessionId(LPCSTR header)

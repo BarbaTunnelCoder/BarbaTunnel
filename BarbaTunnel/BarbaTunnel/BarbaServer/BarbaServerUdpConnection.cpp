@@ -2,19 +2,23 @@
 #include "BarbaServerUdpConnection.h"
 
 
-BarbaServerUdpConnection::BarbaServerUdpConnection(LPCTSTR connectionName, BarbaKey* key)
-	: BarbaServerConnection(connectionName, key)
+BarbaServerUdpConnection::BarbaServerUdpConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, 
+	u_long clientIp, u_short clientPort, u_short tunnelPort, BYTE* clientRouteEthAddress)
+	: BarbaServerConnection(configItem, clientVirtualIp, clientIp)
 {
+	this->ClientIp = clientIp;
+	this->ClientPort = clientPort;
+	this->TunnelPort = tunnelPort;
+	memcpy_s(this->ClientRouteEthAddress, ETH_ALEN, clientRouteEthAddress, ETH_ALEN);
 }
 
+u_short BarbaServerUdpConnection::GetTunnelPort()
+{
+	return this->TunnelPort;
+}
 
 BarbaServerUdpConnection::~BarbaServerUdpConnection(void)
 {
-}
-
-BarbaModeEnum BarbaServerUdpConnection::GetMode()
-{
-	return BarbaModeUdpTunnel;
 }
 
 bool BarbaServerUdpConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer)
@@ -37,10 +41,10 @@ bool BarbaServerUdpConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* 
 	barbaPacket.ipHeader->ip_off = 0;
 	barbaPacket.SetSrcIp(packet->GetSrcIp());
 	barbaPacket.SetDesIp(this->ClientIp);
-	barbaPacket.SetSrcPort(this->ClientTunnelPort);
 	barbaPacket.SetDesPort( this->ClientPort );
+	barbaPacket.SetSrcPort(this->GetTunnelPort());
 	barbaPacket.SetUdpPayload((BYTE*)packet->ipHeader, packet->GetIpLen());
-	barbaPacket.SetDesEthAddress(this->ClientEthAddress);
+	barbaPacket.SetDesEthAddress(this->ClientRouteEthAddress);
 	CryptPacket(&barbaPacket);
 	return true;
 }

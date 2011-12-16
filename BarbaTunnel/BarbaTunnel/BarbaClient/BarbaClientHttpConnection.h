@@ -4,7 +4,7 @@
 class BarbaClientHttpConnection : public BarbaClientConnection
 {
 public:
-	explicit BarbaClientHttpConnection(LPCTSTR connectionName, BarbaKey* key, DWORD remoteIp, u_short remotePort, u_short maxConnenction);
+	explicit BarbaClientHttpConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short tunnelPort);
 	virtual ~BarbaClientHttpConnection(void);
 
 private:

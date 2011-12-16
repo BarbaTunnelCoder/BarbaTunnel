@@ -2,7 +2,6 @@
 #include "General.h"
 #include "BarbaSocket.h"
 #include "BarbaUtils.h"
-#include "PacketHelper.h"
 #include "BarbaComm.h"
 
 

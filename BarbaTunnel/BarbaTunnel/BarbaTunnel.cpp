@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
 		{
 			while(api.ReadPacket(&theApp->CurrentRequest))
 			{
-				__try
+				//__try
 				{
 					PINTERMEDIATE_BUFFER buffer = theApp->CurrentRequest.EthPacket.Buffer;
 					bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
@@ -281,9 +281,9 @@ int main(int argc, char* argv[])
 							api.SendPacketToMstcp(&theApp->CurrentRequest);
 					}
 				}
-				__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
+				//__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
 				{
-					BarbaLog(_T("Application throw unhandled exception! packet dropped.\n"));
+					//BarbaLog(_T("Application throw unhandled exception! packet dropped.\n"));
 				}
 			}
 			ResetEvent(hEvent);

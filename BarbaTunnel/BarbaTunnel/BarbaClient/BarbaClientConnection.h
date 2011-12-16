@@ -6,13 +6,15 @@
 class BarbaClientConnection : public BarbaConnection
 {
 public:
-	explicit BarbaClientConnection(LPCTSTR connectionName, BarbaKey* key);
+	explicit BarbaClientConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem);
 	virtual ~BarbaClientConnection(){}
 	virtual void ReportNewConnection();
+	virtual BarbaKey* GetKey();
+	virtual LPCTSTR GetName();
+	virtual BarbaModeEnum GetMode();
+	u_long GetServerIp();
 
+protected:
 	BarbaClientConfig* Config;
 	BarbaClientConfigItem* ConfigItem;
-	u_short OrgClientPort;
-	u_short ClientPort;
-	u_short TunnelPort;
 };

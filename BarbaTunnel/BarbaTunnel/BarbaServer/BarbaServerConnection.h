@@ -1,23 +1,24 @@
 #pragma once
 #include "BarbaConnection.h"
 #include "BarbaServerConfig.h"
-#include "PacketHelper.h"
 
 //BarbaServerConnection
 class BarbaServerConnection : public BarbaConnection
 {
 public:
-	explicit BarbaServerConnection(LPCTSTR connectionName, BarbaKey* barbaKey);
+	explicit BarbaServerConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, u_long clientIp);
 	virtual ~BarbaServerConnection(){}
-
-	DWORD ClientVirtualIp;
-	DWORD ClientLocalIp;
-	DWORD ClientIp;
-	u_short ClientPort;
-	u_short ClientTunnelPort;
-	BYTE ClientEthAddress[ETH_ALEN]; //Ethernet address of received packet; useful when router not exists
-	//BarbaServerConfigItem* ConfigItem;
+	virtual bool ShouldProcessPacket(PacketHelper* /*packet*/) {return false;}
+	virtual BarbaModeEnum GetMode();
+	virtual BarbaKey* GetKey();
+	virtual LPCTSTR GetName();
+	u_long GetClientVirtualIp();
 	void ReportNewConnection();
+
+protected:
+	u_long ClientVirtualIp;
+	u_long ClientIp;
+	BarbaServerConfigItem* ConfigItem;
 };
 
 

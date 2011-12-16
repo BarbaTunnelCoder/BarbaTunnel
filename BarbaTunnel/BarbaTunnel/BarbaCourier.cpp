@@ -39,7 +39,8 @@ bool BarbaCourier::IsDisposing()
 void BarbaCourier::Dispose()
 {
 	DisposeEvent.Set();
-	BarbaSocket** socketsArray =  this->Sockets.LockBuffer();
+	SimpleSafeList<BarbaSocket*>::AutoLockBuffer autoLockBuf(&this->Sockets);
+	BarbaSocket** socketsArray = autoLockBuf.GetBuffer();
 	for (size_t i=0; i<this->Sockets.GetCount(); i++)
 	{
 		try
@@ -50,7 +51,7 @@ void BarbaCourier::Dispose()
 		{
 		}
 	}
-	this->Sockets.UnlockBuffer();
+	autoLockBuf.Unlock();
 
 	//delete all messages
 	Message* message = this->Messages.RemoveHead();

@@ -2,11 +2,12 @@
 #include "BarbaServerRedirectConnection.h"
 
 
-BarbaServerRedirectConnection::BarbaServerRedirectConnection(LPCTSTR connectionName, BarbaKey* barbaKey, u_short realPort, BarbaModeEnum mode)
-	: BarbaServerConnection(connectionName, barbaKey)
+BarbaServerRedirectConnection::BarbaServerRedirectConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, u_long clientIp, 
+	u_short clientPort, u_short tunnelPort)
+	: BarbaServerConnection(configItem, clientVirtualIp, clientIp)
 {
-	this->Mode = mode;
-	this->RealPort = realPort;
+	this->ClientPort = clientPort;
+	this->TunnelPort = tunnelPort;
 }
 
 
@@ -14,9 +15,14 @@ BarbaServerRedirectConnection::~BarbaServerRedirectConnection(void)
 {
 }
 
-BarbaModeEnum BarbaServerRedirectConnection::GetMode()
+u_short BarbaServerRedirectConnection::GetTunnelPort()
 {
-	return this->Mode;
+	return this->TunnelPort;
+}
+
+u_short BarbaServerRedirectConnection::GetRealPort()
+{
+	return ConfigItem->RealPort;
 }
 
 bool BarbaServerRedirectConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
@@ -26,7 +32,7 @@ bool BarbaServerRedirectConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuf
 
 	if (send)
 	{
-		packet.SetSrcPort(this->ClientTunnelPort);
+		packet.SetSrcPort(this->TunnelPort);
 		packet.SetDesIp(this->ClientIp);
 		CryptPacket(&packet);
 		packet.RecalculateChecksum();
@@ -39,7 +45,7 @@ bool BarbaServerRedirectConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuf
 		if (!packet.IsValidChecksum())
 			return false;
 		packet.SetSrcIp(this->ClientVirtualIp);
-		packet.SetDesPort(this->RealPort);
+		packet.SetDesPort(this->GetRealPort());
 		packet.RecalculateChecksum();
 		packetBuffer->m_Length = packet.GetPacketLen();
 		SetWorkingState(packetBuffer->m_Length, send);

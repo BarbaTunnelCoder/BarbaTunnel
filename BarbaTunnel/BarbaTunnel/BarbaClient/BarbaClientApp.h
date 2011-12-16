@@ -17,7 +17,6 @@ public:
 private:
 	//return pointer to BarbaClientConfigItem if the packed should grabbed before send
 	BarbaClientConfigItem* IsGrabPacket(PacketHelper* packet, BarbaClientConfig* config);
-	bool IsGrabPacket(PacketHelper* packet, BarbaClientConfigItem* configItem);
 
 };
 
