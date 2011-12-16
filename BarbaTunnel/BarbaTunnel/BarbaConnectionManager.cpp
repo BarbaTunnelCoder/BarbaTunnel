@@ -37,3 +37,18 @@ void BarbaConnectionManager::CleanTimeoutConnections()
 		}
 	}
 }
+
+BarbaConnection* BarbaConnectionManager::FindByPacketToProcess(PacketHelper* packet)
+{
+	BarbaConnection* ret = NULL;
+	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&this->Connections);
+	BarbaConnection** connections = (BarbaConnection**)autoLockBuf.GetBuffer();
+	for (size_t i=0; i<this->Connections.GetCount() && ret==NULL; i++)
+	{
+
+		BarbaConnection* conn = connections[i];
+		if (conn->ShouldProcessPacket(packet))
+			ret = conn;
+	}
+	return ret;
+}
