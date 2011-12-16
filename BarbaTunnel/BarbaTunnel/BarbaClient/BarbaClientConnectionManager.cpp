@@ -13,21 +13,6 @@ BarbaClientConnectionManager::~BarbaClientConnectionManager(void)
 {
 }
 
-BarbaClientConnection* BarbaClientConnectionManager::FindByPacketToProcess(PacketHelper* packet)
-{
-	BarbaClientConnection* ret = NULL;
-	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&this->Connections);
-	BarbaClientConnection** connections = (BarbaClientConnection**)autoLockBuf.GetBuffer();
-	for (size_t i=0; i<this->Connections.GetCount() && ret==NULL; i++)
-	{
-
-		BarbaClientConnection* conn = connections[i];
-		if (conn->ShouldProcessPacket(packet))
-			ret = conn;
-	}
-	return ret;
-}
-
 BarbaClientConnection* BarbaClientConnectionManager::CreateConnection(PacketHelper* packet, BarbaClientConfig* config, BarbaClientConfigItem* configItem)
 {
 	BarbaClientConnection* conn = NULL;
