@@ -11,5 +11,7 @@ public:
 	void RemoveConnection(BarbaConnection* conn);
 	void AddConnection(BarbaConnection* conn);
 	void CleanTimeoutConnections();
+	BarbaConnection* FindByPacketToProcess(PacketHelper* packet);
+
 };
 
