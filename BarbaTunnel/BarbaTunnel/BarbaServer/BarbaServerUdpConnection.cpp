@@ -60,35 +60,30 @@ bool BarbaServerUdpConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* 
 //This function called when the connection should process the current IP
 //In receive mode it should check signature after decrypt
 //@return true if it process the packet
-bool BarbaServerUdpConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
+bool BarbaServerUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 {
-	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
-	PacketHelper packet(packetBuffer->m_IBuffer);
-
 	if (send)
 	{
-		packet.SetDesIp(this->ClientLocalIp);
+		packet->SetDesIp(this->ClientLocalIp);
 
 		//Create Barba packet
 		BYTE barbaPacketBuffer[MAX_ETHER_FRAME];
-		CreateUdpBarbaPacket(&packet, barbaPacketBuffer);
+		CreateUdpBarbaPacket(packet, barbaPacketBuffer);
 		PacketHelper barbaPacket(barbaPacketBuffer);
 
-		packet.SetEthPacket(barbaPacket.ethHeader);
-		packet.RecalculateChecksum();
-		packetBuffer->m_Length = packet.GetPacketLen();
-		this->SetWorkingState(packetBuffer->m_Length, send);
+		packet->SetEthPacket(barbaPacket.ethHeader);
+		this->SendPacketToAdapter(packet);
 		return true;
 	}
 	else
 	{
 		//extract Barba packet
 		BYTE orgPacketBuffer[MAX_ETHER_FRAME];
-		if (!ExtractUdpBarbaPacket(&packet, orgPacketBuffer))
+		if (!ExtractUdpBarbaPacket(packet, orgPacketBuffer))
 			return false;
 		PacketHelper orgPacket(orgPacketBuffer);
 
-		//Init First Attempt
+		//Initialize First Attempt
 		if (this->ClientLocalIp==0)
 			this->ClientLocalIp = orgPacket.GetSrcIp();
 			
@@ -96,11 +91,9 @@ bool BarbaServerUdpConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 		orgPacket.SetSrcIp(this->ClientVirtualIp);
 		orgPacket.RecalculateChecksum();
 
-		//replace current packet with barba packet
-		packet.SetEthPacket(orgPacket.ethHeader);
-		packet.RecalculateChecksum();
-		packetBuffer->m_Length = packet.GetPacketLen();
-		this->SetWorkingState(packetBuffer->m_Length, send);
+		//replace current packet with Barba packet
+		packet->SetEthPacket(orgPacket.ethHeader);
+		this->SendPacketToMstcp(packet);
 		return true;
 	}
 

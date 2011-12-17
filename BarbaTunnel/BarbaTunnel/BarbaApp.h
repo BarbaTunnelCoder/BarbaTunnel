@@ -4,17 +4,18 @@
 #include "BarbaUtils.h"
 #include "BarbaComm.h"
 
-
 class BarbaApp
 {
 public:
 	BarbaApp(void);
 	virtual ~BarbaApp(void);
 	virtual void Initialize();
-	virtual void ProcessPacket(INTERMEDIATE_BUFFER* packet)=0;
+	virtual bool ProcessPacket(PacketHelper* packet, bool send)=0;
 	virtual void Dispose();
+	bool SendPacketToAdapter(PacketHelper* packet);
+	bool SendPacketToMstcp(PacketHelper* packet);
 	//@return false to terminate process
-	bool CheckTerminateCommands(INTERMEDIATE_BUFFER* packetBuffer);
+	bool CheckTerminateCommands(PacketHelper* packet, bool send);
 	bool IsDebugMode() {return _IsDebugMode;}
 	DWORD GetMTUDecrement() { return sizeof iphdr + sizeof tcphdr + sizeof BarbaHeader; }
 	static LPCTSTR GetConfigFile();

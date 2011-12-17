@@ -24,24 +24,21 @@ void BarbaClientApp::Initialize()
 
 
 
-BarbaClientConfigItem* BarbaClientApp::IsGrabPacket(PacketHelper* packet, BarbaClientConfig* config)
+BarbaClientConfigItem* BarbaClientApp::ShouldGrabPacket(PacketHelper* packet, BarbaClientConfig* config)
 {
 	for (int i=0; i<config->ItemsCount; i++)
 	{
 		BarbaClientConfigItem* item = &config->Items[i];
-		if (item->IsGrabPacket(packet))
+		if (item->ShouldGrabPacket(packet))
 			return item;
 	}
 	return NULL;
 }
 
-bool BarbaSendPacketToAdapter(PacketHelper* packet, PINTERMEDIATE_BUFFER bufTemplate);
-void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
+bool BarbaClientApp::ProcessPacket(PacketHelper* packet, bool send)
 {
-	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
-	PacketHelper packet(packetBuffer->m_IBuffer);
-	if (!packet.IsIp())
-		return;
+	if (!packet->IsIp())
+		return false;
 
 	//if (packet.IsTcp())
 		//printf("mode: %s, win:%d\n", send ? "Send" : "Receive", htons( packet.tcpHeader->th_win));
@@ -76,21 +73,21 @@ void BarbaClientApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
 
 
 	//find an open connection to process packet
-	BarbaClientConnection* connection = (BarbaClientConnection*)ConnectionManager.FindByPacketToProcess(&packet);
+	BarbaClientConnection* connection = (BarbaClientConnection*)ConnectionManager.FindByPacketToProcess(packet);
 	
 	//create new connection if not found
 	if (send && connection==NULL)
 	{
-		BarbaClientConfig* config = ConfigManager.FindByServerIP(packet.GetDesIp());
-		BarbaClientConfigItem* configItem = config!=NULL ? IsGrabPacket(&packet, config) : NULL;
+		BarbaClientConfig* config = ConfigManager.FindByServerIP(packet->GetDesIp());
+		BarbaClientConfigItem* configItem = config!=NULL ? ShouldGrabPacket(packet, config) : NULL;
 		if (configItem!=NULL)
-			connection = ConnectionManager.CreateConnection(&packet, config, configItem);
+			connection = ConnectionManager.CreateConnection(packet, config, configItem);
 	}
 
 	//process packet for connection
 	if (connection!=NULL)
-	{
-		connection->ProcessPacket(packetBuffer);
-	}
+		return connection->ProcessPacket(packet, send);
+
+	return false;
 }
 

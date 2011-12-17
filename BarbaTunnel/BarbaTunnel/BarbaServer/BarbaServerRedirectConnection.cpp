@@ -32,30 +32,23 @@ bool BarbaServerRedirectConnection::ShouldProcessPacket(PacketHelper* packet)
 		(packet->GetSrcIp()==this->ClientIp && packet->GetSrcPort()==this->ClientPort && packet->GetDesPort()==this->GetTunnelPort() && packet->ipHeader->ip_p==BarbaMode_GetProtocol(GetMode()) );  //check incoming packets
 }
 
-bool BarbaServerRedirectConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
+bool BarbaServerRedirectConnection::ProcessPacket(PacketHelper* packet, bool send)
 {
-	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
-	PacketHelper packet(packetBuffer->m_IBuffer);
-
 	if (send)
 	{
-		packet.SetSrcPort(this->TunnelPort);
-		packet.SetDesIp(this->ClientIp);
-		CryptPacket(&packet);
-		packet.RecalculateChecksum();
-		packetBuffer->m_Length = packet.GetPacketLen();
-		SetWorkingState(packetBuffer->m_Length, send);
+		packet->SetSrcPort(this->TunnelPort);
+		packet->SetDesIp(this->ClientIp);
+		CryptPacket(packet);
+		this->SendPacketToAdapter(packet);
 	}
 	else
 	{
-		CryptPacket(&packet);
-		if (!packet.IsValidChecksum())
-			return false;
-		packet.SetSrcIp(this->ClientVirtualIp);
-		packet.SetDesPort(this->GetRealPort());
-		packet.RecalculateChecksum();
-		packetBuffer->m_Length = packet.GetPacketLen();
-		SetWorkingState(packetBuffer->m_Length, send);
+		CryptPacket(packet);
+		if (!packet->IsValidChecksum())
+			return true; //don't process packet
+		packet->SetSrcIp(this->ClientVirtualIp);
+		packet->SetDesPort(this->GetRealPort());
+		this->SendPacketToMstcp(packet);
 	}
 
 	return true;

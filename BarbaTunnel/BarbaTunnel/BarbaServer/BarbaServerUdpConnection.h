@@ -8,7 +8,7 @@ public:
 		u_long clientIp, u_short clientPort, u_short tunnelPort, BYTE* clientRouteEthAddress);
 	virtual ~BarbaServerUdpConnection(void);
 	virtual bool ShouldProcessPacket(PacketHelper* packet);
-	virtual bool ProcessPacket(INTERMEDIATE_BUFFER* packet);
+	virtual bool ProcessPacket(PacketHelper* packet, bool send);
 	virtual u_short GetTunnelPort();
 
 private:

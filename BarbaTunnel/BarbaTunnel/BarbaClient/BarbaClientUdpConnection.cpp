@@ -23,7 +23,7 @@ bool BarbaClientUdpConnection::ShouldProcessPacket(PacketHelper* packet)
 	//check outgoing packets
 	if (packet->GetDesIp()==GetServerIp())
 	{
-		return ConfigItem->IsGrabPacket(packet);
+		return ConfigItem->ShouldGrabPacket(packet);
 	}
 	//check incoming packets
 	else if (packet->GetSrcIp()==GetServerIp())
@@ -64,37 +64,29 @@ bool BarbaClientUdpConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* 
 	return true;
 }
 
-bool BarbaClientUdpConnection::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
+bool BarbaClientUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 {
-	bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
-	PacketHelper packet(packetBuffer->m_IBuffer);
-
 	if (send)
 	{
 		//Create Barba packet
 		BYTE barbaPacket[MAX_ETHER_FRAME];
-		if (!CreateUdpBarbaPacket(&packet, barbaPacket))
+		if (!CreateUdpBarbaPacket(packet, barbaPacket))
 			return false;
 			
-		//replace current packet with barba packet
-		packet.SetEthPacket((ether_header_ptr)barbaPacket);
-		packet.RecalculateChecksum();
-		packetBuffer->m_Length = packet.GetPacketLen();
-		SetWorkingState(packetBuffer->m_Length, send);
+		//replace current packet with Barba packet
+		packet->SetEthPacket((ether_header_ptr)barbaPacket);
+		this->SendPacketToAdapter(packet);
 		return true;
 	}
 	else
 	{
 		//extract Barba packet
 		BYTE orgPacketBuffer[MAX_ETHER_FRAME];
-		if (!ExtractUdpBarbaPacket(&packet, orgPacketBuffer))
+		if (!ExtractUdpBarbaPacket(packet, orgPacketBuffer))
 			return false;
 		PacketHelper orgPacket(orgPacketBuffer);
-	
-		packet.SetEthPacket(orgPacket.ethHeader);
-		packet.RecalculateChecksum();
-		packetBuffer->m_Length = packet.GetPacketLen();
-		SetWorkingState(packetBuffer->m_Length, send);
+		packet->SetEthPacket(orgPacket.ethHeader);
+		this->SendPacketToMstcp(packet);
 		return true;
 	}
 }

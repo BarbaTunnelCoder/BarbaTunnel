@@ -8,15 +8,15 @@ class BarbaClientApp : public BarbaApp
 public:
 	BarbaClientApp();
 	virtual ~BarbaClientApp(){}
-	void Initialize();
+	virtual void Initialize();
+	
 	BarbaClientConfigManager ConfigManager;
 	BarbaClientConnectionManager ConnectionManager;
-	GUID* GetBarbaSign();
-	void ProcessPacket(INTERMEDIATE_BUFFER* packet);
+	virtual bool ProcessPacket(PacketHelper* packet, bool send);
 
 private:
 	//return pointer to BarbaClientConfigItem if the packed should grabbed before send
-	BarbaClientConfigItem* IsGrabPacket(PacketHelper* packet, BarbaClientConfig* config);
+	BarbaClientConfigItem* ShouldGrabPacket(PacketHelper* packet, BarbaClientConfig* config);
 
 };
 

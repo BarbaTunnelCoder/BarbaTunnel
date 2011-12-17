@@ -9,15 +9,15 @@ class BarbaServerApp : public BarbaApp
 public:
 	BarbaServerApp(void);
 	virtual ~BarbaServerApp(void);
+	virtual void Initialize();
+	virtual bool ProcessPacket(PacketHelper* packet, bool send);
 
 	BarbaServerHttpHost HttpServer;
 	BarbaServerConfig Config;
 	BarbaServerConnectionManager ConnectionManager;
-	void Initialize();
-	void ProcessPacket(INTERMEDIATE_BUFFER* packet);
 
 private:
-	BarbaServerConfigItem* IsGrabPacket(PacketHelper* packet);
+	BarbaServerConfigItem* ShouldGrabPacket(PacketHelper* packet);
 	void InitHttpServer();
 };
 

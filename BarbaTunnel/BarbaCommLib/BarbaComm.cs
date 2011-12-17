@@ -22,7 +22,7 @@ namespace BarbaTunnel.CommLib
         private static extern int GetPrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, StringBuilder retVal, int nSize, string lpFilename);
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool WritePrivateProfileString(string lpAppName, string lpKeyName, string lpString, string lpFileName);
+        private static extern bool WritePrivateProfileString(string lpAppName, string lpKeyName, string lpString, string lpFileName);
 
 
         public String WorkinFolderPath { get { return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Barbatunnel"); } }

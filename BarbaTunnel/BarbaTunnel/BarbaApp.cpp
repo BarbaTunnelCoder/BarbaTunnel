@@ -2,6 +2,7 @@
 #include "BarbaApp.h"
 
 BarbaApp* theApp = NULL;
+extern CNdisApi	api;
 
 BarbaApp::BarbaApp(void)
 {
@@ -53,18 +54,15 @@ LPCTSTR BarbaApp::GetModuleFolder()
 }
 
 
-bool BarbaApp::CheckTerminateCommands(INTERMEDIATE_BUFFER* packetBuffer)
+bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool send)
 {
-	bool send = packetBuffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
-	PacketHelper packet(packetBuffer);
-
-	if (send || !packet.IsIp())
+	if (!send || !packet->IsIp())
 		return false;
 
-	if (packet.ipHeader->ip_p!=1)
+	if (packet->ipHeader->ip_p!=1)
 		return false;
 
-	int nlen = packet.GetIpLen();
+	int nlen = packet->GetIpLen();
 	int code = nlen - 28;
 	if (code==1350)
 			return true;
@@ -80,5 +78,31 @@ void BarbaApp::Dispose()
 void BarbaApp::Initialize()
 {
 	Comm.Initialize();
+}
+
+bool BarbaApp::SendPacketToMstcp(PacketHelper* packet)
+{
+	INTERMEDIATE_BUFFER intBuf = {0};
+	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_RECEIVE;
+	intBuf.m_Length = min(MAX_ETHER_FRAME, packet->GetPacketLen());
+	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
+
+	ETH_REQUEST req;
+	req.hAdapterHandle = theApp->CurrentRequest.hAdapterHandle;
+	req.EthPacket.Buffer = &intBuf;
+	return api.SendPacketToMstcp(&req)!=FALSE;
+}
+
+bool BarbaApp::SendPacketToAdapter(PacketHelper* packet)
+{
+	INTERMEDIATE_BUFFER intBuf = {0};
+	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_SEND;
+	intBuf.m_Length = min(MAX_ETHER_FRAME, packet->GetPacketLen());
+	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
+
+	ETH_REQUEST req;
+	req.hAdapterHandle = theApp->CurrentRequest.hAdapterHandle;
+	req.EthPacket.Buffer = &intBuf;
+	return api.SendPacketToAdapter(&req)!=FALSE;
 }
 
