@@ -8,7 +8,7 @@ BarbaClientConfigItem::BarbaClientConfigItem()
 	memset(GrabProtocols, 0, _countof(GrabProtocols));
 }
 
-bool BarbaClientConfigItem::IsGrabPacket(PacketHelper* packet)
+bool BarbaClientConfigItem::ShouldGrabPacket(PacketHelper* packet)
 {
 	//check RealPort for redirect modes
 	if (this->Mode==BarbaModeTcpRedirect || this->Mode==BarbaModeUdpRedirect)

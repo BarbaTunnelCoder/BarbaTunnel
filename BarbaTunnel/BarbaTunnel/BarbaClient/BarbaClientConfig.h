@@ -10,7 +10,7 @@ public:
 	ProtocolPort GrabProtocols[BARBA_MAX_PORTITEM]; //valid when mode is UDP-Tunnel or TCP-Tunnel mode
 	size_t GrabProtocolsCount;
 	BarbaClientConfigItem();
-	bool IsGrabPacket(PacketHelper* packet);
+	bool ShouldGrabPacket(PacketHelper* packet);
 };
 
 //BarbaClientConfig

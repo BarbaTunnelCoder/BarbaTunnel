@@ -37,7 +37,7 @@ void BarbaServerApp::Initialize()
 	InitHttpServer();
 }
 
-BarbaServerConfigItem* BarbaServerApp::IsGrabPacket(PacketHelper* packet)
+BarbaServerConfigItem* BarbaServerApp::ShouldGrabPacket(PacketHelper* packet)
 {
 	for (size_t i=0; i<this->Config.ItemsCount; i++)
 	{
@@ -59,28 +59,27 @@ BarbaServerConfigItem* BarbaServerApp::IsGrabPacket(PacketHelper* packet)
 	return NULL;
 }
 
-void BarbaServerApp::ProcessPacket(INTERMEDIATE_BUFFER* packetBuffer)
+bool BarbaServerApp::ProcessPacket(PacketHelper* packet, bool send)
 {
-	PacketHelper packet(packetBuffer->m_IBuffer);
-	if (!packet.IsIp())
-		return;
+	if (!packet->IsIp())
+		return false;
 
 	//find an open connection to process packet
-	BarbaServerConnection* connection = (BarbaServerConnection*)ConnectionManager.FindByPacketToProcess(&packet);
+	BarbaServerConnection* connection = (BarbaServerConnection*)ConnectionManager.FindByPacketToProcess(packet);
 	
 	//create new connection if not found
 	if (connection==NULL)
 	{
-		BarbaServerConfigItem* item = IsGrabPacket(&packet);
+		BarbaServerConfigItem* item = ShouldGrabPacket(packet);
 		if (item!=NULL)
-			connection = ConnectionManager.CreateConnection(&packet, item);
+			connection = ConnectionManager.CreateConnection(packet, item);
 	}
 	
 	//process packet for connection
 	if (connection!=NULL)
-	{
-		connection->ProcessPacket(packetBuffer);
-	}
+		return connection->ProcessPacket(packet, send);
+
+	return false;
 }
 
 void BarbaServerApp::InitHttpServer()

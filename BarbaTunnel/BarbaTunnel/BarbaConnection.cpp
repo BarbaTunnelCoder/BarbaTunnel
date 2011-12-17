@@ -29,3 +29,15 @@ void BarbaConnection::SetWorkingState(ULONG length, bool send)
 	this->LasNegotiationTime = GetTickCount();
 	theApp->Comm.SetWorkingState(length, send);
 }
+
+bool BarbaConnection::SendPacketToAdapter(PacketHelper* packet)
+{
+	packet->RecalculateChecksum();
+	return theApp->SendPacketToAdapter(packet);
+}
+
+bool BarbaConnection::SendPacketToMstcp(PacketHelper* packet)
+{
+	packet->RecalculateChecksum();
+	return theApp->SendPacketToMstcp(packet);
+}

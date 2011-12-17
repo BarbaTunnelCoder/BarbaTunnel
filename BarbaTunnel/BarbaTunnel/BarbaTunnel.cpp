@@ -248,13 +248,14 @@ int main(int argc, char* argv[])
 		{
 			while(api.ReadPacket(&theApp->CurrentRequest))
 			{
-				//__try
+				__try
 				{
 					PINTERMEDIATE_BUFFER buffer = theApp->CurrentRequest.EthPacket.Buffer;
 					bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
+					PacketHelper packet(buffer->m_IBuffer);
 
 					//check commands
-					if (theApp->IsDebugMode() && theApp->CheckTerminateCommands(buffer))
+					if (theApp->IsDebugMode() && theApp->CheckTerminateCommands(&packet, send))
 					{
 						BarbaLog(_T("Terminate Command Received."));
 						terminate = true;
@@ -269,10 +270,7 @@ int main(int argc, char* argv[])
 					}
 
 					//process packet
-					theApp->ProcessPacket(buffer);
-
-					//drop zero length packets
-					if (theApp->CurrentRequest.EthPacket.Buffer->m_Length!=0)
+					if (!theApp->ProcessPacket(&packet, send))
 					{
 						//send packet
 						if (send)
@@ -281,9 +279,9 @@ int main(int argc, char* argv[])
 							api.SendPacketToMstcp(&theApp->CurrentRequest);
 					}
 				}
-				//__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
+				__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
 				{
-					//BarbaLog(_T("Application throw unhandled exception! packet dropped.\n"));
+					BarbaLog(_T("Application throw unhandled exception! packet dropped.\n"));
 				}
 			}
 			ResetEvent(hEvent);
@@ -330,19 +328,3 @@ int main(int argc, char* argv[])
 		ResumeThread(newThreadHandle);
 	return 0;
 }
-
-bool BarbaSendPacketToAdapter(PacketHelper* packet, PINTERMEDIATE_BUFFER bufTemplate)
-{
-	INTERMEDIATE_BUFFER intBuf;
-	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_SEND;
-	intBuf.m_Flags = 0;//bufTemplate->m_Flags;
-	intBuf.m_qLink = bufTemplate->m_qLink;
-	intBuf.m_Length = min(MAX_ETHER_FRAME, packet->GetPacketLen());
-	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
-
-	ETH_REQUEST req;
-	req.hAdapterHandle = theApp->CurrentRequest.hAdapterHandle;
-	req.EthPacket.Buffer = &intBuf;
-	return api.SendPacketToAdapter(&req)!=FALSE;
-}
-
