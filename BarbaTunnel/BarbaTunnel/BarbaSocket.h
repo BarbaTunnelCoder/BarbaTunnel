@@ -3,6 +3,7 @@
 class BarbaSocket
 {
 public:
+	explicit BarbaSocket(SOCKET s, u_long remoteIp);
 	virtual ~BarbaSocket();
 	//@return 0 if connection closed
 	int Receive(BYTE* buf, size_t bufCount, bool waitAll);
@@ -16,13 +17,14 @@ public:
 	void SetNoDelay(bool value);
 	void SetReceiveTimeOut(long second);
 	void SetSendTimeOut(long second);
+	u_long GetRemoteIp() { return this->RemoteIp;}
 
 	static bool InitializeLib(); 
 	static void UninitializeLib(); 
-	BarbaSocket(SOCKET s);
-	BarbaSocket();
 
 protected:
+	u_long RemoteIp;
+	BarbaSocket();
 	size_t SentBytesCount;
 	size_t ReceiveBytesCount;
 	SOCKET _Socket;
@@ -34,7 +36,7 @@ protected:
 class BarbaSocketClient : public BarbaSocket 
 {
 public:
-	BarbaSocketClient(DWORD serverIp, u_short port);
+	explicit BarbaSocketClient(u_long serverIp, u_short port);
 	virtual ~BarbaSocketClient(){}
 };
 
@@ -43,7 +45,11 @@ public:
 class BarbaSocketServer : public BarbaSocket 
 {
 public:
-  BarbaSocketServer(u_short port);
-  virtual ~BarbaSocketServer(){}
-  BarbaSocket* Accept();
+	explicit BarbaSocketServer(u_short port);
+	virtual ~BarbaSocketServer(){}
+	BarbaSocket* Accept();
+	u_short GetListenPort() {return this->ListenPort;}
+
+private:
+	u_short ListenPort;
 };

@@ -3,18 +3,20 @@
 
 BarbaSocket::BarbaSocket()
 {
+	this->RemoteIp = 0;
 	this->SentBytesCount = 0;
 	this->ReceiveBytesCount = 0;
 	InitializeLib();
-	_Socket = ::socket(AF_INET,SOCK_STREAM, IPPROTO_TCP);
+	_Socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (_Socket == INVALID_SOCKET)
 		ThrowSocketError();
 }
 
-BarbaSocket::BarbaSocket(SOCKET s)
+BarbaSocket::BarbaSocket(SOCKET s, u_long remoteIp)
 {
 	InitializeLib();
 	_Socket = s;
+	this->RemoteIp = remoteIp;
 }
 
 void BarbaSocket::ThrowSocketError(int er)
@@ -139,12 +141,13 @@ std::string BarbaSocket::ReadHttpHeader(int maxlen)
 }
 
 
-BarbaSocketClient::BarbaSocketClient(DWORD serverIp, u_short port)
+BarbaSocketClient::BarbaSocketClient(u_long serverIp, u_short port)
 {
 	sockaddr_in addr = {0};
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	addr.sin_addr.S_un.S_addr = serverIp;
+	this->RemoteIp = serverIp;
 	if (::connect(_Socket, (sockaddr*)&addr, sizeof sockaddr)==SOCKET_ERROR)
 	{
 		TCHAR err[1000];
@@ -155,6 +158,7 @@ BarbaSocketClient::BarbaSocketClient(DWORD serverIp, u_short port)
 
 BarbaSocketServer::BarbaSocketServer(u_short port) 
 {
+	this->ListenPort = port;
 	sockaddr_in sa = {0};
 
 	sa.sin_family = PF_INET;             
@@ -173,10 +177,14 @@ BarbaSocketServer::BarbaSocketServer(u_short port)
 
 BarbaSocket* BarbaSocketServer::Accept() 
 {
-	SOCKET newSocket = accept(_Socket, 0, 0);
+	sockaddr_in addr_in = {0};
+	int addr_in_len = sizeof (addr_in);
+
+
+	SOCKET newSocket = accept(_Socket, (sockaddr*)&addr_in, &addr_in_len);
 	if (newSocket == INVALID_SOCKET) 
 		ThrowSocketError();
 
-	BarbaSocket* ret = new BarbaSocket(newSocket);
+	BarbaSocket* ret = new BarbaSocket(newSocket, addr_in.sin_addr.S_un.S_addr);
 	return ret;
 }

@@ -6,11 +6,21 @@ BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, 
 	: BarbaClientConnection(config, configItem)
 	, Courier(config->ServerIp, tunnelPort, 4)
 {
-
+	this->TunnelPort = tunnelPort;
 }
 
 
 BarbaClientHttpConnection::~BarbaClientHttpConnection(void)
 {
-	//this->
+}
+
+bool BarbaClientHttpConnection::ShouldProcessPacket(PacketHelper* packet)
+{
+	//just process outgoing packets
+	return packet->GetDesIp()==GetServerIp() && ConfigItem->ShouldGrabPacket(packet);
+}
+
+bool BarbaClientHttpConnection::ProcessPacket(PacketHelper* /*packet*/, bool /*send*/)
+{
+	return true;
 }

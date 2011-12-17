@@ -102,8 +102,8 @@ void BarbaCourier::Send(Message* message, bool highPriority)
 
 void BarbaCourier::InitFakeRequests(LPCSTR httpGetRequest, LPCSTR httpPostRequest)
 {
-	FakeHttpGetTemplate = httpGetRequest;
-	FakeHttpPostTemplate = httpPostRequest;
+	this->FakeHttpGetTemplate = httpGetRequest;
+	this->FakeHttpPostTemplate = httpPostRequest;
 
 	//fix next-line
 	std::string n = "\n";
@@ -111,15 +111,15 @@ void BarbaCourier::InitFakeRequests(LPCSTR httpGetRequest, LPCSTR httpPostReques
 	std::string e = "";
 	std::string rn = "\r\n";
 
-	FakeHttpGetTemplate.append(n);
-	FakeHttpGetTemplate.append(n);
-	StringUtil::ReplaceAll(FakeHttpGetTemplate, r, e);
-	StringUtil::ReplaceAll(FakeHttpGetTemplate, n, rn);
+	this->FakeHttpGetTemplate.append(n);
+	this->FakeHttpGetTemplate.append(n);
+	StringUtil::ReplaceAll(this->FakeHttpGetTemplate, r, e);
+	StringUtil::ReplaceAll(this->FakeHttpGetTemplate, n, rn);
 
-	FakeHttpPostTemplate.append(n);
-	FakeHttpPostTemplate.append(n);
-	StringUtil::ReplaceAll(FakeHttpPostTemplate, r, e);
-	StringUtil::ReplaceAll(FakeHttpPostTemplate, n, rn);
+	this->FakeHttpPostTemplate.append(n);
+	this->FakeHttpPostTemplate.append(n);
+	StringUtil::ReplaceAll(this->FakeHttpPostTemplate, r, e);
+	StringUtil::ReplaceAll(this->FakeHttpPostTemplate, n, rn);
 }
 
 void BarbaCourier::Receive(BYTE* /*buffer*/, size_t /*bufferCount*/)
@@ -261,9 +261,9 @@ unsigned int BarbaCourierClient::WorkerThread(void* clientThreadData)
 		try
 		{
 			//create socket
-			_tprintf_s(_T("New connection!\n")); //check
 			socket = NULL;
 			socket = new BarbaSocketClient(_this->RemoteIp, _this->RemotePort);
+			_tprintf_s(_T("New connection!\n")); //check
 
 			//add socket to store
 			_this->Sockets.AddTail(socket);

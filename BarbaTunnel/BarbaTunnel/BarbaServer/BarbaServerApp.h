@@ -18,7 +18,6 @@ public:
 
 private:
 	BarbaServerConfigItem* ShouldGrabPacket(PacketHelper* packet);
-	void InitHttpServer();
 };
 
 extern BarbaServerApp* theServerApp;
