@@ -32,12 +32,14 @@ void BarbaConnection::SetWorkingState(ULONG length, bool send)
 
 bool BarbaConnection::SendPacketToAdapter(PacketHelper* packet)
 {
+	SetWorkingState(packet->GetIpLen(), true);
 	packet->RecalculateChecksum();
 	return theApp->SendPacketToAdapter(packet);
 }
 
 bool BarbaConnection::SendPacketToMstcp(PacketHelper* packet)
 {
+	SetWorkingState(packet->GetIpLen(), false);
 	packet->RecalculateChecksum();
 	return theApp->SendPacketToMstcp(packet);
 }
