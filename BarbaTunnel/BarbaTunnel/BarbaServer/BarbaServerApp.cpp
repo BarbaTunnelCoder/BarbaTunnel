@@ -34,7 +34,7 @@ void BarbaServerApp::Initialize()
 	ConnectionManager.Initialize(&Config.VirtualIpRange);
 
 	//Initialize HttpServer
-	InitHttpServer();
+	HttpServer.Initialize();
 }
 
 BarbaServerConfigItem* BarbaServerApp::ShouldGrabPacket(PacketHelper* packet)
@@ -80,44 +80,4 @@ bool BarbaServerApp::ProcessPacket(PacketHelper* packet, bool send)
 		return connection->ProcessPacket(packet, send);
 
 	return false;
-}
-
-void BarbaServerApp::InitHttpServer()
-{
-
-	//Initialize listeners
-	int createdSocket = 0;
-	for (size_t i=0; i<theServerApp->Config.ItemsCount; i++)
-	{
-		BarbaServerConfigItem* item = &theServerApp->Config.Items[i];
-		if (item->Mode!=BarbaModeHttpTunnel)
-			continue;
-
-		//Initialize HttpServer to listen to ports
-		for (size_t j=0; j<item->TunnelPortsCount; j++)
-		{
-			PortRange* portRange = &item->TunnelPorts[j];
-			for (u_short port=portRange->StartPort; port<=portRange->EndPort; port++)
-			{
-				//check added port count
-				if (createdSocket>=BARBA_MAX_SERVERLISTENSOCKET)
-				{
-					BarbaLog(_T("BarbaServer could not listen more than %d ports!"), BARBA_MAX_SERVERLISTENSOCKET);
-					j = item->TunnelPortsCount;
-					break;
-				}
-
-				//add port
-				try
-				{
-					HttpServer.AddListenerPort(port);
-					createdSocket++;
-				}
-				catch (...)
-				{
-					BarbaLog(_T("Error: BarbaServer could not listen to TCP port %d!"), portRange->StartPort);
-				}
-			}
-		}// for j
-	}
 }

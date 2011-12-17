@@ -1,28 +1,21 @@
 #include "StdAfx.h"
 #include "BarbaServerHttpConnection.h"
 
-BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, u_short clientIp, u_long sessionId)
+BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, u_long clientIp, u_short tunnelPort, u_long sessionId)
 	: BarbaServerConnection(configItem, clientVirtualIp, clientIp)
 	, HttpCourier(4)
 {
 	this->SessionId = sessionId;
+	this->TunnelPort = tunnelPort;
 }
 
 BarbaServerHttpConnection::~BarbaServerHttpConnection(void)
 {
 }
 
-bool BarbaServerHttpConnection::ProcessPacket(INTERMEDIATE_BUFFER* /*packetBuffer*/)
+bool BarbaServerHttpConnection::ProcessPacket(PacketHelper* /*packet*/, bool /*send*/)
 {
-	//bool send = packetBuffer->m_dwDeviceFlags==PACKET_FLAG_ON_SEND;
-	//PacketHelper packet(packetBuffer->m_IBuffer);
-
 	return false;
-}
-
-u_long BarbaServerHttpConnection::GetSessionId()
-{
-	return this->SessionId;
 }
 
 bool BarbaServerHttpConnection::AddSocket(BarbaSocket* Socket, bool isOutgoing)

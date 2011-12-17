@@ -2,6 +2,7 @@
 #include "BarbaClientConnectionManager.h"
 #include "BarbaClientRedirectConnection.h"
 #include "BarbaClientUdpConnection.h"
+#include "BarbaClientHttpConnection.h"
 
 
 BarbaClientConnectionManager::BarbaClientConnectionManager(void)
@@ -23,6 +24,10 @@ BarbaClientConnection* BarbaClientConnectionManager::CreateConnection(PacketHelp
 	else if (configItem->Mode==BarbaModeUdpTunnel)
 	{
 		conn = new BarbaClientUdpConnection(config, configItem, packet->GetSrcPort(), configItem->GetNewTunnelPort());
+	}
+	else if (configItem->Mode==BarbaModeHttpTunnel)
+	{
+		conn = new BarbaClientHttpConnection(config, configItem, configItem->GetNewTunnelPort());
 	}
 	else
 	{
