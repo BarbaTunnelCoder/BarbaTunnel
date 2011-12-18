@@ -29,31 +29,30 @@ bool BarbaServerUdpConnection::ShouldProcessPacket(PacketHelper* packet)
 		(packet->GetSrcIp()==this->ClientIp && packet->ipHeader->ip_p==BarbaMode_GetProtocol(GetMode()) && packet->GetSrcPort()==this->ClientPort && packet->GetDesPort()==this->GetTunnelPort() );  //check incoming packets
 }
 
-bool BarbaServerUdpConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer)
+bool BarbaServerUdpConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, PacketHelper* orgPacket)
 {
 	CryptPacket(barbaPacket);
-	PacketHelper orgPacket(orgPacketBuffer, 0);
-	orgPacket.SetEthHeader(barbaPacket->ethHeader);
-	return orgPacket.SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload()) && orgPacket.IsValidChecksum();
+	orgPacket->SetEthHeader(barbaPacket->ethHeader);
+	return orgPacket->SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload()) && orgPacket->IsValidChecksum();
 }
 
-bool BarbaServerUdpConnection::CreateUdpBarbaPacket(PacketHelper* packet, BYTE* barbaPacketBuffer)
+bool BarbaServerUdpConnection::CreateUdpBarbaPacket(PacketHelper* packet, PacketHelper* barbaPacket)
 {
 	packet->RecalculateChecksum();
 
-	PacketHelper barbaPacket(barbaPacketBuffer, IPPROTO_UDP);
-	barbaPacket.SetEthHeader(packet->ethHeader);
-	barbaPacket.ipHeader->ip_ttl = packet->ipHeader->ip_ttl;
-	barbaPacket.ipHeader->ip_v = packet->ipHeader->ip_v;
-	barbaPacket.ipHeader->ip_id = 56;
-	barbaPacket.ipHeader->ip_off = 0;
-	barbaPacket.SetSrcIp(packet->GetSrcIp());
-	barbaPacket.SetDesIp(this->ClientIp);
-	barbaPacket.SetDesPort( this->ClientPort );
-	barbaPacket.SetSrcPort(this->GetTunnelPort());
-	barbaPacket.SetUdpPayload((BYTE*)packet->ipHeader, packet->GetIpLen());
-	barbaPacket.SetDesEthAddress(this->ClientRouteEthAddress);
-	CryptPacket(&barbaPacket);
+	barbaPacket->Reset(IPPROTO_UDP);
+	barbaPacket->SetEthHeader(packet->ethHeader);
+	barbaPacket->ipHeader->ip_ttl = packet->ipHeader->ip_ttl;
+	barbaPacket->ipHeader->ip_v = packet->ipHeader->ip_v;
+	barbaPacket->ipHeader->ip_id = 56;
+	barbaPacket->ipHeader->ip_off = 0;
+	barbaPacket->SetSrcIp(packet->GetSrcIp());
+	barbaPacket->SetDesIp(this->ClientIp);
+	barbaPacket->SetDesPort( this->ClientPort );
+	barbaPacket->SetSrcPort(this->GetTunnelPort());
+	barbaPacket->SetUdpPayload((BYTE*)packet->ipHeader, packet->GetIpLen());
+	barbaPacket->SetDesEthAddress(this->ClientRouteEthAddress);
+	CryptPacket(barbaPacket);
 	return true;
 }
 
@@ -67,21 +66,17 @@ bool BarbaServerUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 		packet->SetDesIp(this->ClientLocalIp);
 
 		//Create Barba packet
-		BYTE barbaPacketBuffer[MAX_ETHER_FRAME];
-		CreateUdpBarbaPacket(packet, barbaPacketBuffer);
-		PacketHelper barbaPacket(barbaPacketBuffer);
-
-		packet->SetEthPacket(barbaPacket.ethHeader);
-		this->SendPacketToAdapter(packet);
+		PacketHelper barbaPacket;
+		CreateUdpBarbaPacket(packet, &barbaPacket);
+		this->SendPacketToAdapter(&barbaPacket);
 		return true;
 	}
 	else
 	{
 		//extract Barba packet
-		BYTE orgPacketBuffer[MAX_ETHER_FRAME];
-		if (!ExtractUdpBarbaPacket(packet, orgPacketBuffer))
+		PacketHelper orgPacket;
+		if (!ExtractUdpBarbaPacket(packet, &orgPacket))
 			return false;
-		PacketHelper orgPacket(orgPacketBuffer);
 
 		//Initialize First Attempt
 		if (this->ClientLocalIp==0)
@@ -89,11 +84,7 @@ bool BarbaServerUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 			
 		//prepare for NAT
 		orgPacket.SetSrcIp(this->ClientVirtualIp);
-		orgPacket.RecalculateChecksum();
-
-		//replace current packet with Barba packet
-		packet->SetEthPacket(orgPacket.ethHeader);
-		this->SendPacketToMstcp(packet);
+		this->SendPacketToMstcp(&orgPacket);
 		return true;
 	}
 

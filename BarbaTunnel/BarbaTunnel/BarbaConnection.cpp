@@ -21,7 +21,7 @@ DWORD BarbaConnection::GetLasNegotiationTime()
 
 void BarbaConnection::CryptPacket(PacketHelper* packet)
 {
-	BarbaCrypt::CryptPacket(packet, GetKey()->Key, GetKey()->KeyCount);
+	BarbaCrypt::CryptPacket(packet, GetKey()->GetData(), GetKey()->GetSize());
 }
 
 void BarbaConnection::SetWorkingState(ULONG length, bool send)

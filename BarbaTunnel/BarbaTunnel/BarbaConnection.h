@@ -12,7 +12,7 @@ public:
 	virtual u_short GetTunnelPort()=0; //may 0 when protocol has not port
 	virtual u_long GetSessionId() {return 0;} //may 0 when protocol has not session
 	virtual void ReportNewConnection()=0;
-	virtual BarbaKey* GetKey()=0;
+	virtual SimpleBuffer* GetKey()=0;
 	virtual LPCTSTR GetName()=0;
 	DWORD GetLasNegotiationTime();
 

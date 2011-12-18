@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "General.h"
 #include "BarbaUtils.h"
+#include "fstream"
 
 void BarbaUtils::GetModuleFolder(TCHAR* folder)
 {
@@ -92,23 +93,20 @@ int BarbaUtils::CreateUdpPacket(BYTE* srcEthAddress, BYTE* desEthAddress, DWORD 
 }
 
 
-int BarbaUtils::ConvertHexStringToBuffer(TCHAR* hexString, BYTE* buffer, int bufferCount)
+void BarbaUtils::ConvertHexStringToBuffer(LPCTSTR hexString, SimpleBuffer* buf)
 {
-	int bufferIndex = 0;
-
 	int len = _tcslen(hexString);
-	for(int i=0; ; i+=2)
-	{
-		if (i>=len || bufferIndex>=bufferCount)
-			break;
-		char b[3] = {0};
-		b[0] = hexString[i];
-		b[1] = (i+1<len) ? hexString[i+1] : 0;
-		b[2] = 0;
-		buffer[bufferIndex++] = (BYTE)strtol(b, NULL, 16);
-	}
+	buf->New(len/2);
 
-	return bufferIndex;
+	int bufferIndex = 0;
+	for(int i=0; i<(int)buf->GetSize(); i+=2)
+	{
+		char b[3];
+		b[0] = hexString[i];
+		b[1] = hexString[i+1];
+		b[2] = 0;
+		buf->GetData()[bufferIndex++] = (BYTE)strtol(b, NULL, 16);
+	}
 }
 
 bool BarbaUtils::SimpleShellExecuteAndWait(LPCTSTR fileName, LPCTSTR commandLine, int nShow, LPCTSTR lpszWorkDirectory, LPCTSTR lpVerb, HWND hWnd)
@@ -181,4 +179,29 @@ bool BarbaUtils::IsThreadAlive(const HANDLE hThread, bool* alive)
 		return false;
 	*alive = dwExitCode==STILL_ACTIVE;
 	return true;
+}
+
+bool BarbaUtils::LoadFileToBuffer(LPCTSTR fileName, SimpleBuffer* buffer)
+{
+	bool ret = false;
+
+	FILE* f;
+	if (_tfopen_s(&f, fileName, _T("rb"))!=0)
+		return false;
+
+	fseek(f, 0, SEEK_END);
+	size_t fileSize = ftell(f); 
+	fseek(f, 0, SEEK_SET);
+
+	buffer->New(fileSize);
+	ret = fread_s(buffer->GetData(), buffer->GetSize(), 1, fileSize, f)==fileSize;
+	fclose(f);
+	return ret;
+}
+
+std::string BarbaUtils::LoadFileToString(LPCTSTR fileName)
+{
+	std::ifstream ifs(fileName);
+	std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+	return str;
 }

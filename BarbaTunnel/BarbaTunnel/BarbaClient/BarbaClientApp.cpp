@@ -17,9 +17,16 @@ void BarbaClientApp::Initialize()
 	theClientApp = this;
 	BarbaApp::Initialize();
 
-	TCHAR moduleFolder[MAX_PATH];
-	BarbaUtils::GetModuleFolder(moduleFolder);
-	ConfigManager.LoadFolder(moduleFolder);
+	TCHAR file[MAX_PATH];
+	_stprintf_s(file, _countof(file), _T("%s\\client\\config"), GetModuleFolder());
+	ConfigManager.LoadFolder(file);
+
+	//load fake files
+	_stprintf_s(file, _countof(file), _T("%s\\client\\templates\\HTTP-GetTemplate.txt"), GetModuleFolder());
+	this->FakeHttpGetTemplate = BarbaUtils::LoadFileToString(file);
+	_stprintf_s(file, _countof(file), _T("%s\\client\\templates\\HTTP-PostTemplate.txt"), GetModuleFolder());
+	this->FakeHttpPostTemplate = BarbaUtils::LoadFileToString(file);
+
 }
 
 

@@ -8,9 +8,6 @@ BarbaApp::BarbaApp(void)
 {
 	srand((UINT)time(0));
 	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetModuleFolder());
-	ZeroMemory ( &CurrentRequest, sizeof(ETH_REQUEST) );
-	ZeroMemory ( &_PacketBuffer, sizeof(INTERMEDIATE_BUFFER) );
-	CurrentRequest.EthPacket.Buffer = &_PacketBuffer;
 
 	_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetConfigFile());
 	_IsDebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetConfigFile())!=0;
@@ -88,7 +85,7 @@ bool BarbaApp::SendPacketToMstcp(PacketHelper* packet)
 	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
 
 	ETH_REQUEST req;
-	req.hAdapterHandle = theApp->CurrentRequest.hAdapterHandle;
+	req.hAdapterHandle = this->hAdapterHandle;
 	req.EthPacket.Buffer = &intBuf;
 	return api.SendPacketToMstcp(&req)!=FALSE;
 }
@@ -101,7 +98,7 @@ bool BarbaApp::SendPacketToAdapter(PacketHelper* packet)
 	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
 
 	ETH_REQUEST req;
-	req.hAdapterHandle = theApp->CurrentRequest.hAdapterHandle;
+	req.hAdapterHandle = this->hAdapterHandle;
 	req.EthPacket.Buffer = &intBuf;
 	return api.SendPacketToAdapter(&req)!=FALSE;
 }

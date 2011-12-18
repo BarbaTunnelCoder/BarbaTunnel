@@ -18,7 +18,7 @@ LPCTSTR BarbaClientConnection::GetName()
 	return _tcslen(this->ConfigItem->Name )>0 ? this->ConfigItem->Name : _T("Connection");
 }
 
-BarbaKey* BarbaClientConnection::GetKey()
+SimpleBuffer* BarbaClientConnection::GetKey()
 {
 	return &this->Config->Key;
 }

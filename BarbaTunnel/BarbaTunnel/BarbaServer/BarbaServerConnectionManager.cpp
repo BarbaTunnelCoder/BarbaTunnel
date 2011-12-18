@@ -51,8 +51,6 @@ BarbaServerConnection* BarbaServerConnectionManager::FindBySessionId(DWORD sessi
 
 BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelper* packet, BarbaServerConfigItem* configItem)
 {
-	CleanTimeoutConnections();
-
 	BarbaServerConnection* conn = NULL;
 	if (configItem->Mode==BarbaModeUdpRedirect || configItem->Mode==BarbaModeTcpRedirect)
 	{
@@ -68,15 +66,14 @@ BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelp
 	}
 
 
+	AddConnection(conn);
 	return conn;
 }
 
 BarbaServerHttpConnection* BarbaServerConnectionManager::CreateHttpConnection(BarbaServerConfigItem* configItem, u_long clientIp, u_short tunnelPort, u_long sessionId)
 {
-	CleanTimeoutConnections();
 	BarbaServerHttpConnection* conn = new BarbaServerHttpConnection(configItem, this->VirtualIpManager.GetNewIp(), clientIp, tunnelPort, sessionId);
-	conn->ReportNewConnection();
-	Connections.AddTail(conn);
+	AddConnection(conn);
 	return conn;
 
 }

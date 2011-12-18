@@ -16,7 +16,7 @@ public:
 	bool AddSocket(BarbaSocket* Socket, bool isOutgoing);
 
 private:
-	BarbaServerHttpCourier HttpCourier;
+	BarbaServerHttpCourier* Courier;
 	u_long SessionId;
 	u_short TunnelPort;
 };

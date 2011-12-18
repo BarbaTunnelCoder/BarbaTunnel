@@ -9,7 +9,7 @@ public:
 	explicit BarbaClientConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem);
 	virtual ~BarbaClientConnection(){}
 	virtual void ReportNewConnection();
-	virtual BarbaKey* GetKey();
+	virtual SimpleBuffer* GetKey();
 	virtual LPCTSTR GetName();
 	virtual BarbaModeEnum GetMode();
 	u_long GetServerIp();

@@ -10,10 +10,11 @@ class BarbaServerHttpCourier : public BarbaCourierServer
 {
 public:
 	explicit BarbaServerHttpCourier(u_short maxConnection);
-	virtual ~BarbaServerHttpCourier(void);
+	virtual void Receive(BYTE* buffer, size_t bufferCount);
 	GUID SessionID;
 
-	virtual void Receive(BYTE* buffer, size_t bufferCount);
 
+protected:
+	virtual ~BarbaServerHttpCourier(void);
 };
 

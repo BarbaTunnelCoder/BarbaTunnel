@@ -13,11 +13,12 @@ public:
 	BarbaClientConfigManager ConfigManager;
 	BarbaClientConnectionManager ConnectionManager;
 	virtual bool ProcessPacket(PacketHelper* packet, bool send);
+	std::string FakeHttpGetTemplate;
+	std::string FakeHttpPostTemplate;
 
 private:
 	//return pointer to BarbaClientConfigItem if the packed should grabbed before send
 	BarbaClientConfigItem* ShouldGrabPacket(PacketHelper* packet, BarbaClientConfig* config);
-
 };
 
 extern BarbaClientApp* theClientApp;

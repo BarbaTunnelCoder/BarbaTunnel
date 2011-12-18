@@ -75,10 +75,12 @@ private:
 
 public:
 	BarbaCourierServer(u_short maxConnenction);
-	virtual ~BarbaCourierServer(void);
 	//@return false if no new connection accepted and caller should delete the socket
 	//@return true if connection accepted, in this case caller should not delete the socket and it will be deleted automatically
 	bool AddSocket(BarbaSocket* Socket, bool isOutgoing);
+
+protected:
+	virtual ~BarbaCourierServer(void);
 
 private:
 	void SendFakeReply(BarbaSocket* barbaSocket, bool postReply);
@@ -102,6 +104,8 @@ public:
 	void SendFakeRequest(BarbaSocket* barbaSocket, bool isOutgoing);
 	bool WaitForFakeReply(BarbaSocket* barbaSocket);
 	BarbaCourierClient(DWORD remoteIp, u_short remotePort, u_short maxConnenction);
+
+protected:
 	virtual ~BarbaCourierClient();
 
 private:

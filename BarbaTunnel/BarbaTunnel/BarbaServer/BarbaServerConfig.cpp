@@ -22,7 +22,7 @@ bool BarbaServerConfig::LoadFile(LPCTSTR file)
 	//Key
 	TCHAR hexKey[BARBA_MAX_KEYLEN*2];
 	GetPrivateProfileString(_T("General"), _T("Key"), _T(""), hexKey, _countof(hexKey), file);
-	this->Key.KeyCount = BarbaUtils::ConvertHexStringToBuffer(hexKey, this->Key.Key, _countof(this->Key.Key));
+	BarbaUtils::ConvertHexStringToBuffer(hexKey, &this->Key);
 
 	//VirtualIpRange
 	TCHAR virtualIpRange[100] = {0};
