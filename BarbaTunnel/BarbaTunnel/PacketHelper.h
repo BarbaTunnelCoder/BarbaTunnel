@@ -21,10 +21,12 @@ public:
 	//void SetTcpPacket(tcphdr_ptr tcpHeader);
 	//void SetUdpPacket(udphdr_ptr udpHeader);
 
-	PacketHelper(void* packet);
+	PacketHelper(void* packet, bool copy=false);
 	
 	//Create new packet
-	PacketHelper(void* packet, u_char ipProtocol); 
+	PacketHelper();
+	PacketHelper(u_char ipProtocol);
+	void Reset(u_char ipProtocol);
 	void Reinit();
 
 	bool IsIp() { return ipHeader!=NULL;}
@@ -72,5 +74,8 @@ public:
 	static void ConvertIpToString(DWORD ip, TCHAR* buffer, rsize_t bufferCount);
 	static BYTE ConvertStringProtocol(LPCTSTR protocol);
 	static LPCTSTR ConvertProtocolToString(BYTE protocol);
+
+private:
+	BYTE PacketBuffer[MAX_ETHER_FRAME];
 };
 

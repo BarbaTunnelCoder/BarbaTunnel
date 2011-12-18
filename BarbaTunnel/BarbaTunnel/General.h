@@ -1,5 +1,6 @@
 #pragma once
 #include "PacketHelper.h"
+#include "SimpleBuffer.h"
 
 #define BARBA_MAX_CONFIGS 100
 #define BARBA_MAX_CONFIGITEMS 100
@@ -48,13 +49,6 @@ struct ProtocolPort
 	u_short Port; 
 };
 
-
-//BarbaKey
-struct BarbaKey
-{
-	BYTE Key[BARBA_MAX_KEYLEN];
-	size_t KeyCount;
-};
 
 //BarbaHeader
 struct BarbaHeader

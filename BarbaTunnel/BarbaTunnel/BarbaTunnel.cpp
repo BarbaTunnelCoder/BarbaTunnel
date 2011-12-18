@@ -106,14 +106,6 @@ void ReleaseInterface()
 	api.FlushAdapterPacketQueue (AdList.m_nAdapterHandle[CurrentAdapterIndex]);
 }
 
-bool Test()
-{
-	//BarbaLog
-
-	//StartCommandListener();
-	return true;
-}
-
 int main(int argc, char* argv[])
 {
 	// memory leak detection
@@ -206,22 +198,25 @@ int main(int argc, char* argv[])
 	ADAPTER_MODE Mode;
 	Mode.dwFlags = MSTCP_FLAG_SENT_TUNNEL|MSTCP_FLAG_RECV_TUNNEL;
 	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
+	api.SetAdapterMode(&Mode);
+	theApp->hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
 
 	// Create notification event
 	hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
 	// Set event for helper driver
-	if ((!hEvent)||(!api.SetPacketEvent((HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex], hEvent)))
+	if (!hEvent || !api.SetPacketEvent(Mode.hAdapterHandle, hEvent))
 	{
 		BarbaLog(_T("Failed to create notification event or set it for driver."));
 		return 0;
 	}
-
 	atexit (ReleaseInterface);
 	
 	// Initialize Request
-	theApp->CurrentRequest.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
-	api.SetAdapterMode(&Mode);
+	ETH_REQUEST CurrentRequest = {0};
+	INTERMEDIATE_BUFFER CurrentPacketBuffer = {0};
+	CurrentRequest.hAdapterHandle = Mode.hAdapterHandle;
+	CurrentRequest.EthPacket.Buffer = &CurrentPacketBuffer;
 
 	//report info
 	TCHAR adapterName[ADAPTER_NAME_SIZE];
@@ -246,11 +241,11 @@ int main(int argc, char* argv[])
 		DWORD res = WaitForMultipleObjects(_countof(events), events, FALSE, INFINITE);
 		if (res==WAIT_OBJECT_0-0)
 		{
-			while(api.ReadPacket(&theApp->CurrentRequest))
+			while(api.ReadPacket(&CurrentRequest))
 			{
 				__try
 				{
-					PINTERMEDIATE_BUFFER buffer = theApp->CurrentRequest.EthPacket.Buffer;
+					PINTERMEDIATE_BUFFER buffer = CurrentRequest.EthPacket.Buffer;
 					bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
 					PacketHelper packet(buffer->m_IBuffer);
 
@@ -274,9 +269,9 @@ int main(int argc, char* argv[])
 					{
 						//send packet
 						if (send)
-							api.SendPacketToAdapter(&theApp->CurrentRequest);
+							api.SendPacketToAdapter(&CurrentRequest);
 						else
-							api.SendPacketToMstcp(&theApp->CurrentRequest);
+							api.SendPacketToMstcp(&CurrentRequest);
 					}
 				}
 				__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception

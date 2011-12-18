@@ -23,15 +23,14 @@ public:
 	static LPCTSTR GetModuleFile();
 	int GetAdapterIndex() {return _AdapterIndex;}
 	BarbaComm Comm;
-	ETH_REQUEST CurrentRequest;
+	HANDLE hAdapterHandle;
 
 	//store thread for clean shutdown; the process will wait for all of this thread to complete
-	void AddThread(HANDLE threadHandle);
+	void AddThread(HANDLE /*threadHandle*/) {}
 
 private:
 	int _AdapterIndex;
 	bool _IsDebugMode;
-	INTERMEDIATE_BUFFER _PacketBuffer;
 	TCHAR _ConfigFile[MAX_PATH];
 	TCHAR _ModuleFolder[MAX_PATH];
 	TCHAR _ModuleFileName[MAX_PATH];

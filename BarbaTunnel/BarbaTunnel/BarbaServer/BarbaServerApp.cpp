@@ -25,10 +25,16 @@ void BarbaServerApp::Initialize()
 	TCHAR moduleFolder[MAX_PATH];
 	BarbaUtils::GetModuleFolder(moduleFolder);
 
+	//load server.ini
 	TCHAR file[MAX_PATH];
-	_stprintf_s(file, _countof(file), _T("%s\\server\\server.ini"), moduleFolder);
+	_stprintf_s(file, _countof(file), _T("%s\\server\\config\\server.ini"), moduleFolder);
 	Config.LoadFile(file);
 
+	//load fake files
+	_stprintf_s(file, _countof(file), _T("%s\\server\\templates\\HTTP-GetReplyTemplate.txt"), moduleFolder);
+	this->FakeHttpGetReplyTemplate = BarbaUtils::LoadFileToString(file);
+	_stprintf_s(file, _countof(file), _T("%s\\server\\templates\\HTTP-PostReplyTemplate.txt"), moduleFolder);
+	this->FakeHttpPostReplyTemplate = BarbaUtils::LoadFileToString(file);
 
 	//Initialize Connection Manager
 	ConnectionManager.Initialize(&Config.VirtualIpRange);

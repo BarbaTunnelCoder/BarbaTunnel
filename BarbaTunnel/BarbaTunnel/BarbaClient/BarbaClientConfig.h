@@ -20,7 +20,7 @@ public:
 	BarbaClientConfig();
 	DWORD ServerIp;
 	TCHAR ServerName[BARBA_MAX_CONFIGNAME];
-	BarbaKey Key;
+	SimpleBuffer Key;
 	BarbaClientConfigItem Items[BARBA_MAX_CONFIGITEMS];
 	int ItemsCount;
 	// @return false if could not load file

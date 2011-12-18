@@ -118,6 +118,7 @@
     <ClInclude Include="PacketHelper.h" />
     <ClInclude Include="BarbaServer\BarbaServerConfig.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SimpleBuffer.h" />
     <ClInclude Include="SimpleCriticalSection.h" />
     <ClInclude Include="SimpleEvent.h" />
     <ClInclude Include="SimpleSafeList.h" />

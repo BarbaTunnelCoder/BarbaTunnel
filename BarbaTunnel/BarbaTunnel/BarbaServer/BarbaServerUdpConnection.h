@@ -12,8 +12,8 @@ public:
 	virtual u_short GetTunnelPort();
 
 private:
-	bool CreateUdpBarbaPacket(PacketHelper* packet, BYTE* barbaPacket);
-	bool ExtractUdpBarbaPacket(PacketHelper* barbaPacket, BYTE* orgPacketBuffer);
+	bool CreateUdpBarbaPacket(PacketHelper* packet, PacketHelper* barbaPacket);
+	bool ExtractUdpBarbaPacket(PacketHelper* barbaPacket, PacketHelper* orgPacketBuffer);
 	u_long ClientLocalIp;
 	u_short ClientPort;
 	u_short TunnelPort;

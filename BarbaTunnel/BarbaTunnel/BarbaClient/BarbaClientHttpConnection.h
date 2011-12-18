@@ -14,6 +14,6 @@ public:
 private:
 	u_short TunnelPort;
 	u_long SessionId;
-	BarbaClientHttpCourier Courier;
+	BarbaClientHttpCourier* Courier;
 };
 

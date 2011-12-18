@@ -80,8 +80,7 @@ void BarbaClientConfigManager::LoadFolder(LPCTSTR folder)
 	WIN32_FIND_DATA findData = {0};
 		
 	//findData.
-	_tcscpy_s(file, _countof(file), folder);
-	_tcsncat_s(file, _T("\\config\\*.ini"), MAX_PATH);
+	_stprintf_s(file, _countof(file), _T("%s\\*.ini"), folder);
 	HANDLE findHandle = FindFirstFile(file, &findData);
 	BOOL bfind = findHandle!=NULL;
 	while (bfind)
@@ -91,9 +90,7 @@ void BarbaClientConfigManager::LoadFolder(LPCTSTR folder)
 		BarbaClientConfig* config = &Configs[ConfigsCount];
 			
 		TCHAR fullPath[MAX_PATH] = {0};
-		_tcsncat_s(fullPath, folder, _countof(fullPath));
-		_tcsncat_s(fullPath, _T("\\config\\"), _countof(fullPath));
-		_tcsncat_s(fullPath, findData.cFileName, _countof(fullPath));
+		_stprintf_s(fullPath, _T("%s\\%s"), folder, findData.cFileName);
 
 		if (config->LoadFile(fullPath))
 			ConfigsCount++;
@@ -131,7 +128,7 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	//Key
 	TCHAR hexKey[BARBA_MAX_KEYLEN*2];
 	GetPrivateProfileString(_T("General"), _T("Key"), _T(""), hexKey, _countof(hexKey), file);
-	this->Key.KeyCount = BarbaUtils::ConvertHexStringToBuffer(hexKey, this->Key.Key, _countof(this->Key.Key));
+	BarbaUtils::ConvertHexStringToBuffer(hexKey, &this->Key);
 
 	//load Items
 	int notfoundCounter = 0;

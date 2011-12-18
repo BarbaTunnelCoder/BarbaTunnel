@@ -54,18 +54,34 @@ void PacketHelper::Reinit()
 		udpHeader = (udphdr_ptr)(((BYTE*)ipHeader) + ipHeader->ip_hl*4);
 }
 
-PacketHelper::PacketHelper(void* packet)
+PacketHelper::PacketHelper(void* packet, bool copy)
 {
+	memset(this->PacketBuffer, 0, MAX_ETHER_FRAME);
+	if (copy)
+	{
+		memcpy_s(this->PacketBuffer, sizeof this->PacketBuffer, packet, MAX_ETHER_FRAME);
+		packet = this->PacketBuffer;
+	}
 	ethHeader = (ether_header_ptr)packet;
 	Reinit();
 }
 
-PacketHelper::PacketHelper(void* packet, u_char ipProtocol)
+PacketHelper::PacketHelper()
 {
-	memset(packet, 0, MAX_ETHER_FRAME);
-	ethHeader = (ether_header_ptr)packet;
-	ethHeader->h_proto = htons(ETH_P_IP);
+	this->ethHeader = (ether_header_ptr)this->PacketBuffer;
+	Reset(IPPROTO_IP);
+}
 
+PacketHelper::PacketHelper(u_char ipProtocol)
+{
+	this->ethHeader = (ether_header_ptr)this->PacketBuffer;
+	this->Reset(ipProtocol);
+}
+
+void PacketHelper::Reset(u_char ipProtocol)
+{
+	memset(ethHeader, 0, MAX_ETHER_FRAME);
+	ethHeader->h_proto = htons(ETH_P_IP);
 	ipHeader = (iphdr*)(ethHeader + 1);
 	ipHeader->ip_hl = 5;
 	ipHeader->ip_p = ipProtocol;
