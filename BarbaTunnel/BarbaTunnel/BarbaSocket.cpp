@@ -10,6 +10,8 @@ BarbaSocket::BarbaSocket()
 	_Socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (_Socket == INVALID_SOCKET)
 		ThrowSocketError();
+
+	SetNoDelay(true);
 }
 
 BarbaSocket::BarbaSocket(SOCKET s, u_long remoteIp)
@@ -17,6 +19,7 @@ BarbaSocket::BarbaSocket(SOCKET s, u_long remoteIp)
 	InitializeLib();
 	_Socket = s;
 	this->RemoteIp = remoteIp;
+	SetNoDelay(true);
 }
 
 void BarbaSocket::ThrowSocketError(int er)

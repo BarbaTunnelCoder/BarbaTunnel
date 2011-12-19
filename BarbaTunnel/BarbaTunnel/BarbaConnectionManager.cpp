@@ -9,6 +9,13 @@ BarbaConnectionManager::BarbaConnectionManager(void)
 
 BarbaConnectionManager::~BarbaConnectionManager(void)
 {
+	//delete all messages
+	BarbaConnection* connection = this->Connections.RemoveHead();
+	while(connection!=NULL)
+	{
+		delete connection;
+		connection = this->Connections.RemoveHead();
+	}
 }
 
 void BarbaConnectionManager::RemoveConnection(BarbaConnection* conn)

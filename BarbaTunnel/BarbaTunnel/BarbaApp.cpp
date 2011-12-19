@@ -17,8 +17,54 @@ BarbaApp::BarbaApp(void)
 BarbaApp::~BarbaApp(void)
 {
 	BarbaSocket::UninitializeLib();
+
+	//wait for all thread to end
+	HANDLE thread = this->Threads.RemoveHead();
+	while (thread!=NULL)
+	{
+		WaitForSingleObject(thread, INFINITE);
+		CloseHandle(thread);
+		thread = this->Threads.RemoveHead();
+	}
 }
 
+void BarbaApp::AddThread(HANDLE threadHandle)
+{
+	Threads.AddTail(threadHandle);
+	CloseFinishedThreadHandle(&Threads);
+}
+
+void BarbaApp::CloseFinishedThreadHandle(SimpleSafeList<HANDLE>* list)
+{
+	SimpleSafeList<HANDLE>::AutoLockBuffer autoLockBuf(list);
+	HANDLE* handles = autoLockBuf.GetBuffer();
+	for (size_t i=0; i<list->GetCount(); i++)
+	{
+		bool alive = false;
+		if ( BarbaUtils::IsThreadAlive(handles[i], &alive) && !alive)
+		{
+			list->Remove(handles[i]);
+			CloseHandle(handles[i]);
+		}
+	}
+}
+
+void BarbaApp::CloseSocketsList(SimpleSafeList<BarbaSocket*>* list)
+{
+	//IncomingSockets
+	SimpleSafeList<BarbaSocket*>::AutoLockBuffer autoLockBuf(list);
+	BarbaSocket** socketsArray = autoLockBuf.GetBuffer();
+	for (size_t i=0; i<list->GetCount(); i++)
+	{
+		try
+		{
+			socketsArray[i]->Close();
+		}
+		catch(...)
+		{
+		}
+	}
+}
 
 LPCTSTR BarbaApp::GetConfigFile()
 {

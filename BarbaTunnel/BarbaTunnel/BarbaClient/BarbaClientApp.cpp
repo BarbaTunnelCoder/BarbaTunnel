@@ -42,16 +42,11 @@ BarbaClientConfigItem* BarbaClientApp::ShouldGrabPacket(PacketHelper* packet, Ba
 	return NULL;
 }
 
-bool BarbaClientApp::ProcessPacket(PacketHelper* packet, bool send)
+//for debug
+bool TestPacket(PacketHelper* packet, bool send) 
 {
-	if (!packet->IsIp())
-		return false;
-
-	//if (packet.IsTcp())
-		//printf("mode: %s, win:%d\n", send ? "Send" : "Receive", htons( packet.tcpHeader->th_win));
-
-	//return;
-
+	UNREFERENCED_PARAMETER(send);
+	UNREFERENCED_PARAMETER(packet);
 	//static bool init = false;
 	//DWORD testIp = PacketHelper::ConvertStringIp("?.?.?.?");
 	//if (/*!send &&*/ packet.IsTcp())// && (packet.GetSrcIp()==testIp || packet.GetDesIp()==testIp) )
@@ -69,15 +64,44 @@ bool BarbaClientApp::ProcessPacket(PacketHelper* packet, bool send)
 	//}
 	//return;
 
-	//if (packet.GetDesIp()==testIp && packet.GetSrcPort()!=24547 && 0)
+	//sniff test
+	//DWORD testIp = PacketHelper::ConvertStringIp("192.168.0.23");
+	//static int i = 0;
+	//bool grab = /*(packet->GetDesIp()==testIp && packet->GetDesPort()==80) ||*/ (packet->GetSrcIp()==testIp && packet->GetSrcPort()==8080);
+	//if (i<200 && packet->IsTcp() && grab)
 	//{
-	//	init = true;
-	//	tcpConn.InitClient(packet.GetSrcIp(), 80, 24547, packetBuffer);
-	//	u_short pp  = packet.GetSrcPort();
-	//	packetBuffer->m_Length = 0;
-	//	return;
+	//	static u_short port = packet->GetDesPort();
+	//	if (port==packet->GetDesPort())
+	//	{
+
+	//	BYTE a[MAX_ETHER_FRAME] = {0};
+	//	i++;
+	//	u_char flags = packet->tcpHeader->th_flags;
+	//	printf("port:%d, %s, FIN:%d, SYN:%d, RST:%d, PSH:%d, ACK:%d, seq:%u, ack:%u Len:%d, Data:%s\n", packet->GetDesPort(),
+	//		send ? "Send" : "Receive",
+	//		(flags&TH_FIN)!=0, 
+	//		(flags&TH_SYN)!=0, 
+	//		(flags&TH_RST)!=0, 
+	//		(flags&TH_PSH)!=0, 
+	//		(flags&TH_ACK)!=0, 
+	//		htonl(packet->tcpHeader->th_seq),
+	//		htonl(packet->tcpHeader->th_ack),
+	//		packet->GetTcpPayloadLen(),
+	//		a);
+	//	}
 	//}
 
+	return false;
+}
+
+bool BarbaClientApp::ProcessPacket(PacketHelper* packet, bool send)
+{
+	if (!packet->IsIp())
+		return false;
+
+	//just for debug
+	if (TestPacket(packet, send))
+		return true;
 
 	//find an open connection to process packet
 	BarbaClientConnection* connection = (BarbaClientConnection*)ConnectionManager.FindByPacketToProcess(packet);

@@ -19,5 +19,6 @@ private:
 	BarbaServerHttpCourier* Courier;
 	u_long SessionId;
 	u_short TunnelPort;
+	u_long ClientLocalIp;
 };
 

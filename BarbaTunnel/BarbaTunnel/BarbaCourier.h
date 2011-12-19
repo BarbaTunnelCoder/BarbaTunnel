@@ -36,6 +36,8 @@ public:
 	HANDLE Delete();
 
 private:
+	//@return false if max connection reached
+	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
 	size_t MaxMessageBuffer;
 	size_t SentBytesCount;
 	size_t ReceiveBytesCount;
@@ -48,9 +50,12 @@ protected:
 	bool IsDisposing();
 	virtual ~BarbaCourier(void);
 	virtual void Send(Message* message, bool highPriority=false);
+	bool Sockets_Add(BarbaSocket* socket, bool isIncoming);
+	void Sockets_Remove(BarbaSocket* socket, bool isIncoming);
 	void ProcessIncoming(BarbaSocket* barbaSocket);
 	void ProcessOutgoing(BarbaSocket* barbaSocket);
-	SimpleSafeList<BarbaSocket*> Sockets;
+	SimpleSafeList<BarbaSocket*> IncomingSockets;
+	SimpleSafeList<BarbaSocket*> OutgoingSockets;
 	SimpleSafeList<HANDLE> Threads;
 	size_t MaxConnection;
 	size_t ThreadsStackSize;
@@ -103,7 +108,7 @@ private:
 public:
 	void SendFakeRequest(BarbaSocket* barbaSocket, bool isOutgoing);
 	bool WaitForFakeReply(BarbaSocket* barbaSocket);
-	BarbaCourierClient(DWORD remoteIp, u_short remotePort, u_short maxConnenction);
+	BarbaCourierClient(u_short maxConnenction, DWORD remoteIp, u_short remotePort, LPCSTR fakeHttpGetTemplate, LPCSTR fakeHttpPostTemplate);
 
 protected:
 	virtual ~BarbaCourierClient();

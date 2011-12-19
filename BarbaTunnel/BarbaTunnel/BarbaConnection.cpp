@@ -19,6 +19,11 @@ DWORD BarbaConnection::GetLasNegotiationTime()
 	return LasNegotiationTime;
 }
 
+void BarbaConnection::CryptData(BYTE* data, size_t dataLen)
+{
+	BarbaCrypt::Crypt(data, dataLen, GetKey()->GetData(), GetKey()->GetSize());
+}
+
 void BarbaConnection::CryptPacket(PacketHelper* packet)
 {
 	BarbaCrypt::CryptPacket(packet, GetKey()->GetData(), GetKey()->GetSize());

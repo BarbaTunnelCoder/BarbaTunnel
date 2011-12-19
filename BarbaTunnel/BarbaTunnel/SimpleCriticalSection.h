@@ -111,17 +111,16 @@ public:
 
 	void Lock()
 	{
-		_IsLocked = true;
 		_CriticalSection->Enter();
+		_IsLocked = true;
 	}
 
 	void Unlock()
 	{
-		if (_IsLocked)
-		{
-			_CriticalSection->Leave();
-			_IsLocked = false;
-		}
+		if (!_IsLocked)
+			return;
+		_IsLocked = false; 
+		_CriticalSection->Leave();
 	}
 };
 

@@ -15,8 +15,11 @@ public:
 	PortRange TunnelPorts[BARBA_MAX_PORTITEM];
 	size_t TunnelPortsCount;
 	TCHAR Name[BARBA_MAX_CONFIGNAME];
+	u_short MaxUserConnections; //use by HTTP-Tunnel
 	bool Enabled;
 	bool Load(LPCTSTR sectionName, LPCTSTR file);
+
 private:
+	void CheckMaxUserConnections();
 	int _TotalTunnelPortsCount;
 };
