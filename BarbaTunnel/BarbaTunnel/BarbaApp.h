@@ -3,6 +3,7 @@
 #include "BarbaSocket.h"
 #include "BarbaUtils.h"
 #include "BarbaComm.h"
+#include "SimpleSafeList.h"
 
 class BarbaApp
 {
@@ -26,9 +27,13 @@ public:
 	HANDLE hAdapterHandle;
 
 	//store thread for clean shutdown; the process will wait for all of this thread to complete
-	void AddThread(HANDLE /*threadHandle*/) {}
+	void AddThread(HANDLE threadHandle);
+	static void CloseFinishedThreadHandle(SimpleSafeList<HANDLE>* list);
+	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
+
 
 private:
+	SimpleSafeList<HANDLE> Threads;
 	int _AdapterIndex;
 	bool _IsDebugMode;
 	TCHAR _ConfigFile[MAX_PATH];

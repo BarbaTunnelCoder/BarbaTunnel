@@ -7,7 +7,7 @@ BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfigItem* conf
 {
 	this->SessionId = sessionId;
 	this->TunnelPort = tunnelPort;
-	this->Courier = new BarbaServerHttpCourier(4);
+	this->Courier = new BarbaServerHttpCourier(configItem->MaxUserConnections, this);
 	this->Courier->InitFakeRequests(theServerApp->FakeHttpGetReplyTemplate.data(), theServerApp->FakeHttpPostReplyTemplate.data());
 }
 
@@ -16,9 +16,27 @@ BarbaServerHttpConnection::~BarbaServerHttpConnection(void)
 	theApp->AddThread(this->Courier->Delete());
 }
 
-bool BarbaServerHttpConnection::ProcessPacket(PacketHelper* /*packet*/, bool /*send*/)
+bool BarbaServerHttpConnection::ProcessPacket(PacketHelper* packet, bool send)
 {
-	return false;
+	if (send)
+	{
+		packet->SetDesIp(this->ClientIp);
+		this->Courier->SendPacket(packet);
+	}
+	else
+	{
+		//printf("Received %d bytes. checksum: %d\n", packet->GetIpLen(), packet->ipHeader->ip_p);
+
+		//Initialize First Attempt
+		if (this->ClientLocalIp==0)
+			this->ClientLocalIp = packet->GetSrcIp();
+
+		//prepare for NAT
+		packet->SetSrcIp(this->ClientVirtualIp);
+		this->SendPacketToMstcp(packet);
+	}
+
+	return true;
 }
 
 bool BarbaServerHttpConnection::AddSocket(BarbaSocket* Socket, bool isOutgoing)
@@ -26,7 +44,8 @@ bool BarbaServerHttpConnection::AddSocket(BarbaSocket* Socket, bool isOutgoing)
 	return this->Courier->AddSocket(Socket, isOutgoing);
 }
 
-bool BarbaServerHttpConnection::ShouldProcessPacket(PacketHelper* /*packet*/)
+bool BarbaServerHttpConnection::ShouldProcessPacket(PacketHelper* packet)
 {
-	return false;
+	//just process outgoing packets
+	return packet->GetDesIp()==this->GetClientVirtualIp();
 }

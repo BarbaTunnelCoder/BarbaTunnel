@@ -39,15 +39,16 @@ protected:
 	void AddListenerPort(BarbaServerConfigItem* configItem, u_short port);
 
 private:
+	SimpleCriticalSection CreateConnectionCriticalSection;
 	virtual void Dispose();
 	bool IsDisposing();
 	SimpleEvent DisposeEvent;
-	static void CloseFinishedThreadHandle(SimpleSafeList<HANDLE>* list);
 
 	static u_long ExtractSessionId(LPCSTR header);
 	static unsigned int __stdcall AnswerThread(void* answerThreadData);
 	static unsigned int __stdcall ListenerThread(void* listenerThreadData);
-	SimpleSafeList<BarbaSocketServer*> ListenerSockets;
+	SimpleSafeList<BarbaSocket*> ListenerSockets;
+	SimpleSafeList<BarbaSocket*> AnswerSockets;
 	SimpleSafeList<HANDLE> ListenerThreads;
 	SimpleSafeList<HANDLE> AnswerThreads;
 

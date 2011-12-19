@@ -21,21 +21,9 @@ void BarbaServerHttpHost::Dispose()
 	DisposeEvent.Set();
 
 	//close listener sockets
-	SimpleSafeList<BarbaSocketServer*>::AutoLockBuffer autoLockBuf(&this->ListenerSockets);
-	BarbaSocketServer** socketsArray = autoLockBuf.GetBuffer();
-	for (size_t i=0; i<this->ListenerSockets.GetCount(); i++)
-	{
-		try
-		{
-			socketsArray[i]->Close();
-		}
-		catch(...)
-		{
-		}
-	}
-	autoLockBuf.Unlock();
-
-	//close answering sockets
+	BarbaApp::CloseSocketsList(&this->ListenerSockets);
+	//close answer sockets
+	BarbaApp::CloseSocketsList(&this->AnswerSockets);
 
 
 	//wait for listener threads to finish
@@ -65,44 +53,47 @@ bool BarbaServerHttpHost::IsDisposing()
 
 unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 {
+	bool success = false;
 	AnswerThreadData* threadData = (AnswerThreadData*)data;
-	//BarbaServerHttpHost* _this = (BarbaServerHttpHost*)threadData->HttpServer;
+	BarbaServerHttpHost* _this = (BarbaServerHttpHost*)threadData->HttpServer;
 	BarbaSocket* socket = (BarbaSocket*)threadData->Socket;
 
 	//read header
 	try
 	{
 		std::string header = socket->ReadHttpHeader();
-		if (!header.empty())
+		bool isGet = header.size()>=3 && _strnicmp(header.data(), "GET", 3)==0;
+		bool isPost = header.size()>=4 && _strnicmp(header.data(), "POST", 4)==0;
+		if (isGet || isPost)
 		{
 			//find session
-			bool isOutgoing = true; //ToDo
+			bool isOutgoing = isGet;
 			u_long sessionId = ExtractSessionId(header.data());
 			if (sessionId==0)
 				throw _T("Could not find sessionId in header!");
 
 			//find connection by session id
+			SimpleLock lock(&_this->CreateConnectionCriticalSection);
 			BarbaServerHttpConnection* conn = (BarbaServerHttpConnection*)theServerApp->ConnectionManager.FindBySessionId(sessionId);
 
 			//create new connection if session not found
 			if (conn==NULL)
 				theServerApp->ConnectionManager.CreateHttpConnection(threadData->ConfigItem, socket->GetRemoteIp(), threadData->ServerPort, sessionId);
+			lock.Unlock();
 
 			//add socket to http connection
 			if (conn!=NULL)
-			{
-				conn->AddSocket(socket, isOutgoing);
-				return 0;
-			}
+				success = conn->AddSocket(socket, isOutgoing);
 		}
 	}
 	catch(...)
 	{
 	}
 
-	socket->Close();
-	delete socket;
-	return 1;
+	_this->AnswerSockets.Remove(socket);
+	if (!success) delete socket;
+	delete threadData;
+	return success ? 0 : 1;
 }
 
 
@@ -117,11 +108,12 @@ unsigned int BarbaServerHttpHost::ListenerThread(void* data)
 		while (!_this->IsDisposing())
 		{
 			BarbaSocket* socket = listenerSocket->Accept();
+			_this->AnswerSockets.AddTail(socket);
 			try
 			{
 				AnswerThreadData* answerThreadData = new AnswerThreadData(_this, socket, threadData->ConfigItem, listenerSocket->GetListenPort());
 				_this->AnswerThreads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, AnswerThread, answerThreadData, 0, NULL));
-				CloseFinishedThreadHandle(&_this->AnswerThreads);
+				BarbaServerApp::CloseFinishedThreadHandle(&_this->AnswerThreads);
 			}
 			catch(...)
 			{
@@ -134,6 +126,7 @@ unsigned int BarbaServerHttpHost::ListenerThread(void* data)
 
 	_this->ListenerSockets.Remove(listenerSocket);
 	delete listenerSocket;
+	delete threadData;
 	return 0;
 }
 
@@ -145,21 +138,6 @@ void BarbaServerHttpHost::AddListenerPort(BarbaServerConfigItem* configItem, u_s
 	ListenerThreads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, ListenerThread, threadData, 0, NULL));
 }
 
-void BarbaServerHttpHost::CloseFinishedThreadHandle(SimpleSafeList<HANDLE>* list)
-{
-	SimpleSafeList<HANDLE>::AutoLockBuffer autoLockBuf(list);
-	HANDLE* handles = autoLockBuf.GetBuffer();
-	for (size_t i=0; i<list->GetCount(); i++)
-	{
-		bool alive = false;
-		if ( BarbaUtils::IsThreadAlive(handles[i], &alive) && !alive)
-		{
-			list->Remove(handles[i]);
-			CloseHandle(handles[i]);
-		}
-	}
-}
-
 u_long BarbaServerHttpHost::ExtractSessionId(LPCSTR header)
 {
 	const char* key = "session=";
@@ -169,8 +147,8 @@ u_long BarbaServerHttpHost::ExtractSessionId(LPCSTR header)
 	start = start + strlen(key);
 
 	const char* end = strstr(start, ";");
-	if (end==NULL)
-		end = header + strlen(header);
+	if (end==NULL) end = strstr(start, "\r");
+	if (end==NULL) end = header + strlen(header);
 
 	char sessionBuffer[100];
 	strncpy_s(sessionBuffer, start, end-start);

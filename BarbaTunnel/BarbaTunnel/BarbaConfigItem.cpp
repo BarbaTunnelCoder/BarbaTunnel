@@ -11,6 +11,7 @@ BarbaConfigItem::BarbaConfigItem()
 	Enabled = true;
 	RealPort = 0;
 	_TotalTunnelPortsCount = 0;
+	MaxUserConnections = 4;
 }
 
 
@@ -61,8 +62,27 @@ bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 		return false;
 	}
 
-
+	this->MaxUserConnections = GetPrivateProfileInt(sectionName, "MaxUserConnections", this->MaxUserConnections, file);
+	CheckMaxUserConnections();
 
 	this->RealPort = (u_short)GetPrivateProfileInt(sectionName, "RealPort", 0, file);
 	return true;
+}
+
+void BarbaConfigItem::CheckMaxUserConnections()
+{
+	if (this->MaxUserConnections==0)
+	{
+		BarbaLog(_T("Warning: %s item specify %d MaxUserConnections! It should be 2 or more."), this->Name, this->MaxUserConnections);
+		this->MaxUserConnections = 2;
+	}
+	if (this->MaxUserConnections==1)
+	{
+		BarbaLog(_T("Warning: %s item specify %d MaxUserConnections! It strongly recommended to be 2 or more."), this->Name, this->MaxUserConnections);
+	}
+	if (this->MaxUserConnections>20)
+	{
+		BarbaLog(_T("Warning: %s item specify %d MaxUserConnections! It could not be more than %d."), this->Name, this->MaxUserConnections, BARBA_MaxUserHttpConnection);
+		this->MaxUserConnections = BARBA_MaxUserHttpConnection;
+	}
 }

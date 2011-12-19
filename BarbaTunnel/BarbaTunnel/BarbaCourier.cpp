@@ -36,12 +36,12 @@ bool BarbaCourier::IsDisposing()
 	return DisposeEvent.Wait(0)==WAIT_OBJECT_0;
 }
 
-void BarbaCourier::Dispose()
+void BarbaCourier::CloseSocketsList(SimpleSafeList<BarbaSocket*>* list)
 {
-	DisposeEvent.Set();
-	SimpleSafeList<BarbaSocket*>::AutoLockBuffer autoLockBuf(&this->Sockets);
+	//IncomingSockets
+	SimpleSafeList<BarbaSocket*>::AutoLockBuffer autoLockBuf(list);
 	BarbaSocket** socketsArray = autoLockBuf.GetBuffer();
-	for (size_t i=0; i<this->Sockets.GetCount(); i++)
+	for (size_t i=0; i<list->GetCount(); i++)
 	{
 		try
 		{
@@ -52,6 +52,14 @@ void BarbaCourier::Dispose()
 		}
 	}
 	autoLockBuf.Unlock();
+}
+
+void BarbaCourier::Dispose()
+{
+	DisposeEvent.Set();
+
+	CloseSocketsList(&this->IncomingSockets);
+	CloseSocketsList(&this->OutgoingSockets);
 
 	//delete all messages
 	Message* message = this->Messages.RemoveHead();
@@ -156,9 +164,8 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket)
 				//add message length to start of packet, then add message itself
 				BYTE sendPacket[BarbaCourier_MaxMessageLength+2];
 				memcpy_s(sendPacket, 2, &message->Count, 2);
-				memcpy_s(sendPacket+2, BarbaCourier_MaxMessageLength, &message, message->Count);
+				memcpy_s(sendPacket+2, BarbaCourier_MaxMessageLength, message->Buffer, message->Count);
 
-				//try to send packet [Len+Message]
 				int sentCount = barbaSocket->Send(sendPacket, message->Count+2);
 				this->SentBytesCount += sentCount;
 				
@@ -183,6 +190,8 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket)
 
 void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 {
+	printf("ProcessIncoming In: %d\n", GetCurrentThreadId());
+
 	//remove message from list
 	while(!this->IsDisposing())
 	{
@@ -210,14 +219,34 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 			break;
 		}
 	}
+
+	printf("ProcessIncoming Out: %d\n", GetCurrentThreadId());
+}
+
+bool BarbaCourier::Sockets_Add(BarbaSocket* socket, bool isIncoming)
+{
+	SimpleSafeList<BarbaSocket*>* list = isIncoming ? &this->IncomingSockets : &this->OutgoingSockets;
+	SimpleLock lock(list->GetCriticalSection());
+	if (list->GetCount()>=this->MaxConnection)
+		return false; //does not accept new one
+	list->AddTail(socket);
+	return true;
+}
+
+void BarbaCourier::Sockets_Remove(BarbaSocket* socket, bool isIncoming)
+{
+	SimpleSafeList<BarbaSocket*>* list = isIncoming ? &this->IncomingSockets : &this->OutgoingSockets;
+	list->Remove(socket);
+	delete socket;
 }
 
 
-BarbaCourierClient::BarbaCourierClient(DWORD remoteIp, u_short remotePort, u_short maxConnenction)
+BarbaCourierClient::BarbaCourierClient(u_short maxConnenction, DWORD remoteIp, u_short remotePort, LPCSTR fakeHttpGetTemplate, LPCSTR fakeHttpPostTemplate)
 	: BarbaCourier(maxConnenction)
 {
 	this->RemoteIp = remoteIp;
 	this->RemotePort = remotePort;
+	this->InitFakeRequests(fakeHttpGetTemplate, fakeHttpPostTemplate);
 
 	for (u_short i=0; i<maxConnenction; i++)
 	{
@@ -263,10 +292,10 @@ unsigned int BarbaCourierClient::WorkerThread(void* clientThreadData)
 			//create socket
 			socket = NULL;
 			socket = new BarbaSocketClient(_this->RemoteIp, _this->RemotePort);
-			_tprintf_s(_T("New connection!\n")); //check
 
 			//add socket to store
-			_this->Sockets.AddTail(socket);
+			if (!_this->Sockets_Add(socket, isOutgoing))
+				throw "Could not add socket to store!";
 
 			//send fake request
 			_this->SendFakeRequest(socket, isOutgoing);
@@ -290,8 +319,7 @@ unsigned int BarbaCourierClient::WorkerThread(void* clientThreadData)
 		if (socket!=NULL)
 		{
 			//remove socket from store
-			_this->Sockets.Remove(socket);
-			delete socket;
+			_this->Sockets_Remove(socket, isOutgoing);
 		}
 
 		//wait for next connection
@@ -299,7 +327,6 @@ unsigned int BarbaCourierClient::WorkerThread(void* clientThreadData)
 	}
 
 	delete threadData;
-	_tprintf_s(_T("Thread Fin!\n")); //check
 	return 0;
 }
 
@@ -325,47 +352,40 @@ bool BarbaCourierServer::AddSocket(BarbaSocket* barbaSocket, bool isOutgoing)
 	if (this->IsDisposing())
 		return false;
 
-	if (this->Sockets.GetCount()>=this->MaxConnection*2)
+	if (!Sockets_Add(barbaSocket, isOutgoing))
 		return false;
 
-	this->Sockets.AddTail(barbaSocket);
-
-	//create incoming connection thread
 	ServerThreadData* threadData = new ServerThreadData(this, barbaSocket, isOutgoing);
-	Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->ThreadsStackSize, WorkerThread, (void*)threadData, 0, NULL));
+	Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->ThreadsStackSize, WorkerThread, (void*)threadData, 0, NULL) );
 	return true;
 }
 
 unsigned int BarbaCourierServer::WorkerThread(void* serverThreadData)
 {
+	//printf("WorkerThread\n");
 	ServerThreadData* threadData = (ServerThreadData*)serverThreadData;
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 	BarbaCourierServer* _this = (BarbaCourierServer*)threadData->Courier;
-	BarbaSocket* barbaSocket = (BarbaSocket*)threadData->Socket;
+	BarbaSocket* socket = (BarbaSocket*)threadData->Socket;
 	bool isOutgoing = threadData->IsOutgoing;
 
 	try
 	{
-		//add socket to store
-		_this->Sockets.AddTail(barbaSocket);
-
 		//reply fake request
-		_this->SendFakeReply(barbaSocket, isOutgoing);
+		_this->SendFakeReply(socket, isOutgoing);
 
 		//process socket until socket closed
 		if (isOutgoing)
-			_this->ProcessOutgoing(barbaSocket);
+			_this->ProcessOutgoing(socket);
 		else
-			_this->ProcessIncoming(barbaSocket);
+			_this->ProcessIncoming(socket);
 	}
 	catch(...)
 	{
 	}
 
 	//remove socket from store
-	_this->Sockets.Remove(barbaSocket);
-	delete barbaSocket;
+	_this->Sockets_Remove(socket, isOutgoing);
 	delete threadData;
-	printf("Connection closed\n"); //check
 	return 0;
 }

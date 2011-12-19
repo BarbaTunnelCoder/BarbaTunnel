@@ -14,6 +14,7 @@ public:
 	virtual void ReportNewConnection()=0;
 	virtual SimpleBuffer* GetKey()=0;
 	virtual LPCTSTR GetName()=0;
+	void CryptData(BYTE* data, size_t dataLen);
 	DWORD GetLasNegotiationTime();
 
 protected:

@@ -16,8 +16,9 @@ public:
 	public:
 		explicit AutoLockBuffer(SimpleSafeList<_Ty>* list)
 		{
-			this->_List = list;
 			this->_Buffer = list->LockBuffer();
+			this->_List = list;
+			this->Locked = true;
 		}
 		~AutoLockBuffer()
 		{
@@ -31,13 +32,13 @@ public:
 
 		void Unlock()
 		{
-			if (_Buffer!=NULL)
-			{
-				this->_List->UnlockBuffer();
-				_Buffer = NULL;
-			}
+			if (!this->Locked)
+				return;
+			this->_List->UnlockBuffer();
+			this->Locked = false;
 		}
 	private:
+		bool Locked;
 		SimpleSafeList<_Ty>* _List;
 		_Ty* _Buffer;
 	};
@@ -103,8 +104,8 @@ public:
 		{
 			delete _LockedBuffer;
 			_LockedBuffer = NULL;
-			_cs.Leave();
 		}
+		_cs.Leave();
 	}
 
 	SimpleCriticalSection* GetCriticalSection() 
