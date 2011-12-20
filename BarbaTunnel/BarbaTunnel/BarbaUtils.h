@@ -20,4 +20,5 @@ public:
 	static bool IsThreadAlive(const HANDLE hThread, bool* alive);
 	static bool LoadFileToBuffer(LPCTSTR fileName, SimpleBuffer* buffer);
 	static std::string LoadFileToString(LPCTSTR fileName);
+	static u_int GetRandom(u_int start, u_int end);
 };

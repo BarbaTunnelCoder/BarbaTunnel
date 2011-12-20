@@ -13,5 +13,8 @@ public:
 protected:
 	BarbaClientHttpConnection* HttpConnection;
 	virtual ~BarbaClientHttpCourier(void);
+
+private:
+	u_long SessionId;
 };
 

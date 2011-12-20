@@ -24,6 +24,9 @@ bool BarbaServerConfig::LoadFile(LPCTSTR file)
 	GetPrivateProfileString(_T("General"), _T("Key"), _T(""), hexKey, _countof(hexKey), file);
 	BarbaUtils::ConvertHexStringToBuffer(hexKey, &this->Key);
 
+	//SessionKeyName
+	GetPrivateProfileString(_T("Keywords"), _T("SessionKeyName"), _T("session"), this->SessionKeyName, _countof(this->SessionKeyName), file);
+
 	//VirtualIpRange
 	TCHAR virtualIpRange[100] = {0};
 	GetPrivateProfileString(_T("General"), _T("VirtualIpRange"), _T(""), virtualIpRange, _countof(virtualIpRange), file);

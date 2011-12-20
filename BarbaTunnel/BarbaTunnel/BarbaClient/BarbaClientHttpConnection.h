@@ -13,7 +13,7 @@ public:
 
 private:
 	u_short TunnelPort;
-	u_long SessionId;
+	u_int SessionId;
 	BarbaClientHttpCourier* Courier;
 };
 
