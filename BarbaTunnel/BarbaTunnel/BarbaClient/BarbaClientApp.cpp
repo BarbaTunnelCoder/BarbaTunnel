@@ -47,22 +47,21 @@ bool TestPacket(PacketHelper* packet, bool send)
 {
 	UNREFERENCED_PARAMETER(send);
 	UNREFERENCED_PARAMETER(packet);
+	
 	//static bool init = false;
-	//DWORD testIp = PacketHelper::ConvertStringIp("?.?.?.?");
-	//if (/*!send &&*/ packet.IsTcp())// && (packet.GetSrcIp()==testIp || packet.GetDesIp()==testIp) )
+	//DWORD testIp = PacketHelper::ConvertStringIp("0.0.0.0");
+	//testIp = PacketHelper::ConvertStringIp("0.0.0.0");
+	//if (/*!send &&*/ packet->IsTcp() && (packet->GetSrcIp()==testIp || packet->GetDesIp()==testIp) )
 	//{
-	//	char* data = (char*)packet.GetTcpPayload();
-	//	if (packet.GetTcpPayloadLen()>5 && (strnicmp(data, "POST ", 4)==0 || strnicmp(data, "GET ", 4)==0 || strnicmp(data, "HTTP ", 4)==0 ))
+	//	char* data = (char*)packet->GetTcpPayload();
+	//	if (packet->GetTcpPayloadLen()>5 && (strnicmp(data, "POST ", 4)==0 || strnicmp(data, "GET ", 4)==0 || strnicmp(data, "HTTP ", 4)==0 ))
 	//		//init =true;
-	//	//if (packet.GetTcpPayloadLen()>5 && (strnicmp(data, "GET ", 4)==0 || strnicmp(data, "POST ", 4)==0))
-	//	//if (init)
 	//	{
 	//		char buf[2000] = {0};
-	//		strncpy(buf, data, packet.GetTcpPayloadLen());
+	//		strncpy(buf, data, packet->GetTcpPayloadLen());
 	//		printf("************\n%s\n***********", buf);
 	//	}
 	//}
-	//return;
 
 	//sniff test
 	//DWORD testIp = PacketHelper::ConvertStringIp("192.168.0.23");

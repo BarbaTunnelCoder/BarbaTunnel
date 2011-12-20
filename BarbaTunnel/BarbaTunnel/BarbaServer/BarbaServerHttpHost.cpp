@@ -140,17 +140,18 @@ void BarbaServerHttpHost::AddListenerPort(BarbaServerConfigItem* configItem, u_s
 
 u_long BarbaServerHttpHost::ExtractSessionId(LPCSTR header)
 {
-	const char* key = "session=";
-	const char* start = strstr(header, key);
+	CHAR key[BARBA_MaxKeyName+2];
+	sprintf_s(key, "%s=", theServerApp->Config.SessionKeyName, key);
+	const CHAR* start = strstr(header, key);
 	if (start==NULL)
 		return 0;
 	start = start + strlen(key);
 
-	const char* end = strstr(start, ";");
+	const CHAR* end = strstr(start, ";");
 	if (end==NULL) end = strstr(start, "\r");
 	if (end==NULL) end = header + strlen(header);
 
-	char sessionBuffer[100];
+	CHAR sessionBuffer[100];
 	strncpy_s(sessionBuffer, start, end-start);
 	return strtoul(sessionBuffer, 0, 10);
 }

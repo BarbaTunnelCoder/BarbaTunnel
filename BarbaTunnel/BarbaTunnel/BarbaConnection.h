@@ -21,9 +21,9 @@ protected:
 	void CryptPacket(PacketHelper* packet);
 	bool SendPacketToAdapter(PacketHelper* packet);
 	bool SendPacketToMstcp(PacketHelper* packet);
+	void SetWorkingState(ULONG length, bool send);
 
 private:
-	void SetWorkingState(ULONG length, bool send);
 	DWORD LasNegotiationTime;
 };
 

@@ -8,6 +8,7 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 #endif // WIN32_LEAN_AND_MEAN
+#define _CRT_RAND_S
 
 #include "targetver.h"
 
@@ -21,6 +22,7 @@
 #include <time.h>
 #include <process.h>
 #include <iostream>
+#include <fstream>
 #include "WinpkFilter\Common.h"
 #include "WinpkFilter\ndisapi.h"
 #include "WinpkFilter\iphlp.h"

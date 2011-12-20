@@ -16,6 +16,7 @@
 #define BARBA_WorkingStateRefreshTime (1*60*1000)
 #define BARBA_SocketThreadStackSize (64*1000)
 #define BARBA_MaxUserHttpConnection 20
+#define BARBA_MaxKeyName 100
 
 //BarbaModeEnum
 enum BarbaModeEnum

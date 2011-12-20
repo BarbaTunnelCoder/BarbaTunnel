@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "General.h"
 #include "BarbaUtils.h"
-#include "fstream"
 
 void BarbaUtils::GetModuleFolder(TCHAR* folder)
 {
@@ -204,4 +203,15 @@ std::string BarbaUtils::LoadFileToString(LPCTSTR fileName)
 	std::ifstream ifs(fileName);
 	std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 	return str;
+}
+
+u_int BarbaUtils::GetRandom(u_int start, u_int end)
+{
+	u_int range = end - start + 1;
+
+	u_int number;
+	if ( rand_s(&number) )
+		_tprintf_s(_T("rand_s return error!\n"));
+
+	return (u_int)((double)number / ((double) UINT_MAX + 1 ) * range) + start;
 }

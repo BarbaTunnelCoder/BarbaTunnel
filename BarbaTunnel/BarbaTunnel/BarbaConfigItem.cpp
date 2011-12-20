@@ -62,10 +62,12 @@ bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 		return false;
 	}
 
-	this->MaxUserConnections = GetPrivateProfileInt(sectionName, "MaxUserConnections", this->MaxUserConnections, file);
+	//MaxUserConnections
+	this->MaxUserConnections = (u_short)GetPrivateProfileInt(sectionName, _T("MaxUserConnections"), this->MaxUserConnections, file);
 	CheckMaxUserConnections();
 
-	this->RealPort = (u_short)GetPrivateProfileInt(sectionName, "RealPort", 0, file);
+	//RealPort
+	this->RealPort = (u_short)GetPrivateProfileInt(sectionName, _T("RealPort"), 0, file);
 	return true;
 }
 

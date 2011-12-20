@@ -21,6 +21,8 @@ bool BarbaServerHttpConnection::ProcessPacket(PacketHelper* packet, bool send)
 	if (send)
 	{
 		packet->SetDesIp(this->ClientIp);
+		packet->RecalculateChecksum();
+		this->SetWorkingState(packet->GetIpLen(), true);
 		this->Courier->SendPacket(packet);
 	}
 	else
