@@ -68,22 +68,27 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 		{
 			//find session
 			bool isOutgoing = isGet;
+			printf("Answer\n");
 			u_long sessionId = ExtractSessionId(header.data());
+			printf("Answer %u\n", sessionId);
 			if (sessionId==0)
 				throw _T("Could not find sessionId in header!");
 
 			//find connection by session id
+			printf("Try to create\n");
 			SimpleLock lock(&_this->CreateConnectionCriticalSection);
 			BarbaServerHttpConnection* conn = (BarbaServerHttpConnection*)theServerApp->ConnectionManager.FindBySessionId(sessionId);
 
 			//create new connection if session not found
 			if (conn==NULL)
-				theServerApp->ConnectionManager.CreateHttpConnection(threadData->ConfigItem, socket->GetRemoteIp(), threadData->ServerPort, sessionId);
+				conn = theServerApp->ConnectionManager.CreateHttpConnection(threadData->ConfigItem, socket->GetRemoteIp(), threadData->ServerPort, sessionId);
 			lock.Unlock();
 
 			//add socket to http connection
 			if (conn!=NULL)
 				success = conn->AddSocket(socket, isOutgoing);
+			if (!success)
+				printf("Failed to add!\n");
 		}
 	}
 	catch(...)
@@ -153,7 +158,7 @@ u_long BarbaServerHttpHost::ExtractSessionId(LPCSTR header)
 
 	CHAR sessionBuffer[100];
 	strncpy_s(sessionBuffer, start, end-start);
-	return strtoul(sessionBuffer, 0, 10);
+	return strtoul(sessionBuffer, 0, 16);
 }
 
 void BarbaServerHttpHost::Initialize()

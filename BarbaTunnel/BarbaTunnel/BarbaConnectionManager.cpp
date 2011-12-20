@@ -38,7 +38,7 @@ void BarbaConnectionManager::CleanTimeoutConnections()
 	for (size_t i=0; i<this->Connections.GetCount(); i++)
 	{
 		BarbaConnection* conn = connections[i];
-		if (GetTickCount()-conn->GetLasNegotiationTime()>BARBA_CONNECTION_TIMEOUT)
+		if (GetTickCount()-conn->GetLasNegotiationTime()>BARBA_ConnectionTimeout)
 		{
 			RemoveConnection(conn);
 		}

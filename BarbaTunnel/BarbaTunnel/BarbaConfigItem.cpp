@@ -11,7 +11,7 @@ BarbaConfigItem::BarbaConfigItem()
 	Enabled = true;
 	RealPort = 0;
 	_TotalTunnelPortsCount = 0;
-	MaxUserConnections = 4;
+	MaxUserConnections = BARBA_HttpMaxUserConnection;
 }
 
 

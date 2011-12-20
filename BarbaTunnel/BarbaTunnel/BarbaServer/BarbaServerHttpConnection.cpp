@@ -8,7 +8,7 @@ BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfigItem* conf
 	this->SessionId = sessionId;
 	this->TunnelPort = tunnelPort;
 	this->Courier = new BarbaServerHttpCourier(configItem->MaxUserConnections, this);
-	this->Courier->InitFakeRequests(theServerApp->FakeHttpGetReplyTemplate.data(), theServerApp->FakeHttpPostReplyTemplate.data());
+	this->Courier->InitFakeRequests(theServerApp->FakeHttpGetReplyTemplate.data(), theServerApp->FakeHttpPostReplyTemplate.data(), 15000000);
 }
 
 BarbaServerHttpConnection::~BarbaServerHttpConnection(void)

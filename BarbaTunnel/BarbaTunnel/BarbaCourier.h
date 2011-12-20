@@ -26,9 +26,9 @@ public:
 	explicit BarbaCourier(u_short maxConnenction, size_t threadsStackSize=128000);
 	virtual void Send(BYTE* buffer, size_t bufferCount);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
-	void InitFakeRequests(LPCSTR httpGetTemplate, LPCSTR httpPostTemplate);
+	void InitFakeRequests(LPCSTR httpGetTemplate, LPCSTR httpPostTemplate, size_t maxFileSize);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
-	size_t GetReceiveBytesCount() {return this->ReceiveBytesCount;}
+	size_t GetReceiveBytesCount() {return this->ReceivedBytesCount;}
 	
 	//Call this method to delete object, This method will signal all created thread to finish their job
 	//This method will call asynchronously. do not use the object after call it 
@@ -40,7 +40,7 @@ private:
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
 	size_t MaxMessageBuffer;
 	size_t SentBytesCount;
-	size_t ReceiveBytesCount;
+	size_t ReceivedBytesCount;
 	SimpleEvent SendEvent;
 	SimpleSafeList<Message*> Messages;
 	static unsigned int __stdcall DeleteThread(void* object);
@@ -52,8 +52,8 @@ protected:
 	virtual void Send(Message* message, bool highPriority=false);
 	bool Sockets_Add(BarbaSocket* socket, bool isIncoming);
 	void Sockets_Remove(BarbaSocket* socket, bool isIncoming);
-	void ProcessIncoming(BarbaSocket* barbaSocket);
-	void ProcessOutgoing(BarbaSocket* barbaSocket);
+	void ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes=0);
+	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	SimpleSafeList<BarbaSocket*> IncomingSockets;
 	SimpleSafeList<BarbaSocket*> OutgoingSockets;
 	SimpleSafeList<HANDLE> Threads;
@@ -63,6 +63,7 @@ protected:
 
 	std::string FakeHttpGetTemplate;
 	std::string FakeHttpPostTemplate;
+	size_t FakeMaxFileSize;
 };
 
 //BarbaCourierServer
@@ -89,7 +90,7 @@ protected:
 
 private:
 	void SendFakeReply(BarbaSocket* barbaSocket, bool postReply);
-	static unsigned int __stdcall WorkerThread(void* serverThreadData);
+	static unsigned int __stdcall ServerWorkerThread(void* serverThreadData);
 };
 
 
@@ -106,8 +107,6 @@ private:
 	};
 
 public:
-	void SendFakeRequest(BarbaSocket* barbaSocket, bool isOutgoing);
-	bool WaitForFakeReply(BarbaSocket* barbaSocket);
 	BarbaCourierClient(u_short maxConnenction, DWORD remoteIp, u_short remotePort, LPCSTR fakeHttpGetTemplate, LPCSTR fakeHttpPostTemplate);
 
 protected:
@@ -116,5 +115,7 @@ protected:
 private:
 	DWORD RemoteIp;
 	u_short RemotePort;
-	static unsigned int __stdcall WorkerThread(void* clientThreadData);
+	static unsigned int __stdcall ClientWorkerThread(void* clientThreadData);
+	void SendFakeRequest(BarbaSocket* barbaSocket, bool isOutgoing);
+	bool WaitForFakeReply(BarbaSocket* barbaSocket);
 };

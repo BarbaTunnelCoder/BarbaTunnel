@@ -18,7 +18,6 @@ BarbaClientHttpCourier::~BarbaClientHttpCourier(void)
 
 void BarbaClientHttpCourier::Receive(BYTE* buffer, size_t bufferCount)
 {
-	//printf("BarbaClientHttpCourier::Receive %d\n", bufferCount);
 	this->HttpConnection->CryptData(buffer, bufferCount);
 	PacketHelper packet;
 	packet.SetIpPacket((iphdr_ptr)buffer);
@@ -32,6 +31,5 @@ void BarbaClientHttpCourier::SendPacket(PacketHelper* packet)
 	size_t dataCount = packet->GetPacketLen();
 	memcpy_s(data, sizeof data, packet->ipHeader, dataCount);
 	this->HttpConnection->CryptData(data, dataCount);
-	//printf("BarbaClientHttpCourier::Send %d\n", dataCount);
 	this->Send(data, dataCount);
 }
