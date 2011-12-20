@@ -12,11 +12,13 @@
 #define BARBA_MAX_SERVERLISTENSOCKET 50
 #define BARBA_MAX_LOGFILESIZE (1 * 1000000) //1MB
 #define BARBA_CURRENT_VERSION _T("2.0")
-#define BARBA_CONNECTION_TIMEOUT (60*60*1000)
 #define BARBA_WorkingStateRefreshTime (1*60*1000)
 #define BARBA_SocketThreadStackSize (64*1000)
 #define BARBA_MaxUserHttpConnection 20
 #define BARBA_MaxKeyName 100
+#define BARBA_ConnectionTimeout (15*60*1000) //10 min
+#define BARBA_HttpFakeFileSize (15*1000000) //15 MB
+#define BARBA_HttpMaxUserConnection 4
 
 //BarbaModeEnum
 enum BarbaModeEnum

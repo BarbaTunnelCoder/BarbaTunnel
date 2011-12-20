@@ -13,7 +13,7 @@ public:
 	//@return empty string if not found
 	std::string ReadHttpHeader(int maxlen=5000);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
-	size_t GetReceiveBytesCount() {return this->ReceiveBytesCount;}
+	size_t GetReceiveBytesCount() {return this->ReceivedBytesCount;}
 	void SetNoDelay(bool value);
 	void SetReceiveTimeOut(long second);
 	void SetSendTimeOut(long second);
@@ -26,7 +26,7 @@ protected:
 	u_long RemoteIp;
 	BarbaSocket();
 	size_t SentBytesCount;
-	size_t ReceiveBytesCount;
+	size_t ReceivedBytesCount;
 	SOCKET _Socket;
 	void ThrowSocketError(int er);
 	void ThrowSocketError();

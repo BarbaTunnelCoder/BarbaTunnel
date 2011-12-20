@@ -5,13 +5,11 @@ BarbaSocket::BarbaSocket()
 {
 	this->RemoteIp = 0;
 	this->SentBytesCount = 0;
-	this->ReceiveBytesCount = 0;
+	this->ReceivedBytesCount = 0;
 	InitializeLib();
 	_Socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (_Socket == INVALID_SOCKET)
 		ThrowSocketError();
-
-	SetNoDelay(true);
 }
 
 BarbaSocket::BarbaSocket(SOCKET s, u_long remoteIp)
@@ -19,7 +17,6 @@ BarbaSocket::BarbaSocket(SOCKET s, u_long remoteIp)
 	InitializeLib();
 	_Socket = s;
 	this->RemoteIp = remoteIp;
-	SetNoDelay(true);
 }
 
 void BarbaSocket::ThrowSocketError(int er)
@@ -107,7 +104,7 @@ int BarbaSocket::Receive(BYTE* buf, size_t bufCount, bool waitAll)
 	int ret = ::recv(_Socket, (char*)buf, bufCount, flags);
 	if (ret==SOCKET_ERROR)
 		ThrowSocketError();
-	this->ReceiveBytesCount += ret;
+	this->ReceivedBytesCount += ret;
 	return ret;
 }
 
