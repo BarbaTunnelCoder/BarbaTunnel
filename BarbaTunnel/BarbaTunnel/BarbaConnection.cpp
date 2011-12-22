@@ -4,8 +4,10 @@
 #include "BarbaApp.h"
 
 
+int LastConnectionId = 0;
 BarbaConnection::BarbaConnection()
 {
+	this->ConnectionId = ++LastConnectionId;
 	this->LasNegotiationTime = GetTickCount();
 }
 
@@ -14,9 +16,9 @@ BarbaConnection::~BarbaConnection(void)
 {
 }
 
-DWORD BarbaConnection::GetLasNegotiationTime() 
+u_int BarbaConnection::GetLasNegotiationTime() 
 {
-	return LasNegotiationTime;
+	return this->LasNegotiationTime;
 }
 
 void BarbaConnection::CryptData(BYTE* data, size_t dataLen)

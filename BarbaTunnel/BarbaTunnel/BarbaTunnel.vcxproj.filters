@@ -138,6 +138,9 @@
     <ClInclude Include="SimpleBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BarbaException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

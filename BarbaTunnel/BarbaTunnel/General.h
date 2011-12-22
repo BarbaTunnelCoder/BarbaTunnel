@@ -1,6 +1,7 @@
 #pragma once
 #include "PacketHelper.h"
 #include "SimpleBuffer.h"
+#include "BarbaException.h"
 
 #define BARBA_MAX_CONFIGS 100
 #define BARBA_MAX_CONFIGITEMS 100
@@ -13,10 +14,10 @@
 #define BARBA_MAX_LOGFILESIZE (1 * 1000000) //1MB
 #define BARBA_CURRENT_VERSION _T("2.0")
 #define BARBA_WorkingStateRefreshTime (1*60*1000)
-#define BARBA_SocketThreadStackSize (64*1000)
+#define BARBA_SocketThreadStackSize (32*1000)
 #define BARBA_MaxUserHttpConnection 20
 #define BARBA_MaxKeyName 100
-#define BARBA_ConnectionTimeout (15*60*1000) //10 min
+#define BARBA_ConnectionTimeoutMinutes (15) //15 min
 #define BARBA_HttpFakeFileSize (15*1000000) //15 MB
 #define BARBA_HttpMaxUserConnection 4
 
@@ -65,7 +66,7 @@ struct BarbaHeader
 BarbaModeEnum BarbaMode_FromString(LPCTSTR mode);
 LPCTSTR BarbaMode_ToString(BarbaModeEnum mode);
 u_char BarbaMode_GetProtocol(BarbaModeEnum mode);
-GUID* GetBarbaSign();
 void BarbaLog(LPCTSTR msg, ...);
+void BarbaLog2(LPCTSTR msg, ...);
 void BarbaNotify(LPCTSTR msg, ...);
 

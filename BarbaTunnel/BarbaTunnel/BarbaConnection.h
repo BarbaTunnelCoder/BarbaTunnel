@@ -14,8 +14,9 @@ public:
 	virtual void ReportNewConnection()=0;
 	virtual SimpleBuffer* GetKey()=0;
 	virtual LPCTSTR GetName()=0;
+	virtual u_int GetId() {return this->ConnectionId;}
 	void CryptData(BYTE* data, size_t dataLen);
-	DWORD GetLasNegotiationTime();
+	u_int GetLasNegotiationTime();
 
 protected:
 	void CryptPacket(PacketHelper* packet);
@@ -24,6 +25,7 @@ protected:
 	void SetWorkingState(ULONG length, bool send);
 
 private:
-	DWORD LasNegotiationTime;
+	u_int LasNegotiationTime;
+	u_int ConnectionId;
 };
 

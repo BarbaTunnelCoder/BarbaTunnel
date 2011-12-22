@@ -1,18 +1,22 @@
 #include "StdAfx.h"
 #include "BarbaClientApp.h"
 
-extern CNdisApi			api;
 BarbaClientApp* theClientApp = NULL;
-
 BarbaClientApp::BarbaClientApp()
 {
+}
+
+void BarbaClientApp::Dispose()
+{
+	this->ConnectionManager.Dispose();
+	BarbaApp::Dispose();
 }
 
 void BarbaClientApp::Initialize()
 {
 	if (theClientApp!=NULL)
 	{
-		throw _T("BarbaClientApp Already Initialized!");
+		throw new BarbaException(_T("BarbaClientApp Already Initialized!"));
 	}
 	theClientApp = this;
 	BarbaApp::Initialize();

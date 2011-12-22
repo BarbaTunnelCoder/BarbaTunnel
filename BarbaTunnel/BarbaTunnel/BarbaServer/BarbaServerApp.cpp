@@ -17,7 +17,7 @@ void BarbaServerApp::Initialize()
 {
 	if (theServerApp!=NULL)
 	{
-		throw _T("BarbaServerApp Already Initialized!");
+		throw new BarbaException(_T("BarbaServerApp Already Initialized!"));
 	}
 	theServerApp = this;
 	BarbaApp::Initialize();
@@ -39,8 +39,12 @@ void BarbaServerApp::Initialize()
 	//Initialize Connection Manager
 	ConnectionManager.Initialize(&Config.VirtualIpRange);
 
-	//Initialize HttpServer
-	HttpServer.Initialize();
+}
+
+void BarbaServerApp::Start()
+{
+	//Initialize HttpHost
+	HttpHost.Initialize();
 }
 
 BarbaServerConfigItem* BarbaServerApp::ShouldGrabPacket(PacketHelper* packet)
@@ -63,6 +67,13 @@ BarbaServerConfigItem* BarbaServerApp::ShouldGrabPacket(PacketHelper* packet)
 	}
 
 	return NULL;
+}
+
+void BarbaServerApp::Dispose()
+{
+	this->HttpHost.Dispose();
+	this->ConnectionManager.Dispose();
+	BarbaApp::Dispose();
 }
 
 bool BarbaServerApp::ProcessPacket(PacketHelper* packet, bool send)

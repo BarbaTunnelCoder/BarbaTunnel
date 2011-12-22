@@ -1,13 +1,14 @@
 #include "StdAfx.h"
 #include "BarbaConnectionManager.h"
+#include "BarbaApp.h"
 
 
 BarbaConnectionManager::BarbaConnectionManager(void)
 {
+	this->LastIntervalTime = GetTickCount();
 }
 
-
-BarbaConnectionManager::~BarbaConnectionManager(void)
+void BarbaConnectionManager::Dispose()
 {
 	//delete all messages
 	BarbaConnection* connection = this->Connections.RemoveHead();
@@ -18,8 +19,13 @@ BarbaConnectionManager::~BarbaConnectionManager(void)
 	}
 }
 
+BarbaConnectionManager::~BarbaConnectionManager(void)
+{
+}
+
 void BarbaConnectionManager::RemoveConnection(BarbaConnection* conn)
 {
+	BarbaLog(_T("BarbaConnection removed. ID: %u"), conn->GetId());
 	this->Connections.Remove(conn);
 	delete conn;
 }
@@ -38,15 +44,29 @@ void BarbaConnectionManager::CleanTimeoutConnections()
 	for (size_t i=0; i<this->Connections.GetCount(); i++)
 	{
 		BarbaConnection* conn = connections[i];
-		if (GetTickCount()-conn->GetLasNegotiationTime()>BARBA_ConnectionTimeout)
+		if (GetTickCount()-conn->GetLasNegotiationTime()>theApp->ConnectionTimeout)
 		{
 			RemoveConnection(conn);
 		}
 	}
 }
 
+void BarbaConnectionManager::DoIntervalCheck()
+{
+	//check timeout connections
+	if (GetTickCount()<LastIntervalTime+5000)
+		return;
+	
+	LastIntervalTime = GetTickCount();
+	CleanTimeoutConnections();
+}
+
 BarbaConnection* BarbaConnectionManager::FindByPacketToProcess(PacketHelper* packet)
 {
+	//FindByPacketToProcess called frequently, good place to check interval
+	DoIntervalCheck();
+
+	//find connection
 	BarbaConnection* ret = NULL;
 	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&this->Connections);
 	BarbaConnection** connections = (BarbaConnection**)autoLockBuf.GetBuffer();

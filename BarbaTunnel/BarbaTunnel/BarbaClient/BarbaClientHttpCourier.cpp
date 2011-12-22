@@ -18,6 +18,7 @@ BarbaClientHttpCourier::~BarbaClientHttpCourier(void)
 
 void BarbaClientHttpCourier::Receive(BYTE* buffer, size_t bufferCount)
 {
+
 	this->HttpConnection->CryptData(buffer, bufferCount);
 	PacketHelper packet;
 	packet.SetIpPacket((iphdr_ptr)buffer);
@@ -26,6 +27,7 @@ void BarbaClientHttpCourier::Receive(BYTE* buffer, size_t bufferCount)
 
 void BarbaClientHttpCourier::SendPacket(PacketHelper* packet)
 {
+
 	//encrypt whole packet include header
 	BYTE data[MAX_ETHER_FRAME];
 	size_t dataCount = packet->GetPacketLen();

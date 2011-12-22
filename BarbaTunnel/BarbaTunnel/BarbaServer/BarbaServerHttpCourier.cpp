@@ -24,15 +24,8 @@ void BarbaServerHttpCourier::SendPacket(PacketHelper* packet)
 	this->Send(data, dataCount);
 }
 
-DWORD last;
 void BarbaServerHttpCourier::Receive(BYTE* buffer, size_t bufferCount)
 {
-	if (last!=GetCurrentThreadId())
-	{
-		//printf("thread current id: %d!\n", GetCurrentThreadId());
-		//last = GetCurrentThreadId();
-	}
-
 	this->HttpConnection->CryptData(buffer, bufferCount);
 	PacketHelper packet;
 	packet.SetIpPacket((iphdr_ptr)buffer);

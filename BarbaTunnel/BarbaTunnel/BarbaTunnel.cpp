@@ -106,10 +106,21 @@ void ReleaseInterface()
 	api.FlushAdapterPacketQueue (AdList.m_nAdapterHandle[CurrentAdapterIndex]);
 }
 
+void InitMemoryLeackReport()
+{
+	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+	_CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
+	_CrtSetReportFile( _CRT_WARN, _CRTDBG_FILE_STDOUT );
+	_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_FILE );
+	_CrtSetReportFile( _CRT_ERROR, _CRTDBG_FILE_STDOUT );
+	_CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_FILE );
+	_CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDOUT );
+}
+
 int main(int argc, char* argv[])
 {
 	// memory leak detection
-	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+	InitMemoryLeackReport();
 
 	//find IsBarbaServer
 	IsBarbaServer = GetPrivateProfileInt(_T("General"), _T("ServerMode"), 0, BarbaApp::GetConfigFile())!=0;
@@ -225,6 +236,7 @@ int main(int argc, char* argv[])
 	BarbaLog(_T("%s Started...\r\nVersion: %s\r\nAdapter: %s\r\nReady!"), barbaName, BARBA_CURRENT_VERSION, adapterName);
 	BarbaNotify(_T("%s Started\r\nVersion: %s\r\nAdpater: %s"), barbaName, BARBA_CURRENT_VERSION, adapterName);
 	theApp->Comm.SetStatus(_T("Started"));
+	theApp->Start();
 
 	//set current process priority to process network packets as fast as possible
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);

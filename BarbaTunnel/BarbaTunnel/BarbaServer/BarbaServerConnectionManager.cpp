@@ -62,7 +62,7 @@ BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelp
 	}
 	else
 	{
-		throw _T("Unsupported mode!");
+		throw new BarbaException(_T("%s mode not supported!"), BarbaMode_ToString(configItem->Mode));
 	}
 
 
