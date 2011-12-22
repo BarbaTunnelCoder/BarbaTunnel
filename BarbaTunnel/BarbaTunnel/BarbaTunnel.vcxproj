@@ -104,6 +104,7 @@
     <ClInclude Include="BarbaConnectionManager.h" />
     <ClInclude Include="BarbaCourier.h" />
     <ClInclude Include="BarbaCrypt.h" />
+    <ClInclude Include="BarbaException.h" />
     <ClInclude Include="BarbaServer\BarbaServerConnectionManager.h" />
     <ClInclude Include="BarbaServer\BarbaServerHttpHost.h" />
     <ClInclude Include="BarbaServer\BarbaServerRedirectConnection.h" />

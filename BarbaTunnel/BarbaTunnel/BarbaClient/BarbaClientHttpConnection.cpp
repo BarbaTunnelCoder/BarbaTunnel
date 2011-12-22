@@ -36,7 +36,6 @@ bool BarbaClientHttpConnection::ProcessPacket(PacketHelper* packet, bool send)
 {
 	if (send)
 	{
-		packet->RecalculateChecksum();
 		this->SetWorkingState(packet->GetIpLen(), true);
 		this->Courier->SendPacket(packet);
 	}
@@ -46,5 +45,3 @@ bool BarbaClientHttpConnection::ProcessPacket(PacketHelper* packet, bool send)
 	}
 	return true;
 }
-
-static std::string GetNewSessionPhrase();

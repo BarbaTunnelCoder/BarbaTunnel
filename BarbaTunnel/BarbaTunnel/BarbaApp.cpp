@@ -9,23 +9,18 @@ BarbaApp::BarbaApp(void)
 	srand((UINT)time(0));
 	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetModuleFolder());
 
-	_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetConfigFile());
-	_IsDebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetConfigFile())!=0;
+	this->_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetConfigFile());
+	this->_VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetConfigFile())!=0;
+	this->_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetConfigFile())!=0;
+	this->ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeoutMinutes"), BARBA_ConnectionTimeoutMinutes, GetConfigFile())*60*1000;
+	if (this->ConnectionTimeout==0) this->ConnectionTimeout = BARBA_ConnectionTimeoutMinutes*60*1000;
+
 	BarbaSocket::InitializeLib();
 }
 
 BarbaApp::~BarbaApp(void)
 {
 	BarbaSocket::UninitializeLib();
-
-	//wait for all thread to end
-	HANDLE thread = this->Threads.RemoveHead();
-	while (thread!=NULL)
-	{
-		WaitForSingleObject(thread, INFINITE);
-		CloseHandle(thread);
-		thread = this->Threads.RemoveHead();
-	}
 }
 
 void BarbaApp::AddThread(HANDLE threadHandle)
@@ -60,8 +55,9 @@ void BarbaApp::CloseSocketsList(SimpleSafeList<BarbaSocket*>* list)
 		{
 			socketsArray[i]->Close();
 		}
-		catch(...)
+		catch(BarbaException* er)
 		{
+			delete er;
 		}
 	}
 }
@@ -115,12 +111,25 @@ bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool send)
 
 void BarbaApp::Dispose()
 {
+	//wait for all thread to end
+	HANDLE thread = this->Threads.RemoveHead();
+	while (thread!=NULL)
+	{
+		WaitForSingleObject(thread, INFINITE);
+		CloseHandle(thread);
+		thread = this->Threads.RemoveHead();
+	}
+
 	Comm.Dispose();
 }
 
 void BarbaApp::Initialize()
 {
-	Comm.Initialize();
+	Comm.Initialize(_VerboseMode ? 2 : 0);
+}
+
+void BarbaApp::Start()
+{
 }
 
 bool BarbaApp::SendPacketToMstcp(PacketHelper* packet)

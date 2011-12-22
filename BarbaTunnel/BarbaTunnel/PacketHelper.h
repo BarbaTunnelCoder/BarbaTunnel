@@ -21,7 +21,7 @@ public:
 	//void SetTcpPacket(tcphdr_ptr tcpHeader);
 	//void SetUdpPacket(udphdr_ptr udpHeader);
 
-	PacketHelper(void* packet, bool copy=false);
+	PacketHelper(void* packet, bool copy=true);
 	
 	//Create new packet
 	PacketHelper();

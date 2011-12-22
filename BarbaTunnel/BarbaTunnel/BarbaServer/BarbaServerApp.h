@@ -10,9 +10,11 @@ public:
 	BarbaServerApp(void);
 	virtual ~BarbaServerApp(void);
 	virtual void Initialize();
+	virtual void Start();
 	virtual bool ProcessPacket(PacketHelper* packet, bool send);
+	virtual void Dispose();
 
-	BarbaServerHttpHost HttpServer;
+	BarbaServerHttpHost HttpHost;
 	BarbaServerConfig Config;
 	BarbaServerConnectionManager ConnectionManager;
 	std::string FakeHttpGetReplyTemplate;

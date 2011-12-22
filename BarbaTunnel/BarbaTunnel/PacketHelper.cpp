@@ -38,22 +38,6 @@
 //	return htonl(netshort);
 //}
 
-void PacketHelper::Reinit()
-{
-	ipHeader = NULL;
-	tcpHeader = NULL;
-	udpHeader = NULL;
-
-	if (ntohs(ethHeader->h_proto)==ETH_P_IP)
-		ipHeader = (iphdr*)(ethHeader + 1);
-			
-	if (ipHeader!=NULL && ipHeader->ip_p==IPPROTO_TCP)
-		tcpHeader = (tcphdr_ptr)(((BYTE*)ipHeader) + ipHeader->ip_hl*4);
-
-	if (ipHeader!=NULL && ipHeader->ip_p==IPPROTO_UDP)
-		udpHeader = (udphdr_ptr)(((BYTE*)ipHeader) + ipHeader->ip_hl*4);
-}
-
 PacketHelper::PacketHelper(void* packet, bool copy)
 {
 	memset(this->PacketBuffer, 0, MAX_ETHER_FRAME);
@@ -69,7 +53,7 @@ PacketHelper::PacketHelper(void* packet, bool copy)
 PacketHelper::PacketHelper()
 {
 	this->ethHeader = (ether_header_ptr)this->PacketBuffer;
-	Reset(IPPROTO_IP);
+	this->Reset(IPPROTO_IP);
 }
 
 PacketHelper::PacketHelper(u_char ipProtocol)
@@ -89,6 +73,22 @@ void PacketHelper::Reset(u_char ipProtocol)
 
 	if (ipProtocol==IPPROTO_TCP) SetTcpPayload(NULL, 0);
 	else if (ipProtocol==IPPROTO_UDP) SetUdpPayload(NULL, 0);
+}
+
+void PacketHelper::Reinit()
+{
+	ipHeader = NULL;
+	tcpHeader = NULL;
+	udpHeader = NULL;
+
+	if (ntohs(ethHeader->h_proto)==ETH_P_IP)
+		ipHeader = (iphdr*)(ethHeader + 1);
+			
+	if (ipHeader!=NULL && ipHeader->ip_p==IPPROTO_TCP)
+		tcpHeader = (tcphdr_ptr)(((BYTE*)ipHeader) + ipHeader->ip_hl*4);
+
+	if (ipHeader!=NULL && ipHeader->ip_p==IPPROTO_UDP)
+		udpHeader = (udphdr_ptr)(((BYTE*)ipHeader) + ipHeader->ip_hl*4);
 }
 
 void PacketHelper::SetDesPort(u_short port)

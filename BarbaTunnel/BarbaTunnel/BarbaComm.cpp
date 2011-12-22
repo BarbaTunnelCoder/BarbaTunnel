@@ -5,11 +5,12 @@
 
 BarbaComm::BarbaComm(void)
 {
-	_IsAlreadyRunning = false;
-	LogFileHandle = NULL;
-	NotifyFileHandle = NULL;
-	_LastWorkingTick = 0;
-	_CommandEventHandle = NULL;
+	this->LogLevel = 1;
+	this->_IsAlreadyRunning = false;
+	this->LogFileHandle = NULL;
+	this->NotifyFileHandle = NULL;
+	this->_LastWorkingTick = 0;
+	this->_CommandEventHandle = NULL;
 	TCHAR programData[MAX_PATH];
 	BOOL res = SHGetSpecialFolderPath(NULL, programData, CSIDL_COMMON_APPDATA, TRUE);
 	if (res)
@@ -21,15 +22,15 @@ BarbaComm::BarbaComm(void)
 	}
 }
 
-void BarbaComm::Initialize()
+void BarbaComm::Initialize(int logLevel)
 {
+	this->LogLevel = logLevel;
 	InitializeEvents();
 }
 
 
 BarbaComm::~BarbaComm(void)
 {
-	Dispose();
 }
 
 void BarbaComm::Dispose()
@@ -80,8 +81,13 @@ void BarbaComm::SetStatus(LPCTSTR status)
 	WritePrivateProfileString(_T("General"), _T("StatusTime"), ctimeBuf, GetCommFilePath());
 }
 
-void BarbaComm::Log(LPCTSTR msg, bool notify)
+void BarbaComm::Log(LPCTSTR msg, bool notify, int logLevel)
 {
+	if (logLevel>this->LogLevel)
+		return;
+	static SimpleCriticalSection cs;
+	SimpleLock lock(&cs);
+
 	LPCSTR msgUtf8;
 	//write UTF8
 #ifdef _UNICODE
@@ -153,6 +159,25 @@ void BarbaLog(LPCTSTR format, ...)
 	if (theApp!=NULL)
 	{
 		theApp->Comm.Log(msg, false);
+	}
+	else
+	{
+		_tprintf_s(msg);
+		_tprintf_s(_T("\r\n"));
+	}
+}
+
+void BarbaLog2(LPCTSTR format, ...)
+{
+	va_list argp;
+	va_start(argp, format);
+	CHAR msg[4000];
+	_vstprintf_s(msg, format, argp);
+	va_end(argp);
+
+	if (theApp!=NULL)
+	{
+		theApp->Comm.Log(msg, false, 2);
 	}
 	else
 	{

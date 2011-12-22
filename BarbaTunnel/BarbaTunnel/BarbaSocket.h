@@ -1,4 +1,20 @@
 #pragma once
+#include "BarbaException.h"
+
+class BarbaSocketException : public BarbaException
+{
+public:
+	virtual ~BarbaSocketException(){}
+	explicit BarbaSocketException (int socketError)
+	{
+		this->SocketError = socketError;
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, socketError, 0,
+			this->Description, _countof(this->Description), NULL);
+	}
+
+private:
+	int SocketError;
+};
 
 class BarbaSocket
 {
@@ -18,17 +34,16 @@ public:
 	void SetReceiveTimeOut(long second);
 	void SetSendTimeOut(long second);
 	u_long GetRemoteIp() { return this->RemoteIp;}
-
 	static bool InitializeLib(); 
 	static void UninitializeLib(); 
 
 protected:
+
 	u_long RemoteIp;
 	BarbaSocket();
 	size_t SentBytesCount;
 	size_t ReceivedBytesCount;
 	SOCKET _Socket;
-	void ThrowSocketError(int er);
 	void ThrowSocketError();
 };  
 

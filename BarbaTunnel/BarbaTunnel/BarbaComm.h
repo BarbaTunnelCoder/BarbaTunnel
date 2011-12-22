@@ -20,11 +20,13 @@ private:
 	void InitializeEvents();
 	bool _IsAlreadyRunning;
 	DWORD _LastWorkingTick;
+	int LogLevel;
 
 public:
 	BarbaComm(void);
 	virtual ~BarbaComm(void);
-	void Initialize();
+	virtual void Dispose();
+	void Initialize(int logLevel);
 	LPCTSTR GetNotifyFilePath() {return _NotifyFilePath;}
 	LPCTSTR GetLogFilePath() {return _LogFilePath;}
 	LPCTSTR GetCommFilePath() {return _CommFilePath;}
@@ -32,10 +34,9 @@ public:
 	CommandEnum GetCommand();
 	void SetWorkingState(ULONG length, bool send);
 	void SetStatus(LPCTSTR status);
-	void Log(LPCTSTR msg, bool notify);
+	void Log(LPCTSTR msg, bool notify, int logLevel=0);
 	bool CreateFiles();
 	bool CreateFilesWithAdminPrompt();
 	bool IsAlreadyRunning() {return _IsAlreadyRunning;}
-	void Dispose();
 };
 

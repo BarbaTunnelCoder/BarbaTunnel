@@ -1,4 +1,5 @@
 #pragma once
+#include "General.h"
 #include "BarbaSocket.h"
 #include "SimpleEvent.h"
 #include "SimpleSafeList.h"
@@ -23,7 +24,7 @@ protected:
 
 public:
 	//@maxConnenction number of simultaneous connection for each outgoing and incoming, eg: 2 mean 2 connection for send and 2 connection for receive so the total will be 4
-	explicit BarbaCourier(u_short maxConnenction, size_t threadsStackSize=128000);
+	explicit BarbaCourier(u_short maxConnenction, size_t threadsStackSize=BARBA_SocketThreadStackSize);
 	virtual void Send(BYTE* buffer, size_t bufferCount);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
 	void InitFakeRequests(LPCSTR httpGetTemplate, LPCSTR httpPostTemplate, size_t maxFileSize);
@@ -46,11 +47,12 @@ private:
 	static unsigned int __stdcall DeleteThread(void* object);
 
 protected:
+	void Log(LPCTSTR format, ...);
 	virtual void Dispose();
 	bool IsDisposing();
 	virtual ~BarbaCourier(void);
 	virtual void Send(Message* message, bool highPriority=false);
-	bool Sockets_Add(BarbaSocket* socket, bool isIncoming);
+	void Sockets_Add(BarbaSocket* socket, bool isIncoming);
 	void Sockets_Remove(BarbaSocket* socket, bool isIncoming);
 	void ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);

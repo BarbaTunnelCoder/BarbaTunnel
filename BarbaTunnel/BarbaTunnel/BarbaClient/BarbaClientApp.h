@@ -9,6 +9,7 @@ public:
 	BarbaClientApp();
 	virtual ~BarbaClientApp(){}
 	virtual void Initialize();
+	virtual void Dispose();
 	
 	BarbaClientConfigManager ConfigManager;
 	BarbaClientConnectionManager ConnectionManager;

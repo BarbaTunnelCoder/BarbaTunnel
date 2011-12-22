@@ -19,16 +19,9 @@ BarbaSocket::BarbaSocket(SOCKET s, u_long remoteIp)
 	this->RemoteIp = remoteIp;
 }
 
-void BarbaSocket::ThrowSocketError(int er)
-{
-	TCHAR err[1000];
-	_tcserror_s(err, er);
-	throw err;
-}
-
 void BarbaSocket::ThrowSocketError()
 {
-	ThrowSocketError(::WSAGetLastError());
+	throw new BarbaSocketException(::WSAGetLastError());
 }
 
 bool BarbaSocket::IsWritable()
@@ -149,11 +142,7 @@ BarbaSocketClient::BarbaSocketClient(u_long serverIp, u_short port)
 	addr.sin_addr.S_un.S_addr = serverIp;
 	this->RemoteIp = serverIp;
 	if (::connect(_Socket, (sockaddr*)&addr, sizeof sockaddr)==SOCKET_ERROR)
-	{
-		TCHAR err[1000];
-		_tcserror_s(err, WSAGetLastError());
-		throw err;
-	}
+		ThrowSocketError();
 }
 
 BarbaSocketServer::BarbaSocketServer(u_short port) 
