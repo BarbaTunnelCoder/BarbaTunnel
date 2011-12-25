@@ -9,6 +9,19 @@ BarbaServerHttpHost::BarbaServerHttpHost(void)
 {
 }
 
+void BarbaServerHttpHost::Log(LPCTSTR format, ...)
+{
+	va_list argp;
+	va_start(argp, format);
+	TCHAR msg[1000];
+	_vstprintf_s(msg, format, argp);
+	va_end(argp);
+
+	TCHAR msg2[1000];
+	_stprintf_s(msg2, _T("HttpHost: TID: %4x, %s"), GetCurrentThreadId(), msg);
+	BarbaLog2(msg2);
+}
+
 
 BarbaServerHttpHost::~BarbaServerHttpHost(void)
 {
@@ -62,42 +75,46 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 
 	try
 	{
-	//read httpRequest
-		BarbaLog2(_T("HTTP Host: TID: %x, New incoming connection. ServerPort: %d, ClientIp: %s."), GetCurrentThreadId(), threadData->ServerPort, clientIpString);
-		BarbaLog2(_T("HTTP Host: Waiting for HTTP request."));
+		//read httpRequest
+		_this->Log(_T("New incoming connection. ServerPort: %d, ClientIp: %s."), threadData->ServerPort, clientIpString);
+		_this->Log(_T("Waiting for HTTP request."));
 		std::string httpRequest = socket->ReadHttpRequest();
 		bool isGet = httpRequest.size()>=3 && _strnicmp(httpRequest.data(), "GET", 3)==0;
 		bool isPost = httpRequest.size()>=4 && _strnicmp(httpRequest.data(), "POST", 4)==0;
-		if (isGet || isPost)
-		{
-			//find session
-			bool isOutgoing = isGet;
-			std::tstring sessionIdStr = BarbaUtils::GetKeyValueFromHttpRequest(httpRequest.data(), threadData->ConfigItem->SessionKeyName.data());
-			u_long sessionId = strtoul(sessionIdStr.data(), NULL, 32);
-			if (sessionId==0)
-				new BarbaException( _T("Could not extract sessionId from HTTP request!") );
+		if (!isGet && !isPost)
+			throw new BarbaException(_T("HttpHost: TID: %x, Could not find GET or POST from HTTP request!"), GetCurrentThreadId());
+		bool isOutgoing = isGet;
 
-			//find connection by session id
-			SimpleLock lock(&_this->CreateConnectionCriticalSection);
-			BarbaServerHttpConnection* conn = (BarbaServerHttpConnection*)theServerApp->ConnectionManager.FindBySessionId(sessionId);
-			//create new connection if session not found
-			if (conn==NULL)
-				conn = theServerApp->ConnectionManager.CreateHttpConnection(threadData->ConfigItem, socket->GetRemoteIp(), threadData->ServerPort, sessionId);
-			lock.Unlock();
+		//find session
+		std::tstring sessionIdStr = BarbaUtils::GetKeyValueFromHttpRequest(httpRequest.data(), threadData->ConfigItem->SessionKeyName.data());
+		u_long sessionId = strtoul(sessionIdStr.data(), NULL, 32);
+		if (sessionId==0)
+			new BarbaException( _T("Could not extract sessionId from HTTP request!") );
 
-			//add socket to HTTP connection
-			if (conn!=NULL)
-				success = conn->AddSocket(socket, httpRequest.data(), isOutgoing);
-		}
+		//find connection by session id
+		SimpleLock lock(&_this->CreateConnectionCriticalSection);
+		BarbaServerHttpConnection* conn = (BarbaServerHttpConnection*)theServerApp->ConnectionManager.FindBySessionId(sessionId);
+		//create new connection if session not found
+		if (conn==NULL)
+			conn = theServerApp->ConnectionManager.CreateHttpConnection(threadData->ConfigItem, socket->GetRemoteIp(), threadData->ServerPort, sessionId);
+		lock.Unlock();
+
+		//add socket to HTTP connection
+		if (conn!=NULL)
+			success = conn->AddSocket(socket, httpRequest.data(), isOutgoing);
+
+		//report connection added
+		if (success)
+			_this->Log(_T("HTTP %s connection added to courier. SessionId: %x."), isOutgoing ? _T("GET") : _T("POST"), sessionId);
 	}
 	catch(BarbaException* er)
 	{
-		BarbaLog2(_T("HTTP Host: TID: %x, Error: %s"), GetCurrentThreadId(), er->ToString());
+		_this->Log(_T("Error: %s"), er->ToString());
 		delete er;
 	}
 	catch(...)
 	{
-		BarbaLog2(_T("HTTP Host: TID: %x, Unknown Error!"), GetCurrentThreadId());
+		_this->Log(_T("Unknown Error!"));
 	}
 
 	_this->AnswerSockets.Remove(socket);
@@ -126,16 +143,16 @@ unsigned int BarbaServerHttpHost::ListenerThread(void* data)
 	}
 	catch(BarbaException* er)
 	{
-		BarbaLog2(_T("HttpHost: %s"), er->ToString());
+		_this->Log(_T("Error: %s"), er->ToString());
 		delete er;
 	}
 	catch(...)
 	{
-		BarbaLog2(_T("HTTP Host: Unknown Error!"));
+		_this->Log(_T("Unknown Error!"));
 	}
 
 	_this->ListenerSockets.Remove(listenerSocket);
-	BarbaLog2(_T("HttpHost: TCP listener closed, port: %d."), listenerSocket->GetListenPort());
+	_this->Log(_T("TCP listener closed, port: %d."), listenerSocket->GetListenPort());
 	delete listenerSocket;
 	delete threadData;
 	return 0;
@@ -168,7 +185,7 @@ void BarbaServerHttpHost::Initialize()
 				//check added port count
 				if (createdSocket>=BARBA_MAX_SERVERLISTENSOCKET)
 				{
-					BarbaLog(_T("Error: HTTP Tunnel could not listen more than %d ports!"), BARBA_MAX_SERVERLISTENSOCKET);
+					Log(_T("Error: HTTP Tunnel could not listen more than %d ports!"), BARBA_MAX_SERVERLISTENSOCKET);
 					j = item->TunnelPortsCount;
 					break;
 				}
@@ -176,13 +193,13 @@ void BarbaServerHttpHost::Initialize()
 				//add port
 				try
 				{
-					BarbaLog2(_T("HTTP Host: Listening to TCP port %d."), portRange->StartPort);
+					Log(_T("Listening to TCP port %d."), portRange->StartPort);
 					this->AddListenerPort(item, port);
 					createdSocket++;
 				}
 				catch (...)
 				{
-					BarbaLog(_T("Error! HTTP Host could not listen to TCP port %d!"), portRange->StartPort);
+					Log(_T("Error! HTTP Host could not listen to TCP port %d!"), portRange->StartPort);
 				}
 			}
 		}// for j

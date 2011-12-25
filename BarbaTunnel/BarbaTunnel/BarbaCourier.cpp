@@ -325,6 +325,9 @@ void BarbaCourier::GetFakeFile(TCHAR* filename, u_int* fileSize, SimpleBuffer* /
 
 void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR host, LPCTSTR fileName, u_int fileSize, u_int fileHeaderSize)
 {
+	if (host==NULL) host = _T("");
+	if (fileName==NULL) fileName = _T("");
+
 	StringUtils::ReplaceAll(src, _T("{host}"), host);
 	
 	if (fileName!=NULL)

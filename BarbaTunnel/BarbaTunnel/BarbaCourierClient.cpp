@@ -42,9 +42,9 @@ u_int BarbaCourierClient::SendFakeRequest(BarbaSocket* socket, SimpleBuffer* fak
 	InitFakeRequestVars(fakeRequest, serverIp, filename, fileSize, fakeFileHeaderSize);
 
 	if (outgoing)
-		Log(_T("Sending fake POST request! File: %s (%uKB), HeaderSize: %u."), filename, fileSize, fakeFileHeaderSize);
+		Log(_T("Sending fake POST request! File: %s (%u KB), HeaderSize: %u."), filename, fileSize, fakeFileHeaderSize);
 	else
-		Log(_T("Sending fake GET request! FileName: %s"), filename);
+		Log(_T("Sending fake HTTP GET request! FileName: %s."), filename);
 	std::string fakeRequestA = fakeRequest;
 	if (socket->Send((BYTE*)fakeRequestA.data(), fakeRequestA.length())!=(int)fakeRequestA.length())
 		throw new BarbaException(_T("Could not send fake request!"));
@@ -83,7 +83,7 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 				u_int fakeFileSize = _this->SendFakeRequest(socket, &fakeFileHeader);
 
 				//wait for fake reply
-				_this->Log(_T("Waiting for server to accept fake request."));
+				_this->Log(_T("Waiting for server to accept fake HTTP POST request."));
 				std::string header = socket->ReadHttpRequest();
 				if (header.empty())
 					throw new BarbaException( _T("Server does not reply to fake request!") );
@@ -100,7 +100,7 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 				_this->SendFakeRequest(socket, NULL);
 
 				//wait for fake reply
-				_this->Log(_T("Waiting for server to accept fake request."));
+				_this->Log(_T("Waiting for server to accept fake HTTP GET request."));
 				std::string httpReply = socket->ReadHttpRequest();
 				if (httpReply.empty())
 					throw new BarbaException( _T("Server does not reply to fake request!") );
