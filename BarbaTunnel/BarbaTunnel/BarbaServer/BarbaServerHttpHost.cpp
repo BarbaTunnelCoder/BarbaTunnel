@@ -60,27 +60,26 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 	TCHAR clientIpString[30];
 	PacketHelper::ConvertIpToString(socket->GetRemoteIp(), clientIpString, _countof(clientIpString));
 
-	//read header
 	try
 	{
-		BarbaLog2(_T("HTTP Host: ThreadId: %x, New incoming connection. ServerPort: %d, ClientIp: %s."), GetCurrentThreadId(), threadData->ServerPort, clientIpString);
+	//read httpRequest
+		BarbaLog2(_T("HTTP Host: TID: %x, New incoming connection. ServerPort: %d, ClientIp: %s."), GetCurrentThreadId(), threadData->ServerPort, clientIpString);
 		BarbaLog2(_T("HTTP Host: Waiting for HTTP request."));
-		std::string header = socket->ReadHttpHeader();
-		bool isGet = header.size()>=3 && _strnicmp(header.data(), "GET", 3)==0;
-		bool isPost = header.size()>=4 && _strnicmp(header.data(), "POST", 4)==0;
+		std::string httpRequest = socket->ReadHttpRequest();
+		bool isGet = httpRequest.size()>=3 && _strnicmp(httpRequest.data(), "GET", 3)==0;
+		bool isPost = httpRequest.size()>=4 && _strnicmp(httpRequest.data(), "POST", 4)==0;
 		if (isGet || isPost)
 		{
 			//find session
 			bool isOutgoing = isGet;
-			u_long sessionId = ExtractSessionId(header.data());
+			std::tstring sessionIdStr = BarbaUtils::GetKeyValueFromHttpRequest(httpRequest.data(), threadData->ConfigItem->SessionKeyName.data());
+			u_long sessionId = strtoul(sessionIdStr.data(), NULL, 32);
 			if (sessionId==0)
 				new BarbaException( _T("Could not extract sessionId from HTTP request!") );
-			BarbaLog2(_T("HTTP Host: ThreadId: %x, Adding HTTP %s connection to BarbaConnection. SessionId: %u."), GetCurrentThreadId(), isGet ? _T("GET") : _T("POST"), sessionId);
 
 			//find connection by session id
 			SimpleLock lock(&_this->CreateConnectionCriticalSection);
 			BarbaServerHttpConnection* conn = (BarbaServerHttpConnection*)theServerApp->ConnectionManager.FindBySessionId(sessionId);
-
 			//create new connection if session not found
 			if (conn==NULL)
 				conn = theServerApp->ConnectionManager.CreateHttpConnection(threadData->ConfigItem, socket->GetRemoteIp(), threadData->ServerPort, sessionId);
@@ -88,13 +87,17 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 
 			//add socket to HTTP connection
 			if (conn!=NULL)
-				success = conn->AddSocket(socket, isOutgoing);
+				success = conn->AddSocket(socket, httpRequest.data(), isOutgoing);
 		}
 	}
 	catch(BarbaException* er)
 	{
-		BarbaLog2(_T("HTTP Host: ThreadId: %x, Error: %s"), GetCurrentThreadId(), er->ToString());
+		BarbaLog2(_T("HTTP Host: TID: %x, Error: %s"), GetCurrentThreadId(), er->ToString());
 		delete er;
+	}
+	catch(...)
+	{
+		BarbaLog2(_T("HTTP Host: TID: %x, Unknown Error!"), GetCurrentThreadId());
 	}
 
 	_this->AnswerSockets.Remove(socket);
@@ -126,6 +129,10 @@ unsigned int BarbaServerHttpHost::ListenerThread(void* data)
 		BarbaLog2(_T("HttpHost: %s"), er->ToString());
 		delete er;
 	}
+	catch(...)
+	{
+		BarbaLog2(_T("HTTP Host: Unknown Error!"));
+	}
 
 	_this->ListenerSockets.Remove(listenerSocket);
 	BarbaLog2(_T("HttpHost: TCP listener closed, port: %d."), listenerSocket->GetListenPort());
@@ -140,24 +147,6 @@ void BarbaServerHttpHost::AddListenerPort(BarbaServerConfigItem* configItem, u_s
 	ListenerSockets.AddTail(listenSocket);
 	ListenerThreadData* threadData = new ListenerThreadData(this, listenSocket, configItem);
 	ListenerThreads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, ListenerThread, threadData, 0, NULL));
-}
-
-u_long BarbaServerHttpHost::ExtractSessionId(LPCSTR header)
-{
-	CHAR key[BARBA_MaxKeyName+2];
-	sprintf_s(key, "%s=", theServerApp->Config.SessionKeyName, key);
-	const CHAR* start = strstr(header, key);
-	if (start==NULL)
-		return 0;
-	start = start + strlen(key);
-
-	const CHAR* end = strstr(start, ";");
-	if (end==NULL) end = strstr(start, "\r");
-	if (end==NULL) end = header + strlen(header);
-
-	CHAR sessionBuffer[100];
-	strncpy_s(sessionBuffer, start, end-start);
-	return strtoul(sessionBuffer, 0, 16);
 }
 
 void BarbaServerHttpHost::Initialize()

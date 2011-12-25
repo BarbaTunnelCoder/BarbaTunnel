@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "BarbaClientUdpConnection.h"
+#include "BarbaClientApp.h"
 
 
 BarbaClientUdpConnection::BarbaClientUdpConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short clientPort, u_short tunnelPort)
@@ -66,6 +67,9 @@ bool BarbaClientUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 {
 	if (send)
 	{
+		if (!theApp->CheckMTUDecrement(packet->GetPacketLen(), sizeof iphdr + sizeof tcphdr + sizeof BarbaHeader))
+			return false;
+
 		//Create Barba packet
 		PacketHelper barbaPacket;
 		if (!CreateUdpBarbaPacket(packet, &barbaPacket))
@@ -77,8 +81,7 @@ bool BarbaClientUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 	{
 		//extract Barba packet
 		PacketHelper orgPacket;
-		if (!ExtractUdpBarbaPacket(packet, &orgPacket))
-			return false;
+		ExtractUdpBarbaPacket(packet, &orgPacket);
 		this->SendPacketToMstcp(&orgPacket);
 		return true;
 	}

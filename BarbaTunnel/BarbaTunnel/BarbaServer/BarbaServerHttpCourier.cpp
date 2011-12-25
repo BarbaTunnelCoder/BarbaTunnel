@@ -3,9 +3,9 @@
 #include "BarbaServerHttpConnection.h"
 
 
-BarbaServerHttpCourier::BarbaServerHttpCourier(u_short maxConnection, BarbaServerHttpConnection* httpConnection)
+BarbaServerHttpCourier::BarbaServerHttpCourier(BarbaCourierCreateStrcut* cs, BarbaServerHttpConnection* httpConnection)
 	: HttpConnection(httpConnection)
-	, BarbaCourierServer(maxConnection)
+	, BarbaCourierServer(cs)
 {
 }
 

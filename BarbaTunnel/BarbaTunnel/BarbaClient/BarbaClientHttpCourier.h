@@ -1,14 +1,15 @@
 #pragma once
 #include "General.h"
-#include "BarbaCourier.h"
+#include "BarbaCourierClient.h"
 
 class BarbaClientHttpConnection;
 class BarbaClientHttpCourier : public BarbaCourierClient
 {
 public:
-	explicit BarbaClientHttpCourier(u_short maxConnenction, DWORD remoteIp, u_short remotePort, LPCSTR fakeHttpGetTemplate, LPCSTR fakeHttpPostTemplate, BarbaClientHttpConnection* httpConnection);
+	explicit BarbaClientHttpCourier(BarbaCourierCreateStrcut* cs, DWORD remoteIp, u_short remotePort, BarbaClientHttpConnection* httpConnection);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
 	void SendPacket(PacketHelper* packet);
+	//virtual void GetFakeFile(TCHAR* filename, u_int* fileSize, SimpleBuffer* fakeFileHeader, bool createNew);
 
 protected:
 	BarbaClientHttpConnection* HttpConnection;

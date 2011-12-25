@@ -44,7 +44,6 @@ private:
 	bool IsDisposing();
 	SimpleEvent DisposeEvent;
 
-	static u_long ExtractSessionId(LPCSTR header);
 	static unsigned int __stdcall AnswerThread(void* answerThreadData);
 	static unsigned int __stdcall ListenerThread(void* listenerThreadData);
 	SimpleSafeList<BarbaSocket*> ListenerSockets;

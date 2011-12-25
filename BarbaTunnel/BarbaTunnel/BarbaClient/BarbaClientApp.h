@@ -7,7 +7,7 @@ class BarbaClientApp : public BarbaApp
 {
 public:
 	BarbaClientApp();
-	virtual ~BarbaClientApp(){}
+	virtual ~BarbaClientApp();
 	virtual void Initialize();
 	virtual void Dispose();
 	

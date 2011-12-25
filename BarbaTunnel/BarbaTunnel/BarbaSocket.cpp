@@ -110,7 +110,7 @@ int BarbaSocket::Send(BYTE* buf, size_t bufCount)
 	return ret;
 }
 
-std::string BarbaSocket::ReadHttpHeader(int maxlen)
+std::string BarbaSocket::ReadHttpRequest(int maxlen)
 {
 	std::string ret;
 	std::string ending = "\r\n\r\n";

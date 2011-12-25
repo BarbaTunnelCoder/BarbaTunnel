@@ -10,7 +10,7 @@ HANDLE				hEvent;
 bool IsBarbaServer;
 BarbaClientApp barbaClientApp;
 BarbaServerApp barbaServerApp;
-bool ShowMtuError = true;
+bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barbaCommandOut);
 
 bool CheckAdapterIndex()
 {
@@ -67,8 +67,14 @@ bool CheckAdapterIndex()
 
 bool SetMTU()
 {
+	if (theApp->GetMTUDecrement()==-1)
+	{
+		BarbaLog(_T("MTUDecrement is not set!"));
+		return false;
+	}
+
 	api.SetMTUDecrement( theApp->GetMTUDecrement() ) ;
-	if (api.GetMTUDecrement()!=theApp->GetMTUDecrement())
+	if ((int)api.GetMTUDecrement()!=theApp->GetMTUDecrement())
 		return false;
 
 	LPCTSTR msg = 
@@ -117,8 +123,16 @@ void InitMemoryLeackReport()
 	_CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDOUT );
 }
 
+void test()
+{
+	std::tstring ss = BarbaUtils::GetFileTitleFromUrl("http://asfasfasf/asfasfsaf/aa.5?saffffffff");
+	printf("%s\n", ss.data());
+}
+
 int main(int argc, char* argv[])
 {
+	//test();
+
 	// memory leak detection
 	InitMemoryLeackReport();
 
@@ -153,14 +167,15 @@ int main(int argc, char* argv[])
 	}
 
 	//try to set MTU as administrator
-	if (theApp->GetMTUDecrement() > api.GetMTUDecrement()  )
+	if (theApp->GetMTUDecrement()!=-1 && theApp->GetMTUDecrement() != (int)api.GetMTUDecrement()  )
 	{
-		BarbaLog(_T("Try to set new MTU decrement: %d"), theApp->GetMTUDecrement());
+		BarbaLog(_T("Trying to set new MTU decrement to %d."), theApp->GetMTUDecrement());
 		if (!SetMTU())
 		{
 			theApp->Dispose();
-			BarbaLog(_T("Could not set new MTU decrement. Retry with administrator prompt."));
-			BarbaUtils::SimpleShellExecute(BarbaApp::GetModuleFile(), _T("/setmtu"), SW_HIDE, NULL, _T("runas"));
+			BarbaLog(_T("Could not set new MTU decrement. Retrying with administrator prompt."));
+			if (!BarbaUtils::SimpleShellExecute(BarbaApp::GetModuleFile(), _T("/setmtu"), SW_HIDE, NULL, _T("runas")))
+				BarbaLog(_T("Error: Failed to run %s with administrator prompt!"), BarbaUtils::GetFileNameFromUrl(BarbaApp::GetModuleFile()).data() );
 		}
 		return 0;
 	}
@@ -206,29 +221,6 @@ int main(int argc, char* argv[])
 	if (!CheckAdapterIndex())
 		return 0;
 
-	ADAPTER_MODE Mode;
-	Mode.dwFlags = MSTCP_FLAG_SENT_TUNNEL|MSTCP_FLAG_RECV_TUNNEL;
-	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
-	api.SetAdapterMode(&Mode);
-	theApp->hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
-
-	// Create notification event
-	hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-
-	// Set event for helper driver
-	if (!hEvent || !api.SetPacketEvent(Mode.hAdapterHandle, hEvent))
-	{
-		BarbaLog(_T("Failed to create notification event or set it for driver."));
-		return 0;
-	}
-	atexit (ReleaseInterface);
-	
-	// Initialize Request
-	ETH_REQUEST CurrentRequest = {0};
-	INTERMEDIATE_BUFFER CurrentPacketBuffer = {0};
-	CurrentRequest.hAdapterHandle = Mode.hAdapterHandle;
-	CurrentRequest.EthPacket.Buffer = &CurrentPacketBuffer;
-
 	//report info
 	TCHAR adapterName[ADAPTER_NAME_SIZE];
 	CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[CurrentAdapterIndex], adapterName, _countof(adapterName));
@@ -238,69 +230,10 @@ int main(int argc, char* argv[])
 	theApp->Comm.SetStatus(_T("Started"));
 	theApp->Start();
 
-	//set current process priority to process network packets as fast as possible
-	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
-
-	//Handle
-	HANDLE events[2];
-	events[0] = hEvent;
-	events[1] = commandEventHandle;
-
+	//start process packets
 	BarbaComm::CommandEnum barbaCommand = BarbaComm::CommandNone;
-	bool terminate = false;
-	while (!terminate)
-	{
-		DWORD res = WaitForMultipleObjects(_countof(events), events, FALSE, INFINITE);
-		if (res==WAIT_OBJECT_0-0)
-		{
-			while(api.ReadPacket(&CurrentRequest))
-			{
-				__try
-				{
-					PINTERMEDIATE_BUFFER buffer = CurrentRequest.EthPacket.Buffer;
-					bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
-					PacketHelper packet(buffer->m_IBuffer);
-
-					//check commands
-					if (theApp->IsDebugMode() && theApp->CheckTerminateCommands(&packet, send))
-					{
-						BarbaLog(_T("Terminate Command Received."));
-						terminate = true;
-					}
-
-					//check MTU
-					if (send && (buffer->m_Length + theApp->GetMTUDecrement())>MAX_ETHER_FRAME && ShowMtuError)
-					{
-						ShowMtuError = false;
-						BarbaLog(_T("Error: Large outgoing packet size! Are you sure your system has been restarted?"));
-						BarbaNotify(_T("Error: Large outgoing packet size!\r\nAre you sure your system has been restarted?"));
-					}
-
-					//process packet
-					if (!theApp->ProcessPacket(&packet, send))
-					{
-						//send packet
-						if (send)
-							api.SendPacketToAdapter(&CurrentRequest);
-						else
-							api.SendPacketToMstcp(&CurrentRequest);
-					}
-				}
-				__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
-				{
-					BarbaLog(_T("Application throw unhandled exception! packet dropped.\n"));
-				}
-			}
-			ResetEvent(hEvent);
-		}
-		else 
-		{
-			barbaCommand = theApp->Comm.GetCommand();
-			if (barbaCommand==BarbaComm::CommandRestart || barbaCommand==BarbaComm::CommandStop)
-				terminate = true;
-			ResetEvent(commandEventHandle);
-		}
-	}
+	if (!StartProcessPackets(commandEventHandle, barbaCommand))
+		return 0;
 
 	//report finish
 	BarbaLog(_T("BarbaTunnel Stopped."));
@@ -334,4 +267,86 @@ int main(int argc, char* argv[])
 	if (newThreadHandle!=NULL)
 		ResumeThread(newThreadHandle);
 	return 0;
+}
+
+bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barbaCommand)
+{
+	//set current process priority to process network packets as fast as possible
+	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+
+	ADAPTER_MODE Mode;
+	Mode.dwFlags = MSTCP_FLAG_SENT_TUNNEL|MSTCP_FLAG_RECV_TUNNEL;
+	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
+	api.SetAdapterMode(&Mode);
+	theApp->AdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
+
+	// Create notification event
+	hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	// Set event for helper driver
+	if (!hEvent || !api.SetPacketEvent(Mode.hAdapterHandle, hEvent))
+	{
+		BarbaLog(_T("Failed to create notification event or set it for driver."));
+		return false;
+	}
+	atexit (ReleaseInterface);
+
+	// Initialize Request
+	ETH_REQUEST CurrentRequest = {0};
+	INTERMEDIATE_BUFFER CurrentPacketBuffer = {0};
+	CurrentRequest.hAdapterHandle = Mode.hAdapterHandle;
+	CurrentRequest.EthPacket.Buffer = &CurrentPacketBuffer;
+
+	//Handle
+	HANDLE events[2];
+	events[0] = hEvent;
+	events[1] = commandEventHandle;
+
+	bool terminate = false;
+	while (!terminate)
+	{
+		DWORD res = WaitForMultipleObjects(_countof(events), events, FALSE, INFINITE);
+		if (res==WAIT_OBJECT_0-0)
+		{
+			while(api.ReadPacket(&CurrentRequest))
+			{
+				__try
+				{
+					PINTERMEDIATE_BUFFER buffer = CurrentRequest.EthPacket.Buffer;
+					bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
+					PacketHelper packet(buffer->m_IBuffer);
+
+					//check commands
+					if (theApp->IsDebugMode() && theApp->CheckTerminateCommands(&packet, send))
+					{
+						BarbaLog(_T("Terminate Command Received."));
+						terminate = true;
+					}
+
+					//process packet
+					if (!theApp->ProcessPacket(&packet, send))
+					{
+						//send packet
+						if (send)
+							api.SendPacketToAdapter(&CurrentRequest);
+						else
+							api.SendPacketToMstcp(&CurrentRequest);
+					}
+				}
+				__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
+				{
+					BarbaLog(_T("Application throw unhandled exception! packet dropped.\n"));
+				}
+			}
+			ResetEvent(hEvent);
+		}
+		else 
+		{
+			barbaCommand = theApp->Comm.GetCommand();
+			if (barbaCommand==BarbaComm::CommandRestart || barbaCommand==BarbaComm::CommandStop)
+				terminate = true;
+			ResetEvent(commandEventHandle);
+		}
+	}
+
+	return true;
 }

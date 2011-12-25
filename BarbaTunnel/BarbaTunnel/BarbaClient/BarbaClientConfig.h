@@ -22,7 +22,6 @@ public:
 	TCHAR ServerName[BARBA_MAX_CONFIGNAME];
 	SimpleBuffer Key;
 	BarbaClientConfigItem Items[BARBA_MAX_CONFIGITEMS];
-	CHAR SessionKeyName[BARBA_MaxKeyName];
 	int ItemsCount;
 	// @return false if could not load file
 	bool LoadFile(LPCTSTR file);

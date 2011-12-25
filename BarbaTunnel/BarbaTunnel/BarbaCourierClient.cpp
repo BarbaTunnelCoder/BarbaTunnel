@@ -1,0 +1,143 @@
+#include "StdAfx.h"
+#include "BarbaCourierClient.h"
+#include "BarbaUtils.h"
+
+
+BarbaCourierClient::BarbaCourierClient(BarbaCourierCreateStrcut* cs, DWORD remoteIp, u_short remotePort)
+	: BarbaCourier(cs)
+{
+	this->RemoteIp = remoteIp;
+	this->RemotePort = remotePort;
+
+	for (u_short i=0; i<this->MaxConnection; i++)
+	{
+		//create outgoing connection thread
+		ClientThreadData* outgoingThreadData = new ClientThreadData(this, true);
+		Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->ThreadsStackSize, ClientWorkerThread, outgoingThreadData, 0, NULL));
+
+		//create incoming connection thread
+		ClientThreadData* incomingThreadData = new ClientThreadData(this, false);
+		Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->ThreadsStackSize, ClientWorkerThread, incomingThreadData, 0, NULL));
+	}
+}
+
+BarbaCourierClient::~BarbaCourierClient()
+{
+}
+
+u_int BarbaCourierClient::SendFakeRequest(BarbaSocket* socket, SimpleBuffer* fakeFileHeader)
+{
+	bool outgoing = fakeFileHeader!=NULL;
+	u_int fileSize;
+	TCHAR filename[MAX_PATH];
+	GetFakeFile(filename, &fileSize, fakeFileHeader, true);
+	u_int fakeFileHeaderSize = fakeFileHeader!=NULL ? fakeFileHeader->GetSize() : 0;
+	//LPCTSTR requestMode = outgoing ? _T("POST") : _T("GET");
+
+	//set serverip
+	TCHAR serverIp[20];
+	PacketHelper::ConvertIpToString(socket->GetRemoteIp(), serverIp, _countof(serverIp));
+
+	std::tstring fakeRequest = outgoing ? this->FakeHttpPostTemplate : this->FakeHttpGetTemplate;
+	InitFakeRequestVars(fakeRequest, serverIp, filename, fileSize, fakeFileHeaderSize);
+
+	if (outgoing)
+		Log(_T("Sending fake POST request! File: %s (%uKB), HeaderSize: %u."), filename, fileSize, fakeFileHeaderSize);
+	else
+		Log(_T("Sending fake GET request! FileName: %s"), filename);
+	std::string fakeRequestA = fakeRequest;
+	if (socket->Send((BYTE*)fakeRequestA.data(), fakeRequestA.length())!=(int)fakeRequestA.length())
+		throw new BarbaException(_T("Could not send fake request!"));
+
+	return fileSize;
+}
+
+unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
+{
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
+	ClientThreadData* threadData = (ClientThreadData*)clientThreadData;
+	BarbaCourierClient* _this = (BarbaCourierClient*)threadData->Courier;
+	bool isOutgoing = threadData->IsOutgoing;
+	LPCTSTR requestMode = isOutgoing ? _T("POST") : _T("GET");
+	
+	BarbaSocketClient* socket = NULL;
+	bool hasError = false;
+	while (!_this->IsDisposing())
+	{
+		try
+		{
+			hasError = false;
+			
+			//create socket
+			_this->Log(_T("Creating HTTP %s connection. ServerPort: %d."), requestMode, _this->RemotePort);
+			socket = NULL;
+			socket = new BarbaSocketClient(_this->RemoteIp, _this->RemotePort);
+
+			//add socket to store
+			_this->Sockets_Add(socket, isOutgoing);
+			_this->Log(_T("HTTP %s connection added. Connections Count: %d."), requestMode, isOutgoing ? _this->OutgoingSockets.GetCount() : _this->IncomingSockets.GetCount());
+
+			if (isOutgoing)
+			{
+				SimpleBuffer fakeFileHeader;
+				u_int fakeFileSize = _this->SendFakeRequest(socket, &fakeFileHeader);
+
+				//wait for fake reply
+				_this->Log(_T("Waiting for server to accept fake request."));
+				std::string header = socket->ReadHttpRequest();
+				if (header.empty())
+					throw new BarbaException( _T("Server does not reply to fake request!") );
+
+				//sending fake file header
+				_this->SendFakeFileHeader(socket, &fakeFileHeader);
+
+				//process socket until socket closed
+				_this->ProcessOutgoing(socket, fakeFileSize - fakeFileHeader.GetSize());
+			}
+			else
+			{
+				//send GET fake request
+				_this->SendFakeRequest(socket, NULL);
+
+				//wait for fake reply
+				_this->Log(_T("Waiting for server to accept fake request."));
+				std::string httpReply = socket->ReadHttpRequest();
+				if (httpReply.empty())
+					throw new BarbaException( _T("Server does not reply to fake request!") );
+
+				//wait for incoming fake file header
+				_this->WaitForIncomingFakeHeader(socket, httpReply.data());
+
+				//process socket until socket closed
+				_this->ProcessIncoming(socket);
+			}
+		}
+		catch (BarbaException* er)
+		{
+			hasError = true;
+			_this->Log(_T("Error: %s"), er->ToString());
+			delete er;
+		}
+
+		//delete socket
+		if (socket!=NULL)
+		{
+			//remove socket from store
+			_this->Sockets_Remove(socket, isOutgoing);
+			_this->Log(_T("HTTP %s connection removed.  Connections Count: %d."), requestMode, isOutgoing ? _this->OutgoingSockets.GetCount() : _this->IncomingSockets.GetCount());
+		}
+
+		//wait for next connection if isProccessed not set;
+		//if isProccessed not set it mean server reject the connection so wait 5 second
+		//if isProccessed is set it mean connection data transfer has been finished and new connection should ne established as soon as possible
+		if (hasError)
+		{
+			_this->Log(_T("Retrying in 10 second..."));
+			_this->DisposeEvent.Wait(10000);
+		}
+	}
+
+	delete threadData;
+	return 0;
+}
+

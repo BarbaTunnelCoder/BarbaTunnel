@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "BarbaServerUdpConnection.h"
+#include "BarbaServerApp.h"
 
 
 BarbaServerUdpConnection::BarbaServerUdpConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, 
@@ -63,6 +64,9 @@ bool BarbaServerUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 {
 	if (send)
 	{
+		if (!theApp->CheckMTUDecrement(packet->GetPacketLen(), sizeof iphdr + sizeof tcphdr + sizeof BarbaHeader))
+			return false;
+
 		packet->SetDesIp(this->ClientLocalIp);
 
 		//Create Barba packet
@@ -77,7 +81,7 @@ bool BarbaServerUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 		PacketHelper orgPacket;
 		if (!ExtractUdpBarbaPacket(packet, &orgPacket))
 			return false;
-
+		
 		//Initialize First Attempt
 		if (this->ClientLocalIp==0)
 			this->ClientLocalIp = orgPacket.GetSrcIp();
@@ -87,5 +91,4 @@ bool BarbaServerUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 		this->SendPacketToMstcp(&orgPacket);
 		return true;
 	}
-
 }

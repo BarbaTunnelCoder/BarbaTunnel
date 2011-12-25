@@ -125,9 +125,6 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	//Name
 	GetPrivateProfileString(_T("General"), _T("ServerName"), _T(""), ServerName, _countof(ServerName), file);
 
-	//SessionKeyName
-	GetPrivateProfileString(_T("Keywords"), _T("SessionKeyName"), _T("session"), this->SessionKeyName, _countof(this->SessionKeyName), file);
-		
 	//Key
 	TCHAR hexKey[BARBA_MAX_KEYLEN*2];
 	GetPrivateProfileString(_T("General"), _T("Key"), _T(""), hexKey, _countof(hexKey), file);

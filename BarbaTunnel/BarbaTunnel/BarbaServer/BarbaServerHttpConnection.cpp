@@ -8,8 +8,17 @@ BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfigItem* conf
 	this->ClientLocalIp = 0;
 	this->SessionId = sessionId;
 	this->TunnelPort = tunnelPort;
-	this->Courier = new BarbaServerHttpCourier(configItem->MaxUserConnections, this);
-	this->Courier->InitFakeRequests(theServerApp->FakeHttpGetReplyTemplate.data(), theServerApp->FakeHttpPostReplyTemplate.data(), 15000000);
+
+	BarbaCourierCreateStrcut cs = {0};
+	cs.FakeFileHeaderSizeKeyName = configItem->FakeFileHeaderSizeKeyName.data();
+	cs.FakeFileMaxSize = configItem->FakeFileMaxSize;
+	cs.SessionKeyName = configItem->SessionKeyName.data();
+	cs.FakeHttpGetTemplate = theServerApp->FakeHttpGetReplyTemplate.data();
+	cs.FakeHttpPostTemplate = theServerApp->FakeHttpPostReplyTemplate.data();
+	cs.MaxConnenction = configItem->MaxUserConnections;
+	cs.SessionId = sessionId;
+	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;
+	this->Courier = new BarbaServerHttpCourier(&cs , this);
 }
 
 BarbaServerHttpConnection::~BarbaServerHttpConnection(void)
@@ -39,9 +48,9 @@ bool BarbaServerHttpConnection::ProcessPacket(PacketHelper* packet, bool send)
 	return true;
 }
 
-bool BarbaServerHttpConnection::AddSocket(BarbaSocket* Socket, bool isOutgoing)
+bool BarbaServerHttpConnection::AddSocket(BarbaSocket* Socket, LPCSTR httpRequest, bool isOutgoing)
 {
-	return this->Courier->AddSocket(Socket, isOutgoing);
+	return this->Courier->AddSocket(Socket, httpRequest, isOutgoing);
 }
 
 bool BarbaServerHttpConnection::ShouldProcessPacket(PacketHelper* packet)
