@@ -13,6 +13,7 @@ public:
 	virtual LPCTSTR GetName();
 	u_long GetClientVirtualIp();
 	void ReportNewConnection();
+	BarbaServerConfigItem* GetConfigItem() {return this->ConfigItem;}
 
 protected:
 	u_long ClientVirtualIp;

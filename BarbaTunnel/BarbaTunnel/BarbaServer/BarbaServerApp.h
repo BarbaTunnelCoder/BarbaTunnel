@@ -17,8 +17,8 @@ public:
 	BarbaServerHttpHost HttpHost;
 	BarbaServerConfig Config;
 	BarbaServerConnectionManager ConnectionManager;
-	std::string FakeHttpGetReplyTemplate;
-	std::string FakeHttpPostReplyTemplate;
+	std::tstring FakeHttpGetReplyTemplate;
+	std::tstring FakeHttpPostReplyTemplate;
 
 private:
 	BarbaServerConfigItem* ShouldGrabPacket(PacketHelper* packet);

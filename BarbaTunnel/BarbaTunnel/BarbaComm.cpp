@@ -5,12 +5,13 @@
 
 BarbaComm::BarbaComm(void)
 {
+	this->MaxLogFilesize = 1000000; //1MB
 	this->LogLevel = 1;
 	this->_IsAlreadyRunning = false;
 	this->LogFileHandle = NULL;
 	this->NotifyFileHandle = NULL;
-	this->_LastWorkingTick = 0;
-	this->_CommandEventHandle = NULL;
+	this->LastWorkingTick = 0;
+	this->CommandEventHandle = NULL;
 	TCHAR programData[MAX_PATH];
 	BOOL res = SHGetSpecialFolderPath(NULL, programData, CSIDL_COMMON_APPDATA, TRUE);
 	if (res)
@@ -37,7 +38,7 @@ void BarbaComm::Dispose()
 {
 	CloseHandle(LogFileHandle); LogFileHandle = NULL;
 	CloseHandle(NotifyFileHandle); NotifyFileHandle = NULL;
-	CloseHandle(_CommandEventHandle); _CommandEventHandle = NULL;
+	CloseHandle(CommandEventHandle); CommandEventHandle = NULL;
 }
 
 void BarbaComm::InitializeEvents()
@@ -50,16 +51,16 @@ void BarbaComm::InitializeEvents()
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 	sa.lpSecurityDescriptor = &sd;
 
-	_CommandEventHandle = CreateEvent(&sa, TRUE, FALSE, _T("Global\\BarbaTunnel_CommandEvent"));
+	CommandEventHandle = CreateEvent(&sa, TRUE, FALSE, _T("Global\\BarbaTunnel_CommandEvent"));
 	_IsAlreadyRunning = GetLastError()==ERROR_ALREADY_EXISTS;
-	if (_CommandEventHandle==NULL) BarbaLog(_T("Could not create Global\\BarbaTunnel_CommandEvent!\n"));
+	if (CommandEventHandle==NULL) BarbaLog(_T("Could not create Global\\BarbaTunnel_CommandEvent!\n"));
 }
 
 void BarbaComm::SetWorkingState(ULONG /*length*/, bool /*send*/)
 {
-	if (GetTickCount()-_LastWorkingTick>BARBA_WorkingStateRefreshTime)
+	if (GetTickCount()-LastWorkingTick>BARBA_WorkingStateRefreshTime)
 	{
-		_LastWorkingTick = GetTickCount();
+		LastWorkingTick = GetTickCount();
 		time_t curTime = 0;
 		time(&curTime);
 		TCHAR ctimeBuf[100];
@@ -107,7 +108,7 @@ void BarbaComm::Log(LPCTSTR msg, bool notify, int logLevel)
 	}
 	else
 	{
-		if (GetFileSize(LogFileHandle, NULL)>BARBA_MAX_LOGFILESIZE)
+		if (GetFileSize(LogFileHandle, NULL)>this->MaxLogFilesize)
 			SetEndOfFile(0); //reset if reach limit
 
 		_tprintf_s(msg);

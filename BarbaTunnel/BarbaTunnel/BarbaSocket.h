@@ -27,7 +27,7 @@ public:
 	void Close();
 	bool IsWritable();
 	//@return empty string if not found
-	std::string ReadHttpHeader(int maxlen=5000);
+	std::string ReadHttpRequest(int maxlen=5000);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
 	size_t GetReceiveBytesCount() {return this->ReceivedBytesCount;}
 	void SetNoDelay(bool value);

@@ -10,7 +10,7 @@ public:
 	};
 
 private:
-	HANDLE _CommandEventHandle;
+	HANDLE CommandEventHandle;
 	TCHAR _NotifyFilePath[MAX_PATH];
 	TCHAR _LogFilePath[MAX_PATH];
 	TCHAR _CommFilePath[MAX_PATH];
@@ -19,7 +19,7 @@ private:
 	HANDLE NotifyFileHandle;
 	void InitializeEvents();
 	bool _IsAlreadyRunning;
-	DWORD _LastWorkingTick;
+	DWORD LastWorkingTick;
 	int LogLevel;
 
 public:
@@ -38,5 +38,6 @@ public:
 	bool CreateFiles();
 	bool CreateFilesWithAdminPrompt();
 	bool IsAlreadyRunning() {return _IsAlreadyRunning;}
+	u_int MaxLogFilesize;
 };
 

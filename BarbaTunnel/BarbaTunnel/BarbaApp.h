@@ -19,14 +19,17 @@ public:
 	//@return false to terminate process
 	bool CheckTerminateCommands(PacketHelper* packet, bool send);
 	bool IsDebugMode() {return _DebugMode;}
-	DWORD GetMTUDecrement() { return sizeof iphdr + sizeof tcphdr + sizeof BarbaHeader; }
+	bool IsDisposed() {return this->_IsDisposed;}
+	int GetMTUDecrement() { return this->MTUDecrement; }
+	bool CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMTUDecrement);
 	static LPCTSTR GetConfigFile();
 	static LPCTSTR GetModuleFolder();
 	static LPCTSTR GetModuleFile();
 	int GetAdapterIndex() {return _AdapterIndex;}
 	BarbaComm Comm;
-	HANDLE hAdapterHandle;
+	HANDLE AdapterHandle;
 	u_int ConnectionTimeout;
+	SimpleSafeList<FakeFileHeader*> FakeFileHeaders;
 
 	//store thread for clean shutdown; the process will wait for all of this thread to complete
 	void AddThread(HANDLE threadHandle);
@@ -35,6 +38,9 @@ public:
 
 
 private:
+	int MTUDecrement;
+	bool _IsDisposed;
+	void InitFakeFileHeaders();
 	SimpleSafeList<HANDLE> Threads;
 	int _AdapterIndex;
 	bool _VerboseMode;

@@ -6,6 +6,12 @@ BarbaClientApp::BarbaClientApp()
 {
 }
 
+BarbaClientApp::~BarbaClientApp()
+{
+	if (!this->IsDisposed())
+		Dispose();
+}
+
 void BarbaClientApp::Dispose()
 {
 	this->ConnectionManager.Dispose();
@@ -26,9 +32,9 @@ void BarbaClientApp::Initialize()
 	ConfigManager.LoadFolder(file);
 
 	//load fake files
-	_stprintf_s(file, _countof(file), _T("%s\\client\\templates\\HTTP-GetTemplate.txt"), GetModuleFolder());
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-GetTemplate.txt"), GetModuleFolder());
 	this->FakeHttpGetTemplate = BarbaUtils::LoadFileToString(file);
-	_stprintf_s(file, _countof(file), _T("%s\\client\\templates\\HTTP-PostTemplate.txt"), GetModuleFolder());
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-PostTemplate.txt"), GetModuleFolder());
 	this->FakeHttpPostTemplate = BarbaUtils::LoadFileToString(file);
 
 }

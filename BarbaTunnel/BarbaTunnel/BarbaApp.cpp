@@ -6,16 +6,45 @@ extern CNdisApi	api;
 
 BarbaApp::BarbaApp(void)
 {
+	_IsDisposed = false;
 	srand((UINT)time(0));
 	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetModuleFolder());
 
 	this->_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetConfigFile());
 	this->_VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetConfigFile())!=0;
 	this->_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetConfigFile())!=0;
-	this->ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeoutMinutes"), BARBA_ConnectionTimeoutMinutes, GetConfigFile())*60*1000;
-	if (this->ConnectionTimeout==0) this->ConnectionTimeout = BARBA_ConnectionTimeoutMinutes*60*1000;
+	this->ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), BARBA_ConnectionTimeout, GetConfigFile())*60*1000;
+	this->MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), -1, GetConfigFile());
+	
+	//ConnectionTimeout
+	if (this->ConnectionTimeout==0) this->ConnectionTimeout = BARBA_ConnectionTimeout*60*1000;
+	
+	//MaxLogFilesize
+	this->Comm.MaxLogFilesize = GetPrivateProfileInt(_T("General"), _T("MaxLogFileSize"), BARBA_MaxLogFileSize, GetConfigFile())*1000;
+	if (this->Comm.MaxLogFilesize==0) this->Comm.MaxLogFilesize = BARBA_MaxLogFileSize*1000;
 
+	//FakeFileHeaders
+	InitFakeFileHeaders();
+	
 	BarbaSocket::InitializeLib();
+}
+
+void BarbaApp::InitFakeFileHeaders()
+{
+	TCHAR folder[MAX_PATH];
+	_stprintf_s(folder, _T("%s\\templates"), GetModuleFolder());
+
+	std::vector<std::tstring> files;
+	BarbaUtils::FindFiles(folder, _T("*.header"), &files);
+	for (int i=0; i<(int)files.size(); i++)
+	{
+		FakeFileHeader* ffh = new FakeFileHeader();
+		ffh->Extension = BarbaUtils::FindFileName(files[i].data());
+		if ( BarbaUtils::LoadFileToBuffer(files[i].data(), &ffh->Data) )
+			this->FakeFileHeaders.AddTail(ffh);
+		else
+			delete ffh;
+	}
 }
 
 BarbaApp::~BarbaApp(void)
@@ -111,6 +140,8 @@ bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool send)
 
 void BarbaApp::Dispose()
 {
+	_IsDisposed = true;
+
 	//wait for all thread to end
 	HANDLE thread = this->Threads.RemoveHead();
 	while (thread!=NULL)
@@ -120,11 +151,22 @@ void BarbaApp::Dispose()
 		thread = this->Threads.RemoveHead();
 	}
 
+	//dispose Comm
 	Comm.Dispose();
+
+	//delete FakeFileHeader objects
+	FakeFileHeader* ffh = this->FakeFileHeaders.RemoveHead();
+	while (ffh!=NULL)
+	{
+		delete ffh;
+		ffh = this->FakeFileHeaders.RemoveHead();
+	}
+
 }
 
 void BarbaApp::Initialize()
 {
+	//Comm
 	Comm.Initialize(_VerboseMode ? 2 : 0);
 }
 
@@ -140,7 +182,7 @@ bool BarbaApp::SendPacketToMstcp(PacketHelper* packet)
 	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
 
 	ETH_REQUEST req;
-	req.hAdapterHandle = this->hAdapterHandle;
+	req.hAdapterHandle = this->AdapterHandle;
 	req.EthPacket.Buffer = &intBuf;
 	return api.SendPacketToMstcp(&req)!=FALSE;
 }
@@ -153,8 +195,29 @@ bool BarbaApp::SendPacketToAdapter(PacketHelper* packet)
 	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
 
 	ETH_REQUEST req;
-	req.hAdapterHandle = this->hAdapterHandle;
+	req.hAdapterHandle = this->AdapterHandle;
 	req.EthPacket.Buffer = &intBuf;
 	return api.SendPacketToAdapter(&req)!=FALSE;
 }
 
+bool BarbaApp::CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMTUDecrement)
+{
+	static bool ShowMtuError = true;
+	bool ret = (outgoingPacketLength + requiredMTUDecrement)<=MAX_ETHER_FRAME;
+	if ( !ret && ShowMtuError)
+	{
+		ShowMtuError = false;
+		if (api.GetMTUDecrement()<requiredMTUDecrement)
+		{
+			BarbaLog(_T("Error: Large outgoing packet size! Your current MTU-Decrement is %d, Please set MTU-Decrement to %d in BarbaTunnel.ini."), api.GetMTUDecrement(), requiredMTUDecrement);
+			BarbaNotify(_T("Error: Large outgoing packet size!\r\nPlease set MTU-Decrement to %d in BarbaTunnel.ini."), requiredMTUDecrement);
+		}
+		else
+		{
+			BarbaLog(_T("Error: Large outgoing packet size! More %d MTU-Decrement bytes required, Are you sure your system has been restarted?"), MAX_ETHER_FRAME-outgoingPacketLength);
+			BarbaNotify(_T("Error: Large outgoing packet size!\r\nAre you sure your system has been restarted?"));
+		}
+	}
+
+	return ret;
+}

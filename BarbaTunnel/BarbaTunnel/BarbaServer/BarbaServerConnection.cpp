@@ -38,7 +38,7 @@ void BarbaServerConnection::ReportNewConnection()
 	TCHAR virtualIp[50];
 	PacketHelper::ConvertIpToString(this->ClientVirtualIp, virtualIp, _countof(virtualIp));
 	LPCTSTR mode = BarbaMode_ToString(GetMode());
-	BarbaLog(_T("New %s! %s - %s:%d, Virtual IP: %s, Connection ID: %u."), this->GetName(), ip, mode, this->GetTunnelPort(), virtualIp, this->GetId());
+	BarbaLog(_T("New %s! %s - %s:%d, VirtualIP: %s, ConnectionID: %u."), this->GetName(), ip, mode, this->GetTunnelPort(), virtualIp, this->GetId());
 	BarbaNotify(_T("New %s\r\nClient IP: %s\r\nClient Virtual IP: %s\r\nProtocol: %s:%d"), this->GetName(), ip, virtualIp, mode, this->GetTunnelPort());
 }
 

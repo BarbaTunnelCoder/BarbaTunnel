@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "BarbaClientHttpConnection.h"
 #include "BarbaClientApp.h"
-#include "StringUtil.h"
 
 
 BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short tunnelPort)
@@ -9,16 +8,18 @@ BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, 
 	, Courier()
 {
 	this->SessionId = BarbaUtils::GetRandom(100000, UINT_MAX-1);
-	CHAR sessionBuffer[BARBA_MaxKeyName+20];
-	sprintf_s(sessionBuffer, "%s=%x", config->SessionKeyName, this->SessionId);
-	std::string getTemplate = theClientApp->FakeHttpGetTemplate;
-	StringUtil::ReplaceAll(getTemplate, "{session}", sessionBuffer);
-	std::string postTemplate = theClientApp->FakeHttpPostTemplate;
-	StringUtil::ReplaceAll(postTemplate, "{session}", sessionBuffer);
-
 	this->TunnelPort = tunnelPort;
-	this->Courier = new BarbaClientHttpCourier(configItem->MaxUserConnections, config->ServerIp, tunnelPort, 
-		getTemplate.data(), postTemplate.data(), this);
+
+	BarbaCourierCreateStrcut cs = {0};
+	cs.FakeFileHeaderSizeKeyName = configItem->FakeFileHeaderSizeKeyName.data();
+	cs.FakeFileMaxSize = configItem->FakeFileMaxSize;
+	cs.SessionKeyName = configItem->SessionKeyName.data();
+	cs.FakeHttpGetTemplate = theClientApp->FakeHttpGetTemplate.data();
+	cs.FakeHttpPostTemplate = theClientApp->FakeHttpPostTemplate.data();
+	cs.MaxConnenction = configItem->MaxUserConnections;
+	cs.SessionId = this->SessionId;
+	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;
+	this->Courier = new BarbaClientHttpCourier(&cs, config->ServerIp, tunnelPort, this);
 }
 
 BarbaClientHttpConnection::~BarbaClientHttpConnection(void)

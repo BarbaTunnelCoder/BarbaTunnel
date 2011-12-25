@@ -23,9 +23,22 @@
 #include <process.h>
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include "WinpkFilter\Common.h"
 #include "WinpkFilter\ndisapi.h"
 #include "WinpkFilter\iphlp.h"
+
+//UNICODE support
+namespace std
+{
+#ifdef _UNICODE
+typedef wstring tstring;
+typedef wstringstream tstringstream;
+#else
+typedef string tstring;
+typedef stringstream tstringstream;
+#endif
+}
 
 // memory leak detection ** dont forget call : _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 #ifdef _DEBUG

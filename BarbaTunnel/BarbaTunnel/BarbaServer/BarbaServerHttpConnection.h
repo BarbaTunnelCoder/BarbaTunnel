@@ -13,7 +13,7 @@ public:
 	virtual bool ProcessPacket(PacketHelper* packet, bool send);
 	virtual u_short GetTunnelPort() {return this->TunnelPort;}
 	virtual u_long GetSessionId() {return this->SessionId;}
-	bool AddSocket(BarbaSocket* Socket, bool isOutgoing);
+	bool AddSocket(BarbaSocket* Socket, LPCSTR httpRequest, bool isOutgoing);
 
 private:
 	BarbaServerHttpCourier* Courier;

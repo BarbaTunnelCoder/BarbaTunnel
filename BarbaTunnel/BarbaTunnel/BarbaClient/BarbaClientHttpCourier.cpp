@@ -3,11 +3,9 @@
 #include "BarbaClientHttpConnection.h"
 
 
-BarbaClientHttpCourier::BarbaClientHttpCourier(u_short maxConnenction, DWORD remoteIp, u_short remotePort, 
-	LPCSTR fakeHttpGetTemplate, LPCSTR fakeHttpPostTemplate, 
-	BarbaClientHttpConnection* httpConnection)
+BarbaClientHttpCourier::BarbaClientHttpCourier(BarbaCourierCreateStrcut* cs, DWORD remoteIp, u_short remotePort, BarbaClientHttpConnection* httpConnection)
 	: HttpConnection(httpConnection)
-	, BarbaCourierClient(maxConnenction, remoteIp, remotePort, fakeHttpGetTemplate, fakeHttpPostTemplate)
+	, BarbaCourierClient(cs, remoteIp, remotePort)
 {
 }
 

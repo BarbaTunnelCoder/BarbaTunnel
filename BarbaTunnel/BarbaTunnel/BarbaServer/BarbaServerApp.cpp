@@ -11,6 +11,8 @@ BarbaServerApp::BarbaServerApp(void)
 
 BarbaServerApp::~BarbaServerApp(void)
 {
+	if (!this->IsDisposed())
+		Dispose();
 }
 
 void BarbaServerApp::Initialize()
@@ -31,9 +33,9 @@ void BarbaServerApp::Initialize()
 	Config.LoadFile(file);
 
 	//load fake files
-	_stprintf_s(file, _countof(file), _T("%s\\server\\templates\\HTTP-GetReplyTemplate.txt"), moduleFolder);
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-GetReplyTemplate.txt"), moduleFolder);
 	this->FakeHttpGetReplyTemplate = BarbaUtils::LoadFileToString(file);
-	_stprintf_s(file, _countof(file), _T("%s\\server\\templates\\HTTP-PostReplyTemplate.txt"), moduleFolder);
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-PostReplyTemplate.txt"), moduleFolder);
 	this->FakeHttpPostReplyTemplate = BarbaUtils::LoadFileToString(file);
 
 	//Initialize Connection Manager
@@ -85,7 +87,7 @@ bool BarbaServerApp::ProcessPacket(PacketHelper* packet, bool send)
 	BarbaServerConnection* connection = (BarbaServerConnection*)ConnectionManager.FindByPacketToProcess(packet);
 	
 	//create new connection if not found
-	if (connection==NULL)
+	if (!send && connection==NULL)
 	{
 		BarbaServerConfigItem* item = ShouldGrabPacket(packet);
 		if (item!=NULL)

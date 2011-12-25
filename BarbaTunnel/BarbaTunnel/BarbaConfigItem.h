@@ -18,6 +18,10 @@ public:
 	u_short MaxUserConnections; //use by HTTP-Tunnel
 	bool Enabled;
 	bool Load(LPCTSTR sectionName, LPCTSTR file);
+	std::vector<std::tstring> FakeFileTypes;
+	u_int FakeFileMaxSize;
+	std::tstring FakeFileHeaderSizeKeyName;
+	std::tstring SessionKeyName;
 
 private:
 	void CheckMaxUserConnections();

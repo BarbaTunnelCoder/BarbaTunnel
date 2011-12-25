@@ -38,7 +38,7 @@ void BarbaClientConnection::ReportNewConnection()
 		_stprintf_s(serverName, _T("%s (%s)"), Config->ServerName, serverIp);
 	else
 		_stprintf_s(serverName, _T("%s"), serverIp);
-	BarbaLog(_T("New %s, Server: %s, Protocol: %s:%d, Connection ID: %u."), GetName(), serverName, mode, this->GetTunnelPort(), this->GetId());
+	BarbaLog(_T("New %s, Server: %s, Protocol: %s:%d, ConnectionID: %u."), GetName(), serverName, mode, this->GetTunnelPort(), this->GetId());
 	BarbaNotify(_T("New %s\r\nServer: %s\r\nProtocol: %s:%d"), GetName(), serverName, mode, this->GetTunnelPort());
 }
 

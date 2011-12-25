@@ -59,39 +59,6 @@ bool BarbaUtils::GetProtocolAndPort(LPCTSTR value, BYTE* protocol, u_short* port
 	return ret;
 }
 
-int BarbaUtils::CreateUdpPacket(BYTE* srcEthAddress, BYTE* desEthAddress, DWORD srcIp, DWORD desIP, u_short srcPort, u_short desPort, BYTE* buffer, size_t bufferCount, ether_header_ptr udpPacket)
-{
-	//Ethernet
-	memcpy_s(udpPacket->h_dest, ETH_ALEN, desEthAddress, ETH_ALEN);
-	memcpy_s(udpPacket->h_source, ETH_ALEN, srcEthAddress, ETH_ALEN);
-	udpPacket->h_proto = htons(ETH_P_IP);
-
-	//ip
-	iphdr_ptr ipHeader = (iphdr*)(udpPacket + 1);
-	memset(ipHeader, 0, sizeof iphdr);
-	ipHeader->ip_src.S_un.S_addr = srcIp;
-	ipHeader->ip_dst.S_un.S_addr = desIP;
-	ipHeader->ip_hl = 5;
-	ipHeader->ip_id = 56;
-	ipHeader->ip_ttl = 128;
-	ipHeader->ip_off = 0;
-	ipHeader->ip_len = htons( (u_short)( sizeof iphdr + sizeof udphdr +  bufferCount) );
-	ipHeader->ip_tos = 0;
-	ipHeader->ip_v = 4;
-	ipHeader->ip_p = IPPROTO_UDP;
-
-	//udp
-	udphdr_ptr udpHeader = (udphdr_ptr)(((PUCHAR)ipHeader) + ipHeader->ip_hl*4);
-	udpHeader->th_dport = htons( desPort );
-	udpHeader->th_sport = htons( srcPort );
-	udpHeader->length = htons( (u_short)(sizeof udphdr + bufferCount));
-	memcpy_s((BYTE*)(udpHeader+1), bufferCount, buffer, bufferCount);
-	
-	PacketHelper::RecalculateIPChecksum(ipHeader);
-	return sizeof(ether_header) + ntohs(ipHeader->ip_len);
-}
-
-
 void BarbaUtils::ConvertHexStringToBuffer(LPCTSTR hexString, SimpleBuffer* buf)
 {
 	int len = _tcslen(hexString);
@@ -215,3 +182,114 @@ u_int BarbaUtils::GetRandom(u_int start, u_int end)
 
 	return (u_int)((double)number / ((double) UINT_MAX + 1 ) * range) + start;
 }
+
+void BarbaUtils::FindFiles(LPCTSTR folder, LPCTSTR search, std::vector<std::tstring>* files)
+{
+	TCHAR file[MAX_PATH];
+	WIN32_FIND_DATA findData = {0};
+		
+	//findData.
+	_stprintf_s(file, _countof(file), _T("%s\\%s"), folder, search);
+	HANDLE findHandle = FindFirstFile(file, &findData);
+	BOOL bfind = findHandle!=NULL;
+	while (bfind)
+	{
+		TCHAR fullPath[MAX_PATH] = {0};
+		_stprintf_s(fullPath, _T("%s\\%s"), folder, findData.cFileName);
+		files->push_back(fullPath);
+		bfind = FindNextFile(findHandle, &findData);
+	}
+	FindClose(findHandle);
+}
+
+std::tstring BarbaUtils::FindFileName(LPCTSTR filePath)
+{
+	int len = _tcslen(filePath);
+	int start = 0;
+	int end = 0;
+	for (int i=len-1; i>=0; i--)
+	{
+		if (filePath[i]=='\\' || filePath[i]=='/')
+		{
+			start = i + 1;
+			break;
+		}
+
+		if (filePath[i]=='.')
+			end = i;
+	}
+
+	if (end<=start)
+		end = len;
+
+	TCHAR fileName[MAX_PATH];
+	_tcsncpy_s(fileName, &filePath[start], end-start);
+
+	return fileName;
+}
+
+std::tstring BarbaUtils::GetFileUrlFromHttpRequest(LPCTSTR httpRequest)
+{
+	std::vector<std::tstring> tokenize;
+	StringUtils::Tokenize(httpRequest, _T(" "), &tokenize);
+	return tokenize.size()>=2 ? tokenize[1] : _T("");	
+}
+
+std::tstring BarbaUtils::GetFileNameFromUrl(LPCTSTR url)
+{
+	int urlLen = _tcslen(url);
+	LPCTSTR endP = _tcsrchr(url, '?');
+	ptrdiff_t end = endP!=NULL ? endP-url : urlLen ;
+	
+	//remove query string
+	TCHAR path[MAX_PATH];
+	_tcsncpy_s(path, url, end);
+	int pathLen = _tcslen(path);
+
+	//find last last
+	LPCTSTR startP = _tcsrchr(path, '/');
+	if (startP==NULL) startP = _tcsrchr(path, '\\');
+	ptrdiff_t start = startP!=NULL ? startP-path + 1 : 0;
+
+	TCHAR fileName[MAX_PATH];
+	_tcsncpy_s(fileName, path + start, pathLen - start);
+
+	return fileName;
+}
+
+std::tstring BarbaUtils::GetFileExtensionFromUrl(LPCTSTR url)
+{
+	std::tstring fileName = GetFileNameFromUrl(url);
+	LPCTSTR startP = _tcsrchr(fileName.data(), '.');
+	return startP==NULL ? _T("") : startP+1;
+}
+
+std::tstring BarbaUtils::GetFileTitleFromUrl(LPCTSTR url)
+{
+	std::tstring fileNameStr = GetFileNameFromUrl(url);
+	LPCTSTR fileName = fileNameStr.data();
+	LPCTSTR endP = _tcsrchr(fileName, '.');
+	ptrdiff_t end = endP!=NULL ? endP-fileName : _tcslen(fileName);
+	TCHAR fileTitle[MAX_PATH];
+	_tcsncpy_s(fileTitle, fileName, end);
+	return fileTitle;
+}
+
+std::tstring BarbaUtils::GetKeyValueFromHttpRequest(LPCTSTR httpRequest, LPCTSTR key)
+{
+	CHAR phrase[BARBA_MaxKeyName+2];
+	_stprintf_s(phrase, "%s=", key);
+	const CHAR* start = _tcsstr(httpRequest, key);
+	if (start==NULL)
+		return _T("");
+	start = start + strlen(key);
+
+	const CHAR* end = strstr(start, ";");
+	if (end==NULL) end = strstr(start, "\r");
+	if (end==NULL) end = httpRequest + strlen(httpRequest);
+
+	TCHAR buffer[255];
+	strncpy_s(buffer, start, end-start);
+	return buffer;
+}
+

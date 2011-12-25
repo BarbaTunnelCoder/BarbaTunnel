@@ -72,7 +72,6 @@ BarbaConnection* BarbaConnectionManager::FindByPacketToProcess(PacketHelper* pac
 	BarbaConnection** connections = (BarbaConnection**)autoLockBuf.GetBuffer();
 	for (size_t i=0; i<this->Connections.GetCount() && ret==NULL; i++)
 	{
-
 		BarbaConnection* conn = connections[i];
 		if (conn->ShouldProcessPacket(packet))
 			ret = conn;

@@ -5,17 +5,16 @@
 
 #pragma once
 #include "General.h"
-#include "BarbaCourier.h"
+#include "BarbaCourierServer.h"
 
 class BarbaServerHttpConnection;
 class BarbaServerHttpCourier : public BarbaCourierServer
 {
 public:
-	explicit BarbaServerHttpCourier(u_short maxConnection, BarbaServerHttpConnection* httpConnection);
+	explicit BarbaServerHttpCourier(BarbaCourierCreateStrcut* cs, BarbaServerHttpConnection* httpConnection);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
 	void SendPacket(PacketHelper* packet);
-	GUID SessionID;
-
+	//virtual bool GetFakeFile(TCHAR* filename, u_int* fileSize, SimpleBuffer* fakeFileHeader, bool createNew);
 
 protected:
 	virtual ~BarbaServerHttpCourier(void);

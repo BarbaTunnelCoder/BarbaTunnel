@@ -8,7 +8,6 @@ public:
 	static void GetModuleFolder(TCHAR* folder);
 	static bool GetPortRange(LPCTSTR value, u_short* startPort, u_short* endPort);
 	static bool GetProtocolAndPort(LPCTSTR value, BYTE* protocol, u_short* port);
-	static int CreateUdpPacket(BYTE* srcEthAddress, BYTE* desEthAddress, DWORD srcIp, DWORD desIP, u_short srcPort, u_short desPort, BYTE* buffer, size_t bufferCount, ether_header_ptr udpPacket);
 	//@return number of bytes copied to buffer
 	static void ConvertHexStringToBuffer(LPCTSTR hexString, SimpleBuffer* buf);
 	// @param lphProcess return handle to opened process; if not NULL user must close handle after use it
@@ -21,4 +20,12 @@ public:
 	static bool LoadFileToBuffer(LPCTSTR fileName, SimpleBuffer* buffer);
 	static std::string LoadFileToString(LPCTSTR fileName);
 	static u_int GetRandom(u_int start, u_int end);
+	static void FindFiles(LPCTSTR folder, LPCTSTR search, std::vector<std::tstring>* files);
+	static std::tstring FindFileName(LPCTSTR filePath);
+	static std::tstring GetFileExtensionFromUrl(LPCTSTR url);
+	static std::tstring GetFileNameFromUrl(LPCTSTR url);
+	static std::tstring GetFileTitleFromUrl(LPCTSTR url);
+	static std::tstring GetFileUrlFromHttpRequest(LPCTSTR httpRequest);
+	static std::tstring GetKeyValueFromHttpRequest(LPCTSTR httpRequest, LPCTSTR key);
+
 };
