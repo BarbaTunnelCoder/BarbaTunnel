@@ -230,8 +230,12 @@ std::tstring BarbaUtils::FindFileName(LPCTSTR filePath)
 
 std::tstring BarbaUtils::GetFileUrlFromHttpRequest(LPCTSTR httpRequest)
 {
+	std::tstring  request = httpRequest;
+	StringUtils::ReplaceAll(request, _T("\r"), _T(" "));
+	StringUtils::ReplaceAll(request, _T("\n"), _T(" "));
+
 	std::vector<std::tstring> tokenize;
-	StringUtils::Tokenize(httpRequest, _T(" "), &tokenize);
+	StringUtils::Tokenize(request.data(), _T(" "), &tokenize);
 	return tokenize.size()>=2 ? tokenize[1] : _T("");	
 }
 
@@ -243,7 +247,7 @@ std::tstring BarbaUtils::GetFileNameFromUrl(LPCTSTR url)
 	
 	//remove query string
 	TCHAR path[MAX_PATH];
-	_tcsncpy_s(path, url, end);
+	_tcsncpy_s(path, url, min(end,MAX_PATH));
 	int pathLen = _tcslen(path);
 
 	//find last last
@@ -279,14 +283,14 @@ std::tstring BarbaUtils::GetKeyValueFromHttpRequest(LPCTSTR httpRequest, LPCTSTR
 {
 	CHAR phrase[BARBA_MaxKeyName+2];
 	_stprintf_s(phrase, "%s=", key);
-	const CHAR* start = _tcsstr(httpRequest, key);
+	const TCHAR* start = _tcsstr(httpRequest, key);
 	if (start==NULL)
 		return _T("");
-	start = start + strlen(key);
+	start = start + _tcslen(phrase);
 
-	const CHAR* end = strstr(start, ";");
-	if (end==NULL) end = strstr(start, "\r");
-	if (end==NULL) end = httpRequest + strlen(httpRequest);
+	const TCHAR* end = _tcsstr(start, ";");
+	if (end==NULL) end = _tcsstr(start, "\r");
+	if (end==NULL) end = httpRequest + _tcslen(httpRequest);
 
 	TCHAR buffer[255];
 	strncpy_s(buffer, start, end-start);

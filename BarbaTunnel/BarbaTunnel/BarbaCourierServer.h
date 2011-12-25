@@ -26,7 +26,6 @@ protected:
 
 private:
 	//@return the entire fake file size
-	u_int SendOutgoingFakeReply(BarbaSocket* socket, LPCTSTR httpRequest, SimpleBuffer* fakeFileHeader);
-	void SendFakeReply(BarbaSocket* barbaSocket, bool postReply);
+	u_int SendFakeReply(BarbaSocket* socket, LPCTSTR httpRequest, SimpleBuffer* fakeFileHeader);
 	static unsigned int __stdcall ServerWorkerThread(void* serverThreadData);
 };

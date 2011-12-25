@@ -36,10 +36,9 @@ public:
 	virtual void Dispose();
 	void Initialize();
 
-protected:
-	void AddListenerPort(BarbaServerConfigItem* configItem, u_short port);
-
 private:
+	void AddListenerPort(BarbaServerConfigItem* configItem, u_short port);
+	void Log(LPCTSTR format, ...);
 	SimpleCriticalSection CreateConnectionCriticalSection;
 	bool IsDisposing();
 	SimpleEvent DisposeEvent;
