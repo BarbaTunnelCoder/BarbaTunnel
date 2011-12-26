@@ -91,6 +91,17 @@ void BarbaApp::CloseSocketsList(SimpleSafeList<BarbaSocket*>* list)
 	}
 }
 
+LPCTSTR BarbaApp::GetConfigItemFolder()
+{
+	static TCHAR configItemFolder[MAX_PATH] = {0};
+	if (configItemFolder[0]==0)
+	{
+		_stprintf_s(configItemFolder, _T("%s\\config"), GetModuleFolder());
+	}
+	return configItemFolder;
+}
+
+
 LPCTSTR BarbaApp::GetConfigFile()
 {
 	static TCHAR configFile[MAX_PATH] = {0};

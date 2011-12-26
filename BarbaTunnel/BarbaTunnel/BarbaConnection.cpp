@@ -21,14 +21,24 @@ u_int BarbaConnection::GetLasNegotiationTime()
 	return this->LasNegotiationTime;
 }
 
-void BarbaConnection::CryptData(BYTE* data, size_t dataLen)
+void BarbaConnection::EncryptData(BYTE* data, size_t dataLen)
 {
-	BarbaCrypt::Crypt(data, dataLen, GetKey()->GetData(), GetKey()->GetSize());
+	BarbaCrypt::Crypt(data, dataLen, GetKey()->data(), GetKey()->size(), true);
 }
 
-void BarbaConnection::CryptPacket(PacketHelper* packet)
+void BarbaConnection::DecryptData(BYTE* data, size_t dataLen)
 {
-	BarbaCrypt::CryptPacket(packet, GetKey()->GetData(), GetKey()->GetSize());
+	BarbaCrypt::Crypt(data, dataLen, GetKey()->data(), GetKey()->size(), false);
+}
+
+void BarbaConnection::EncryptPacket(PacketHelper* packet)
+{
+	BarbaCrypt::CryptPacket(packet, GetKey()->data(), GetKey()->size(), true);
+}
+
+void BarbaConnection::DecryptPacket(PacketHelper* packet)
+{
+	BarbaCrypt::CryptPacket(packet, GetKey()->data(), GetKey()->size(), false);
 }
 
 void BarbaConnection::SetWorkingState(ULONG length, bool send)

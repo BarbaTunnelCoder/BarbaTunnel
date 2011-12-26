@@ -134,7 +134,8 @@ unsigned int BarbaServerHttpHost::ListenerThread(void* data)
 	{
 		while (!_this->IsDisposing())
 		{
-			BarbaSocket* socket = listenerSocket->Accept();
+			BarbaSocket* socket = listenerSocket->Accept(); 
+			//socket->SetKeepAlive(true); //todo: should use keep alive?
 			_this->AnswerSockets.AddTail(socket);
 			AnswerThreadData* answerThreadData = new AnswerThreadData(_this, socket, threadData->ConfigItem, listenerSocket->GetListenPort());
 			_this->AnswerThreads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, AnswerThread, answerThreadData, 0, NULL));
@@ -170,14 +171,14 @@ void BarbaServerHttpHost::Initialize()
 {
 	//Initialize listeners
 	int createdSocket = 0;
-	for (size_t i=0; i<theServerApp->Config.ItemsCount; i++)
+	for (size_t i=0; i<theServerApp->Config.Items.size(); i++)
 	{
 		BarbaServerConfigItem* item = &theServerApp->Config.Items[i];
 		if (item->Mode!=BarbaModeHttpTunnel)
 			continue;
 
 		//Initialize HttpHost to listen to ports
-		for (size_t j=0; j<item->TunnelPortsCount; j++)
+		for (size_t j=0; j<item->TunnelPorts.size(); j++)
 		{
 			PortRange* portRange = &item->TunnelPorts[j];
 			for (u_short port=portRange->StartPort; port<=portRange->EndPort; port++)
@@ -186,7 +187,7 @@ void BarbaServerHttpHost::Initialize()
 				if (createdSocket>=BARBA_MAX_SERVERLISTENSOCKET)
 				{
 					Log(_T("Error: HTTP Tunnel could not listen more than %d ports!"), BARBA_MAX_SERVERLISTENSOCKET);
-					j = item->TunnelPortsCount;
+					j = item->TunnelPorts.size();
 					break;
 				}
 

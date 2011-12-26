@@ -57,6 +57,13 @@ void BarbaSocket::SetNoDelay(bool value)
 		ThrowSocketError();
 }
 
+void BarbaSocket::SetKeepAlive(bool value)
+{
+	int flag = value ? 1 : 0;
+	int res = setsockopt(this->_Socket, SOL_SOCKET, SO_KEEPALIVE, (char *) &flag,  sizeof(int));
+   	if (res==SOCKET_ERROR)
+		ThrowSocketError();
+}
 
 void BarbaSocket::Close()
 {

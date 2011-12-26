@@ -38,12 +38,12 @@ bool BarbaServerRedirectConnection::ProcessPacket(PacketHelper* packet, bool sen
 	{
 		packet->SetSrcPort(this->TunnelPort);
 		packet->SetDesIp(this->ClientIp);
-		CryptPacket(packet);
+		EncryptPacket(packet);
 		this->SendPacketToAdapter(packet);
 	}
 	else
 	{
-		CryptPacket(packet);
+		DecryptPacket(packet);
 		if (!packet->IsValidChecksum())
 			return true; //don't process packet
 		packet->SetSrcIp(this->ClientVirtualIp);

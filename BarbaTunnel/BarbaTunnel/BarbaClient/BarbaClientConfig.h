@@ -7,8 +7,7 @@ class BarbaClientConfigItem : public BarbaConfigItem
 public:
 	virtual ~BarbaClientConfigItem(){}
 	u_short GetNewTunnelPort();
-	ProtocolPort GrabProtocols[BARBA_MAX_PORTITEM]; //valid when mode is UDP-Tunnel or TCP-Tunnel mode
-	size_t GrabProtocolsCount;
+	std::vector<ProtocolPort> GrabProtocols;//valid when in Tunnel mode
 	BarbaClientConfigItem();
 	bool ShouldGrabPacket(PacketHelper* packet);
 };
@@ -19,10 +18,8 @@ class BarbaClientConfig
 public:
 	BarbaClientConfig();
 	DWORD ServerIp;
-	TCHAR ServerName[BARBA_MAX_CONFIGNAME];
-	SimpleBuffer Key;
-	BarbaClientConfigItem Items[BARBA_MAX_CONFIGITEMS];
-	int ItemsCount;
+	TCHAR ServerName[BARBA_MaxConfigName];
+	std::vector<BarbaClientConfigItem> Items;
 	// @return false if could not load file
 	bool LoadFile(LPCTSTR file);
 

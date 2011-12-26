@@ -28,7 +28,7 @@ void BarbaClientApp::Initialize()
 	BarbaApp::Initialize();
 
 	TCHAR file[MAX_PATH];
-	_stprintf_s(file, _countof(file), _T("%s\\client\\config"), GetModuleFolder());
+	_stprintf_s(file, _countof(file), _T("%s\\config"), GetModuleFolder());
 	ConfigManager.LoadFolder(file);
 
 	//load fake files
@@ -43,7 +43,7 @@ void BarbaClientApp::Initialize()
 
 BarbaClientConfigItem* BarbaClientApp::ShouldGrabPacket(PacketHelper* packet, BarbaClientConfig* config)
 {
-	for (int i=0; i<config->ItemsCount; i++)
+	for (int i=0; i<(int)config->Items.size(); i++)
 	{
 		BarbaClientConfigItem* item = &config->Items[i];
 		if (item->ShouldGrabPacket(packet))

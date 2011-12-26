@@ -13,11 +13,6 @@ class BarbaServerConfig
 public:
 	BarbaServerConfig();
 	virtual ~BarbaServerConfig(){}
-	DWORD AutoStartDelayMinutes;
-	IpRange VirtualIpRange;
-	SimpleBuffer Key;
 	bool LoadFile(LPCTSTR file);
-
-	BarbaServerConfigItem Items[BARBA_MAX_CONFIGITEMS];
-	size_t ItemsCount;
+	std::vector<BarbaServerConfigItem> Items;
 };

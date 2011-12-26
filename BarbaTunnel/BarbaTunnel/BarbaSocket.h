@@ -31,6 +31,7 @@ public:
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
 	size_t GetReceiveBytesCount() {return this->ReceivedBytesCount;}
 	void SetNoDelay(bool value);
+	void SetKeepAlive(bool value);
 	void SetReceiveTimeOut(long second);
 	void SetSendTimeOut(long second);
 	u_long GetRemoteIp() { return this->RemoteIp;}

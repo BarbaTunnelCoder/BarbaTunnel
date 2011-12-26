@@ -12,18 +12,21 @@ public:
 	bool IsTunnelMode() { return Mode==BarbaModeTcpTunnel || Mode==BarbaModeUdpTunnel; }
 	bool IsRedirectMode() { return Mode==BarbaModeTcpRedirect || Mode==BarbaModeTcpRedirect; }
 	BarbaModeEnum Mode;
-	PortRange TunnelPorts[BARBA_MAX_PORTITEM];
-	size_t TunnelPortsCount;
-	TCHAR Name[BARBA_MAX_CONFIGNAME];
+	std::vector<PortRange> TunnelPorts;
+	TCHAR Name[BARBA_MaxConfigName];
 	u_short MaxUserConnections; //use by HTTP-Tunnel
 	bool Enabled;
 	bool Load(LPCTSTR sectionName, LPCTSTR file);
 	std::vector<std::tstring> FakeFileTypes;
+	std::vector<BYTE> Key;
 	u_int FakeFileMaxSize;
 	std::tstring FakeFileHeaderSizeKeyName;
 	std::tstring SessionKeyName;
 
 private:
+	void Log(LPCTSTR format, ...);
 	void CheckMaxUserConnections();
 	int _TotalTunnelPortsCount;
+	std::tstring FileName; //used for report
+	std::tstring SectionName; //used for report
 };
