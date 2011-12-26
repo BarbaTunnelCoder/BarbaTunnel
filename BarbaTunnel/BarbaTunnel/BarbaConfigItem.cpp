@@ -5,8 +5,6 @@
 BarbaConfigItem::BarbaConfigItem()
 {
 	Mode = BarbaModeNone;
-	TunnelPortsCount = 0;
-	memset(this->TunnelPorts, 0, sizeof(this->TunnelPorts));
 	Name[0] = 0;
 	Enabled = true;
 	RealPort = 0;
@@ -20,7 +18,7 @@ size_t BarbaConfigItem::GetTotalTunnelPortsCount()
 {
 	if (_TotalTunnelPortsCount==0)
 	{
-		for (size_t i=0; i<TunnelPortsCount; i++)
+		for (size_t i=0; i<this->TunnelPorts.size(); i++)
 		{
 			int count = TunnelPorts[i].EndPort - TunnelPorts[i].StartPort + 1;
 			if (count>0)
@@ -32,6 +30,9 @@ size_t BarbaConfigItem::GetTotalTunnelPortsCount()
 
 bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 {
+	this->FileName = BarbaUtils::GetFileNameFromUrl(file);
+	this->SectionName = sectionName;
+
 	//name
 	GetPrivateProfileString(sectionName, _T("Name"), _T(""), this->Name, _countof(this->Name), file);
 
@@ -49,17 +50,22 @@ bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 	this->Mode = BarbaMode_FromString(modeString);
 	if (this->Mode==BarbaModeTcpTunnel || this->Mode==BarbaModeNone)
 	{
-		BarbaLog(_T("Error: %s mode not supported!"), modeString);
+		Log(_T("Error: %s mode not supported!"), modeString);
 		return false;
 	}
 
+	//Key
+	TCHAR hexKey[2000];
+	GetPrivateProfileString(sectionName, _T("Key"), _T(""), hexKey, _countof(hexKey), file);
+	BarbaUtils::ConvertHexStringToBuffer(hexKey, &this->Key);
+
 	//TunnelPorts
-	TCHAR tunnelPorts[BARBA_MAX_PORTITEM*10];
+	TCHAR tunnelPorts[2000];
 	GetPrivateProfileString(sectionName, _T("TunnelPorts"), _T(""), tunnelPorts, _countof(tunnelPorts), file);
-	this->TunnelPortsCount = BarbaUtils::ParsePortRanges(tunnelPorts, this->TunnelPorts, _countof(this->TunnelPorts));
+	BarbaUtils::ParsePortRanges(tunnelPorts, &this->TunnelPorts);
 	if (this->GetTotalTunnelPortsCount()==0)
 	{
-		BarbaLog(_T("Error: %s item does not specify any tunnel port!"), this->Name);
+		Log(_T("Error: Item does not specify any tunnel port!"));
 		return false;
 	}
 
@@ -67,7 +73,7 @@ bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 	this->MaxUserConnections = (u_short)GetPrivateProfileInt(sectionName, _T("MaxUserConnections"), this->MaxUserConnections, file);
 	CheckMaxUserConnections();
 
-	//MaxUserConnections
+	//FakeFileMaxSize
 	this->FakeFileMaxSize = (u_short)GetPrivateProfileInt(sectionName, _T("FakeFileMaxSize"), this->FakeFileMaxSize, file) * 1000;
 	if (this->FakeFileMaxSize==0) this->FakeFileMaxSize = BARBA_HttpMaxFakeFileSize * 1000;
 
@@ -77,7 +83,7 @@ bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 	GetPrivateProfileString(sectionName, _T("FakeFileHeaderSizeKeyName"), _T("HeaderLen"), keyName, _countof(keyName), file);
 	this->FakeFileHeaderSizeKeyName = keyName;
 
-	//FakeFileHeaderSizeKeyName
+	//SessionKeyName
 	keyName[0] = 0;
 	GetPrivateProfileString(sectionName, _T("SessionKeyName"), _T("session"), keyName, _countof(keyName), file);
 	this->SessionKeyName = keyName;
@@ -96,16 +102,30 @@ void BarbaConfigItem::CheckMaxUserConnections()
 {
 	if (this->MaxUserConnections==0)
 	{
-		BarbaLog(_T("Warning: %s item specify %d MaxUserConnections! It should be 2 or more."), this->Name, this->MaxUserConnections);
+		Log(_T("Warning: Item specify %d MaxUserConnections! It should be 2 or more."), this->MaxUserConnections);
 		this->MaxUserConnections = 2;
 	}
 	if (this->MaxUserConnections==1)
 	{
-		BarbaLog(_T("Warning: %s item specify %d MaxUserConnections! It strongly recommended to be 2 or more."), this->Name, this->MaxUserConnections);
+		Log(_T("Warning: Item specify %d MaxUserConnections! It strongly recommended to be 2 or more."), this->MaxUserConnections);
 	}
 	if (this->MaxUserConnections>20)
 	{
-		BarbaLog(_T("Warning: %s item specify %d MaxUserConnections! It could not be more than %d."), this->Name, this->MaxUserConnections, BARBA_HttpMaxUserConnections);
+		Log(_T("Warning: Item specify %d MaxUserConnections! It could not be more than %d."), this->MaxUserConnections, BARBA_HttpMaxUserConnections);
 		this->MaxUserConnections = BARBA_HttpMaxUserConnections;
 	}
 }
+
+void BarbaConfigItem::Log(LPCTSTR format, ...)
+{
+	va_list argp;
+	va_start(argp, format);
+	TCHAR msg[1000];
+	_vstprintf_s(msg, format, argp);
+	va_end(argp);
+
+	TCHAR msg2[1000];
+	_stprintf_s(msg2, _T("ConfigLoader: %s [%s]: %s"), this->FileName.data(), this->SectionName.data(), msg);
+	BarbaLog2(msg2);
+}
+

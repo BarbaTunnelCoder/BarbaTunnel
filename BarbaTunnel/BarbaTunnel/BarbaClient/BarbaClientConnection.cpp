@@ -18,9 +18,9 @@ LPCTSTR BarbaClientConnection::GetName()
 	return _tcslen(this->ConfigItem->Name )>0 ? this->ConfigItem->Name : _T("Connection");
 }
 
-SimpleBuffer* BarbaClientConnection::GetKey()
+std::vector<BYTE>* BarbaClientConnection::GetKey()
 {
-	return &this->Config->Key;
+	return &this->ConfigItem->Key;
 }
 
 u_long BarbaClientConnection::GetServerIp()
@@ -33,7 +33,7 @@ void BarbaClientConnection::ReportNewConnection()
 	TCHAR serverIp[100];
 	PacketHelper::ConvertIpToString(Config->ServerIp, serverIp, _countof(serverIp));
 	LPCTSTR mode = BarbaMode_ToString(GetMode());
-	TCHAR serverName[BARBA_MAX_CONFIGNAME];
+	TCHAR serverName[BARBA_MaxConfigName];
 	if (_tcslen(Config->ServerName)>0)
 		_stprintf_s(serverName, _T("%s (%s)"), Config->ServerName, serverIp);
 	else

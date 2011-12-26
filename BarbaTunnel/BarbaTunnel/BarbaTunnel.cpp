@@ -125,8 +125,11 @@ void InitMemoryLeackReport()
 
 void test()
 {
-	std::tstring ss = BarbaUtils::GetFileTitleFromUrl("http://asfasfasf/asfasfsaf/aa.5?saffffffff");
-	printf("%s\n", ss.data());
+	//std::tstring ss = BarbaUtils::GetFileTitleFromUrl("http://asfasfasf/asfasfsaf/aa.5?saffffffff");
+	//printf("%s\n", ss.data());
+	//std::vector<BYTE> b;
+	//b.resize(100);
+	//memcpy(&b.front(), "aaaaaaaaaaaaaaaaaaa", 10);
 }
 
 int main(int argc, char* argv[])
@@ -140,12 +143,22 @@ int main(int argc, char* argv[])
 	IsBarbaServer = GetPrivateProfileInt(_T("General"), _T("ServerMode"), 0, BarbaApp::GetConfigFile())!=0;
 
 	//create App
-	theApp = IsBarbaServer ? (BarbaApp*)&barbaServerApp : (BarbaApp*)&barbaClientApp ;
-	theApp->Initialize();
+	try
+	{
+		theApp = IsBarbaServer ? (BarbaApp*)&barbaServerApp : (BarbaApp*)&barbaClientApp ;
+		theApp->Initialize();
+	}
+	catch(BarbaException* er)
+	{
+		BarbaLog(er->ToString());
+		delete er;
+		return 0;
+	}
 
 	//check is already running
 	if (theApp->Comm.IsAlreadyRunning())
 	{
+		if (theApp!=NULL) theApp->Dispose();
 		BarbaLog(_T("BarbaTunnel already running!"));
 		return 0;
 	}
@@ -201,9 +214,9 @@ int main(int argc, char* argv[])
 	//wait for server
 	if (delayStart && IsBarbaServer)
 	{
-		DWORD delayMin = theServerApp->Config.AutoStartDelayMinutes;
+		DWORD delayMin = theServerApp->AutoStartDelay;
 		theApp->Comm.SetStatus(_T("Waiting"));
-		BarbaLog(_T("Barba Server is waiting for AutoStartDelayMinutes (%d minutes)."), delayMin);
+		BarbaLog(_T("Barba Server is waiting for AutoStartDelay (%d minutes)."), delayMin);
 		BarbaNotify(_T("Barba Server is waiting\r\nBarba Server is waiting for %d minutes."), delayMin);
 		Sleep(delayMin * 60* 1000);
 	}

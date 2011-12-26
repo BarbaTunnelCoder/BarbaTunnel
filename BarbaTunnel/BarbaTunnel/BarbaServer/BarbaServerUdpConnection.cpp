@@ -32,7 +32,7 @@ bool BarbaServerUdpConnection::ShouldProcessPacket(PacketHelper* packet)
 
 bool BarbaServerUdpConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, PacketHelper* orgPacket)
 {
-	CryptPacket(barbaPacket);
+	DecryptPacket(barbaPacket);
 	orgPacket->SetEthHeader(barbaPacket->ethHeader);
 	return orgPacket->SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload()) && orgPacket->IsValidChecksum();
 }
@@ -53,7 +53,7 @@ bool BarbaServerUdpConnection::CreateUdpBarbaPacket(PacketHelper* packet, Packet
 	barbaPacket->SetSrcPort(this->GetTunnelPort());
 	barbaPacket->SetUdpPayload((BYTE*)packet->ipHeader, packet->GetIpLen());
 	barbaPacket->SetDesEthAddress(this->ClientRouteEthAddress);
-	CryptPacket(barbaPacket);
+	EncryptPacket(barbaPacket);
 	return true;
 }
 

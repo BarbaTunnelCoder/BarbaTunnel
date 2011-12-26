@@ -12,14 +12,16 @@ public:
 	virtual u_short GetTunnelPort()=0; //may 0 when protocol has not port
 	virtual u_long GetSessionId() {return 0;} //may 0 when protocol has not session
 	virtual void ReportNewConnection()=0;
-	virtual SimpleBuffer* GetKey()=0;
+	virtual std::vector<BYTE>* GetKey()=0;
 	virtual LPCTSTR GetName()=0;
 	virtual u_int GetId() {return this->ConnectionId;}
-	void CryptData(BYTE* data, size_t dataLen);
+	void EncryptData(BYTE* data, size_t dataLen);
+	void DecryptData(BYTE* data, size_t dataLen);
 	u_int GetLasNegotiationTime();
 
 protected:
-	void CryptPacket(PacketHelper* packet);
+	void EncryptPacket(PacketHelper* packet);
+	void DecryptPacket(PacketHelper* packet);
 	bool SendPacketToAdapter(PacketHelper* packet);
 	bool SendPacketToMstcp(PacketHelper* packet);
 	void SetWorkingState(ULONG length, bool send);

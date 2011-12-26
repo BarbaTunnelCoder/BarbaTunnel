@@ -19,6 +19,9 @@ public:
 	BarbaServerConnectionManager ConnectionManager;
 	std::tstring FakeHttpGetReplyTemplate;
 	std::tstring FakeHttpPostReplyTemplate;
+	std::tstring ConfigFileName;
+	u_int AutoStartDelay;
+	IpRange VirtualIpRange;
 
 private:
 	BarbaServerConfigItem* ShouldGrabPacket(PacketHelper* packet);

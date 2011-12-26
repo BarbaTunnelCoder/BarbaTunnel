@@ -24,23 +24,55 @@ void BarbaServerApp::Initialize()
 	theServerApp = this;
 	BarbaApp::Initialize();
 
-	TCHAR moduleFolder[MAX_PATH];
-	BarbaUtils::GetModuleFolder(moduleFolder);
+	//configFileName
+	TCHAR configFileName[MAX_PATH] = {0};
+	GetPrivateProfileString(_T("Server"), _T("ConfigFileName"), _T(""), configFileName, _countof(configFileName), GetConfigFile());
+	this->ConfigFileName = configFileName;
 
-	//load server.ini
-	TCHAR file[MAX_PATH];
-	_stprintf_s(file, _countof(file), _T("%s\\server\\config\\server.ini"), moduleFolder);
-	Config.LoadFile(file);
+	//find config file
+	TCHAR  configFile[MAX_PATH];
+	if (this->ConfigFileName.empty())
+	{
+		std::vector<std::tstring> files;
+		BarbaUtils::FindFiles( GetConfigItemFolder(), _T("*.ini"),  &files);
+		if (files.size()==0) throw new BarbaException(_T("Could not find any config file."));
+		else if (files.size()>1) throw new BarbaException(_T("ConfigFileName not specified in BarbaTunnel.ini."));
+		else _tcscpy_s(configFile, files.front().data());
+	}
+	else
+	{
+		_stprintf_s(configFile, _T("%s\\%s"), GetConfigItemFolder(), configFileName);
+	}
+
+	//Load Config File
+	Config.LoadFile(configFile);
 
 	//load fake files
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-GetReplyTemplate.txt"), moduleFolder);
+	TCHAR file[MAX_PATH];
+	_stprintf_s(file, _T("%s\\templates\\HTTP-GetReplyTemplate.txt"), GetModuleFolder());
 	this->FakeHttpGetReplyTemplate = BarbaUtils::LoadFileToString(file);
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-PostReplyTemplate.txt"), moduleFolder);
+	_stprintf_s(file, _T("%s\\templates\\HTTP-PostReplyTemplate.txt"), GetModuleFolder());
 	this->FakeHttpPostReplyTemplate = BarbaUtils::LoadFileToString(file);
 
-	//Initialize Connection Manager
-	ConnectionManager.Initialize(&Config.VirtualIpRange);
+	//AutoStartDelay
+	this->AutoStartDelay = GetPrivateProfileInt(_T("Server"), _T("AutoStartDelay"), 0, GetConfigFile());
 
+	//VirtualIpRange
+	TCHAR virtualIpRange[100] = {0};
+	GetPrivateProfileString(_T("Server"), _T("VirtualIpRange"), _T("10.207.0.1"), virtualIpRange, _countof(virtualIpRange), GetConfigFile());
+	TCHAR* dash = _tcschr(virtualIpRange, '-');
+	TCHAR ipBuffer[100];
+	_tcsncpy_s(ipBuffer, _countof(ipBuffer), virtualIpRange, dash!=NULL ? dash-virtualIpRange : _tcslen(virtualIpRange));
+	this->VirtualIpRange.StartIp = PacketHelper::ConvertStringIp(ipBuffer);
+	this->VirtualIpRange.EndIp = this->VirtualIpRange.StartIp + 0xFFFE; //default
+	if (dash!=NULL)
+	{
+		_tcscpy_s(ipBuffer, _countof(ipBuffer), dash+1);
+		this->VirtualIpRange.EndIp = PacketHelper::ConvertStringIp(ipBuffer);
+	}
+
+	//Initialize Connection Manager
+	ConnectionManager.Initialize(&this->VirtualIpRange);
 }
 
 void BarbaServerApp::Start()
@@ -51,7 +83,7 @@ void BarbaServerApp::Start()
 
 BarbaServerConfigItem* BarbaServerApp::ShouldGrabPacket(PacketHelper* packet)
 {
-	for (size_t i=0; i<this->Config.ItemsCount; i++)
+	for (size_t i=0; i<this->Config.Items.size(); i++)
 	{
 		BarbaServerConfigItem* item = &this->Config.Items[i];
 		
@@ -61,7 +93,7 @@ BarbaServerConfigItem* BarbaServerApp::ShouldGrabPacket(PacketHelper* packet)
 
 		//check port
 		u_short port = packet->GetDesPort();
-		for (size_t j=0; j<item->TunnelPortsCount; j++)
+		for (size_t j=0; j<item->TunnelPorts.size(); j++)
 		{
 			if (port>=item->TunnelPorts[j].StartPort && port<=item->TunnelPorts[j].EndPort)
 				return item;

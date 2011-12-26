@@ -11,9 +11,9 @@ BarbaServerConnection::BarbaServerConnection(BarbaServerConfigItem* configItem, 
 	this->ClientIp = clientIp;
 }
 
-SimpleBuffer* BarbaServerConnection::GetKey()
+std::vector<BYTE>* BarbaServerConnection::GetKey()
 {
-	return &theServerApp->Config.Key;
+	return &this->ConfigItem->Key;
 }
 
 u_long BarbaServerConnection::GetClientVirtualIp()

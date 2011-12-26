@@ -4,8 +4,6 @@
 
 BarbaClientConfigItem::BarbaClientConfigItem()
 {
-	GrabProtocolsCount = 0;
-	memset(GrabProtocols, 0, _countof(GrabProtocols));
 }
 
 bool BarbaClientConfigItem::ShouldGrabPacket(PacketHelper* packet)
@@ -16,7 +14,7 @@ bool BarbaClientConfigItem::ShouldGrabPacket(PacketHelper* packet)
 		return packet->GetDesPort()==this->RealPort;
 	}
 
-	for (size_t i=0; i<this->GrabProtocolsCount; i++)
+	for (size_t i=0; i<this->GrabProtocols.size(); i++)
 	{
 		//check GrabProtocols for tunnel modes
 		ProtocolPort* protocolPort = &this->GrabProtocols[i];
@@ -33,7 +31,7 @@ bool BarbaClientConfigItem::ShouldGrabPacket(PacketHelper* packet)
 u_short BarbaClientConfigItem::GetNewTunnelPort()
 {
 	int newPortIndex = (rand()*rand() % GetTotalTunnelPortsCount());
-	for (size_t i=0; i<TunnelPortsCount; i++)
+	for (size_t i=0; i<this->TunnelPorts.size(); i++)
 	{
 		int count = TunnelPorts[i].EndPort - TunnelPorts[i].StartPort + 1;
 		if (newPortIndex<count)
@@ -55,13 +53,12 @@ void BarbaClientConfig::ParseGrabProtocols(BarbaClientConfigItem* item, LPCTSTR 
 	TCHAR* currentPos = NULL;
 	LPCTSTR token = _tcstok_s(buffer, _T(","), &currentPos);
 		
-	while (token!=NULL && item->GrabProtocolsCount<_countof(item->GrabProtocols))
+	while (token!=NULL)
 	{
 		ProtocolPort protocol;
 		if (BarbaUtils::GetProtocolAndPort(token, &protocol.Protocol, &protocol.Port))
 		{
-			item->GrabProtocols[item->GrabProtocolsCount] = protocol;
-			item->GrabProtocolsCount++;
+			item->GrabProtocols.push_back(protocol);
 		}
 		token = _tcstok_s(NULL, _T(","), &currentPos);
 	}
@@ -111,7 +108,6 @@ BarbaClientConfig::BarbaClientConfig()
 {
 	ServerIp = 0;
 	ServerName[0] = 0;
-	ItemsCount = 0;
 }
 
 bool BarbaClientConfig::LoadFile(LPCTSTR file)
@@ -125,23 +121,17 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	//Name
 	GetPrivateProfileString(_T("General"), _T("ServerName"), _T(""), ServerName, _countof(ServerName), file);
 
-	//Key
-	TCHAR hexKey[BARBA_MAX_KEYLEN*2];
-	GetPrivateProfileString(_T("General"), _T("Key"), _T(""), hexKey, _countof(hexKey), file);
-	BarbaUtils::ConvertHexStringToBuffer(hexKey, &this->Key);
-
 	//load Items
 	int notfoundCounter = 0;
-	this->ItemsCount = 0;
 	for (int i=0; notfoundCounter<4; i++)
 	{
 		//create section name [Item1, Item2, ....]
 		TCHAR sectionName[50];
-		_stprintf_s(sectionName, _countof(sectionName), _T("Item%d"), i+1);
+		_stprintf_s(sectionName, _T("Item%d"), i+1);
 
 		//read item
-		BarbaClientConfigItem* item = &this->Items[this->ItemsCount];
-		bool load = item->Load(sectionName, file);
+		BarbaClientConfigItem item;
+		bool load = item.Load(sectionName, file);
 		if (!load)
 		{
 			notfoundCounter++;
@@ -151,10 +141,9 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 		//Name
 		TCHAR grabProtocols[1000];
 		GetPrivateProfileString(sectionName, _T("GrabProtocols"), _T(""), grabProtocols, _countof(grabProtocols), file);
-		ParseGrabProtocols(item, grabProtocols);
-		this->ItemsCount++;
-
+		ParseGrabProtocols(&item, grabProtocols);
+		this->Items.push_back(item);
 	}
 
-	return this->ItemsCount>0;
+	return true;
 }

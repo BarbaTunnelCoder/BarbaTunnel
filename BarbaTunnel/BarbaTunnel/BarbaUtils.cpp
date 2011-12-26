@@ -59,19 +59,19 @@ bool BarbaUtils::GetProtocolAndPort(LPCTSTR value, BYTE* protocol, u_short* port
 	return ret;
 }
 
-void BarbaUtils::ConvertHexStringToBuffer(LPCTSTR hexString, SimpleBuffer* buf)
+void BarbaUtils::ConvertHexStringToBuffer(LPCTSTR hexString, std::vector<BYTE>* buffer)
 {
 	int len = _tcslen(hexString);
-	buf->New(len/2);
+	buffer->resize(len/2);
 
 	int bufferIndex = 0;
-	for(int i=0; i<(int)buf->GetSize(); i+=2)
+	for(int i=0; i<(int)buffer->size(); i+=2)
 	{
 		char b[3];
 		b[0] = hexString[i];
 		b[1] = hexString[i+1];
 		b[2] = 0;
-		buf->GetData()[bufferIndex++] = (BYTE)strtol(b, NULL, 16);
+		buffer->data()[bufferIndex++] = (BYTE)strtol(b, NULL, 16);
 	}
 }
 
@@ -115,27 +115,23 @@ bool BarbaUtils::SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine, int n
 	return ret;
 }
 
-size_t BarbaUtils::ParsePortRanges(LPCTSTR value, PortRange* portRanges, size_t portRangeCount)
+void BarbaUtils::ParsePortRanges(LPCTSTR value, std::vector<PortRange>* portRanges)
 {
-	size_t count = 0;
-	
-	TCHAR buffer[1000];
-	_tcscpy_s(buffer, value);
+	SimpleBuffer sbuffer((_tcslen(value)+1)*2);
+	TCHAR* buffer = (TCHAR*)sbuffer.GetData();
+	_tcscpy_s(buffer, sbuffer.GetSize(), value);
 	TCHAR* currentPos = NULL;
 	LPCTSTR token = _tcstok_s(buffer, _T(","), &currentPos);
 		
-	while (token!=NULL && count<portRangeCount)
+	while (token!=NULL)
 	{
-		PortRange* portRange = &portRanges[count];
-		if (BarbaUtils::GetPortRange(token, &portRange->StartPort, &portRange->EndPort))
+		PortRange portRange;
+		if (BarbaUtils::GetPortRange(token, &portRange.StartPort, &portRange.EndPort))
 		{
-			count++;
+			portRanges->push_back(portRange);
 		}
 		token = _tcstok_s(NULL, _T(","), &currentPos);
 	}
-
-	return count;
-
 }
 
 bool BarbaUtils::IsThreadAlive(const HANDLE hThread, bool* alive)
@@ -247,7 +243,7 @@ std::tstring BarbaUtils::GetFileNameFromUrl(LPCTSTR url)
 	
 	//remove query string
 	TCHAR path[MAX_PATH];
-	_tcsncpy_s(path, url, min(end,MAX_PATH));
+	_tcsncpy_s(path, url, min(end,MAX_PATH-1));
 	int pathLen = _tcslen(path);
 
 	//find last last
@@ -293,7 +289,8 @@ std::tstring BarbaUtils::GetKeyValueFromHttpRequest(LPCTSTR httpRequest, LPCTSTR
 	if (end==NULL) end = httpRequest + _tcslen(httpRequest);
 
 	TCHAR buffer[255];
-	strncpy_s(buffer, start, end-start);
+	size_t maxValueLen  = min(end-start, _countof(buffer)-1);
+	_tcsncpy_s(buffer, start, maxValueLen);
 	return buffer;
 }
 

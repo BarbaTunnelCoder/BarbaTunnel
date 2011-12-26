@@ -53,7 +53,7 @@ void BarbaCourier::Log(LPCTSTR format, ...)
 	va_end(argp);
 
 	TCHAR msg2[1000];
-	_stprintf_s(msg2, _T("BarbaCourier: TID: %4x, SessionId: %x, %s"), GetCurrentThreadId(), this->SessionId, msg);
+	_stprintf_s(msg2, _T("BarbaCourier: TID: %4x, SessionId: %x, %s."), GetCurrentThreadId(), this->SessionId, msg);
 	BarbaLog2(msg2);
 }
 
@@ -262,7 +262,7 @@ void BarbaCourier::Sockets_Add(BarbaSocket* socket, bool isOutgoing)
 	SimpleSafeList<BarbaSocket*>* list = isOutgoing ? &this->OutgoingSockets : &this->IncomingSockets;
 	SimpleLock lock(list->GetCriticalSection());
 	if (list->GetCount()>=this->MaxConnection)
-		throw new BarbaException(_T("Reject new HTTP connection due the maximum connections. MaxUserConnection is: %d"), this->MaxConnection);
+		throw new BarbaException(_T("Reject new HTTP connection due the maximum connections. MaxUserConnection is: %d."), this->MaxConnection);
 	list->AddTail(socket);
 	socket->SetNoDelay(true);
 }
@@ -296,7 +296,7 @@ void BarbaCourier::WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRe
 	if (fileSize==0)
 	{
 		Log(_T("Request does not have fake file header."));
-	}
+	} 
 	else if (fileSize>BarbaCourier_MaxFileHeaderSize)
 	{
 		throw new BarbaException(_T("Fake file header could not be more than %u size! Requested Size: %u."), BarbaCourier_MaxFileHeaderSize, fileSize);
@@ -346,7 +346,7 @@ void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR host, LPCTSTR 
 	_stprintf_s(fileHeaderSizeSection, _T("%s=%u"), this->FakeFileHeaderSizeKeyName.data(), fileHeaderSize);
 	StringUtils::ReplaceAll(src, _T("{fileheadersize}"), fileHeaderSizeSection);
 
-	//sesstion
+	//session
 	TCHAR sessionStr[100];
 	_ltot_s(this->SessionId, sessionStr, 32);
 	TCHAR sessionSection[BARBA_MaxKeyName + 100];
