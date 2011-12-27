@@ -357,6 +357,8 @@ bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barb
 			barbaCommand = theApp->Comm.GetCommand();
 			if (barbaCommand==BarbaComm::CommandRestart || barbaCommand==BarbaComm::CommandStop)
 				terminate = true;
+			else if (barbaCommand==BarbaComm::CommandUpdateSettings)
+				theApp->UpdateSettings();
 			ResetEvent(commandEventHandle);
 		}
 	}

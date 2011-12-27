@@ -31,6 +31,8 @@ namespace BarbaTunnel.Monitor
 
         public String AppName { get { return "BarbaTunnel Monitor"; } }
 
+        [DllImport("kernel32.dll")]
+        private static extern int GetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName);
 
         bool ExitMode = false;
         public MainWindow()
@@ -49,6 +51,7 @@ namespace BarbaTunnel.Monitor
             BarbaNotify.StopMenu.Click += delegate(object sender, EventArgs args) { this.DoStop(); };
             InitializeComponent();
             BarbaComm.Initialize();
+            this.verboseCheckBox.IsChecked = BarbaComm.VerboseMode;
             if (BarbaComm.Status == BarbaStatus.Stopped)
                 DoStart();
         }
@@ -227,6 +230,11 @@ namespace BarbaTunnel.Monitor
                 this.Visibility = System.Windows.Visibility.Hidden;
                 e.Cancel = true;
             }
+        }
+
+        private void verboseCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            BarbaComm.VerboseMode = verboseCheckBox.IsChecked.Value;
         }
 
     }

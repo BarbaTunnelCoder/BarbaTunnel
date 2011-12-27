@@ -28,6 +28,7 @@ public:
 	static LPCTSTR GetModuleFolder();
 	static LPCTSTR GetModuleFile();
 	int GetAdapterIndex() {return _AdapterIndex;}
+	bool VerboseMode;
 	BarbaComm Comm;
 	HANDLE AdapterHandle;
 	u_int ConnectionTimeout;
@@ -35,6 +36,7 @@ public:
 
 	//store thread for clean shutdown; the process will wait for all of this thread to complete
 	void AddThread(HANDLE threadHandle);
+	void UpdateSettings();
 	static void CloseFinishedThreadHandle(SimpleSafeList<HANDLE>* list);
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
 
@@ -45,7 +47,6 @@ private:
 	void InitFakeFileHeaders();
 	SimpleSafeList<HANDLE> Threads;
 	int _AdapterIndex;
-	bool _VerboseMode;
 	bool _DebugMode;
 	TCHAR _ConfigFile[MAX_PATH];
 	TCHAR _ModuleFolder[MAX_PATH];
