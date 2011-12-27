@@ -11,7 +11,7 @@ BarbaApp::BarbaApp(void)
 	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetModuleFolder());
 
 	this->_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetConfigFile());
-	this->_VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetConfigFile())!=0;
+	this->VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetConfigFile())!=0;
 	this->_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetConfigFile())!=0;
 	this->ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), BARBA_ConnectionTimeout, GetConfigFile())*60*1000;
 	this->MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), -1, GetConfigFile());
@@ -167,7 +167,7 @@ void BarbaApp::Dispose()
 void BarbaApp::Initialize()
 {
 	//Comm
-	Comm.Initialize(_VerboseMode ? 2 : 0);
+	Comm.Initialize();
 }
 
 void BarbaApp::Start()
@@ -255,4 +255,9 @@ bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, u_int fakeFileM
 	}
 
 	return true;
+}
+
+void BarbaApp::UpdateSettings()
+{
+	this->VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetConfigFile())!=0;
 }

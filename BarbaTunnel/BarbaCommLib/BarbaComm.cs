@@ -23,9 +23,11 @@ namespace BarbaTunnel.CommLib
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool WritePrivateProfileString(string lpAppName, string lpKeyName, string lpString, string lpFileName);
-
+        [DllImport("kernel32.dll")]
+        private static extern int GetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName);
 
         public String WorkinFolderPath { get { return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Barbatunnel"); } }
+        public String ConfigFilePath { get { return System.IO.Path.Combine(ModuleFolderPath, "BarbaTunnel.ini"); } }
         public String CommFilePath { get { return System.IO.Path.Combine(WorkinFolderPath, "comm.txt"); } }
         public String LogFilePath { get { return System.IO.Path.Combine(WorkinFolderPath, "report.txt"); } }
         public String NotifyFilePath { get { return System.IO.Path.Combine(WorkinFolderPath, "notify.txt"); } }
@@ -155,6 +157,28 @@ namespace BarbaTunnel.CommLib
             catch { }
         }
 
+        public Boolean VerboseMode
+        {
+            get
+            {
+                return GetPrivateProfileInt("General", "VerboseMode", 0, ConfigFilePath) != 0;
+            }
+            set
+            {
+                try
+                {
+                    WritePrivateProfileString("General", "VerboseMode", value ? "1" : "0", ConfigFilePath);
+                    var res = OpenCommandEvent();
+                    if (res != null)
+                    {
+                        WritePrivateProfileString("General", "Command", "UpdateSettings", CommFilePath);
+                        res.Set();
+                        res.Close();
+                    }
+                }
+                catch { }
+            }
+        }
 
         public void Stop()
         {

@@ -6,7 +6,6 @@
 BarbaComm::BarbaComm(void)
 {
 	this->MaxLogFilesize = 1000000; //1MB
-	this->LogLevel = 1;
 	this->_IsAlreadyRunning = false;
 	this->LogFileHandle = NULL;
 	this->NotifyFileHandle = NULL;
@@ -23,9 +22,8 @@ BarbaComm::BarbaComm(void)
 	}
 }
 
-void BarbaComm::Initialize(int logLevel)
+void BarbaComm::Initialize()
 {
-	this->LogLevel = logLevel;
 	InitializeEvents();
 }
 
@@ -82,10 +80,8 @@ void BarbaComm::SetStatus(LPCTSTR status)
 	WritePrivateProfileString(_T("General"), _T("StatusTime"), ctimeBuf, GetCommFilePath());
 }
 
-void BarbaComm::Log(LPCTSTR msg, bool notify, int logLevel)
+void BarbaComm::Log(LPCTSTR msg, bool notify)
 {
-	if (logLevel>this->LogLevel)
-		return;
 	static SimpleCriticalSection cs;
 	SimpleLock lock(&cs);
 
@@ -145,8 +141,9 @@ BarbaComm::CommandEnum BarbaComm::GetCommand()
 	TCHAR buf[200];
 	GetPrivateProfileString(_T("General"), _T("Command"), _T(""), buf, _countof(buf), GetCommFilePath());
 	if (_tcsicmp(_T("Restart"), buf)==0) return CommandRestart;
-	if (_tcsicmp(_T("Stop"), buf)==0) return CommandStop;
-	return CommandNone;
+	else if (_tcsicmp(_T("Stop"), buf)==0) return CommandStop;
+	else if (_tcsicmp(_T("UpdateSettings"), buf)==0) return CommandUpdateSettings;
+	else return CommandNone;
 }
 
 void BarbaLog(LPCTSTR format, ...)
@@ -170,6 +167,9 @@ void BarbaLog(LPCTSTR format, ...)
 
 void BarbaLog2(LPCTSTR format, ...)
 {
+	if (theApp!=NULL && !theApp->VerboseMode)
+		return;
+
 	va_list argp;
 	va_start(argp, format);
 	CHAR msg[4000];
@@ -178,7 +178,7 @@ void BarbaLog2(LPCTSTR format, ...)
 
 	if (theApp!=NULL)
 	{
-		theApp->Comm.Log(msg, false, 2);
+		theApp->Comm.Log(msg, false);
 	}
 	else
 	{

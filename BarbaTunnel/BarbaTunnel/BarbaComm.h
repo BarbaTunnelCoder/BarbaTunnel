@@ -7,6 +7,7 @@ public:
 		CommandNone,
 		CommandStop,
 		CommandRestart,
+		CommandUpdateSettings,
 	};
 
 private:
@@ -20,13 +21,12 @@ private:
 	void InitializeEvents();
 	bool _IsAlreadyRunning;
 	DWORD LastWorkingTick;
-	int LogLevel;
 
 public:
 	BarbaComm(void);
 	virtual ~BarbaComm(void);
 	virtual void Dispose();
-	void Initialize(int logLevel);
+	void Initialize();
 	LPCTSTR GetNotifyFilePath() {return _NotifyFilePath;}
 	LPCTSTR GetLogFilePath() {return _LogFilePath;}
 	LPCTSTR GetCommFilePath() {return _CommFilePath;}
@@ -34,7 +34,7 @@ public:
 	CommandEnum GetCommand();
 	void SetWorkingState(ULONG length, bool send);
 	void SetStatus(LPCTSTR status);
-	void Log(LPCTSTR msg, bool notify, int logLevel=0);
+	void Log(LPCTSTR msg, bool notify);
 	bool CreateFiles();
 	bool CreateFilesWithAdminPrompt();
 	bool IsAlreadyRunning() {return _IsAlreadyRunning;}
