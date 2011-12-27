@@ -1,7 +1,6 @@
 #pragma once
 #include "StringUtils.h"
 #include "PacketHelper.h"
-#include "SimpleBuffer.h"
 #include "SimpleSafeList.h"
 #include "BarbaException.h"
 
