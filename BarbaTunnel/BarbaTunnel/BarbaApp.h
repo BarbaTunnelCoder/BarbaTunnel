@@ -14,6 +14,7 @@ public:
 	virtual void Start();
 	virtual bool ProcessPacket(PacketHelper* packet, bool send)=0;
 	virtual void Dispose();
+	bool GetFakeFile(std::vector<std::tstring>* fakeTypes, u_int fakeFileMaxSize, TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
 	bool SendPacketToAdapter(PacketHelper* packet);
 	bool SendPacketToMstcp(PacketHelper* packet);
 	//@return false to terminate process
@@ -30,7 +31,7 @@ public:
 	BarbaComm Comm;
 	HANDLE AdapterHandle;
 	u_int ConnectionTimeout;
-	SimpleSafeList<FakeFileHeader*> FakeFileHeaders;
+	std::vector<FakeFileHeader> FakeFileHeaders;
 
 	//store thread for clean shutdown; the process will wait for all of this thread to complete
 	void AddThread(HANDLE threadHandle);

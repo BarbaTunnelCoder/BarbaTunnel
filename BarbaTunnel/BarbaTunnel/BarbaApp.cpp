@@ -38,12 +38,10 @@ void BarbaApp::InitFakeFileHeaders()
 	BarbaUtils::FindFiles(folder, _T("*.header"), &files);
 	for (int i=0; i<(int)files.size(); i++)
 	{
-		FakeFileHeader* ffh = new FakeFileHeader();
-		ffh->Extension = BarbaUtils::FindFileName(files[i].data());
-		if ( BarbaUtils::LoadFileToBuffer(files[i].data(), &ffh->Data) )
-			this->FakeFileHeaders.AddTail(ffh);
-		else
-			delete ffh;
+		FakeFileHeader ffh;
+		ffh.Extension = BarbaUtils::FindFileName(files[i].data());
+		if ( BarbaUtils::LoadFileToBuffer(files[i].data(), &ffh.Data) )
+			this->FakeFileHeaders.push_back(ffh);
 	}
 }
 
@@ -164,15 +162,6 @@ void BarbaApp::Dispose()
 
 	//dispose Comm
 	Comm.Dispose();
-
-	//delete FakeFileHeader objects
-	FakeFileHeader* ffh = this->FakeFileHeaders.RemoveHead();
-	while (ffh!=NULL)
-	{
-		delete ffh;
-		ffh = this->FakeFileHeaders.RemoveHead();
-	}
-
 }
 
 void BarbaApp::Initialize()
@@ -231,4 +220,39 @@ bool BarbaApp::CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMT
 	}
 
 	return ret;
+}
+
+bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, u_int fakeFileMaxSize, TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew)
+{
+	*fileSize = BarbaUtils::GetRandom(fakeFileMaxSize/2, fakeFileMaxSize); 
+
+	//generate new filename in createNew
+	if (createNew)
+	{
+		u_int fileNameId = BarbaUtils::GetRandom(1, UINT_MAX);
+		TCHAR fileNameIdStr[MAX_PATH];
+		_ltot_s(fileNameId, fileNameIdStr, MAX_PATH, 32);
+		_tcscpy_s(filename, MAX_PATH, fileNameIdStr);
+		
+		if (!fakeTypes->empty())
+		{
+			int index = BarbaUtils::GetRandom(0, fakeTypes->size()-1);
+			_stprintf_s(filename, MAX_PATH, _T("%s.%s"), fileNameIdStr, fakeTypes->at(index).data());
+		}
+	}
+
+	//find extension and fill fakeFileHeader
+	if (fakeFileHeader!=NULL)
+	{
+		std::tstring extension = BarbaUtils::GetFileExtensionFromUrl(filename);
+		for (size_t i=0; i<this->FakeFileHeaders.size(); i++)
+		{
+			if (_tcsicmp(this->FakeFileHeaders[i].Extension.data(), extension.data())==0)
+			{
+				*fakeFileHeader = this->FakeFileHeaders[i].Data;
+			}
+		}
+	}
+
+	return true;
 }

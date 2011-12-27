@@ -13,7 +13,8 @@ public:
 	virtual LPCTSTR GetName();
 	virtual BarbaModeEnum GetMode();
 	u_long GetServerIp();
-
+	BarbaClientConfigItem* GetConfigItem() {return this->ConfigItem;}
+	
 protected:
 	BarbaClientConfig* Config;
 	BarbaClientConfigItem* ConfigItem;

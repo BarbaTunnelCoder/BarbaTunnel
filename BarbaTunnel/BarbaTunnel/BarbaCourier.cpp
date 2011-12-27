@@ -53,7 +53,7 @@ void BarbaCourier::Log(LPCTSTR format, ...)
 	va_end(argp);
 
 	TCHAR msg2[1000];
-	_stprintf_s(msg2, _T("BarbaCourier: TID: %4x, SessionId: %x, %s."), GetCurrentThreadId(), this->SessionId, msg);
+	_stprintf_s(msg2, _T("BarbaCourier: TID: %4x, SessionId: %x, %s"), GetCurrentThreadId(), this->SessionId, msg);
 	BarbaLog2(msg2);
 }
 
@@ -274,17 +274,17 @@ void BarbaCourier::Sockets_Remove(BarbaSocket* socket, bool isOutgoing)
 	delete socket;
 }
 
-void BarbaCourier::SendFakeFileHeader(BarbaSocket* socket, SimpleBuffer* fakeFileHeader)
+void BarbaCourier::SendFakeFileHeader(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader)
 {
-	if (fakeFileHeader->GetSize()==0)
+	if (fakeFileHeader->empty())
 	{
 		Log(_T("Could not find fake file data. Fake file header ignored!"));
 		return;
 	}
 
 	//sending fake file header
-	Log(_T("Sending fake file header. Header Size: %u"), fakeFileHeader->GetSize());
-	if (socket->Send(fakeFileHeader->GetData(), fakeFileHeader->GetSize()!=fakeFileHeader->GetSize()))
+	Log(_T("Sending fake file header. Header Size: %u"), fakeFileHeader->size());
+	if (socket->Send(fakeFileHeader->data(), fakeFileHeader->size())!=fakeFileHeader->size())
 		throw new BarbaException(_T("Fake file header does not send!"));
 }
 
@@ -306,13 +306,13 @@ void BarbaCourier::WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRe
 		std::tstring url = BarbaUtils::GetFileUrlFromHttpRequest(httpRequest);
 		Log(_T("Waiting for incoming fake file header. URL: %s, HeaderSize: %u"), url.data(), fileSize);
 		
-		SimpleBuffer buffer(fileSize);
-		if (socket->Receive(buffer.GetData(), buffer.GetSize(), true)!=(int)buffer.GetSize())
+		std::vector<BYTE> buffer(fileSize);
+		if (socket->Receive(&buffer.front(), buffer.size(), true)!=(int)buffer.size())
 			throw new BarbaException(_T("Could not receive fake file header."));
 	}
 }
 
-void BarbaCourier::GetFakeFile(TCHAR* filename, u_int* fileSize, SimpleBuffer* /*fakeFileHeader*/, bool createNew)
+void BarbaCourier::GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYTE>* /*fakeFileHeader*/, bool createNew)
 {
 	*fileSize = BarbaUtils::GetRandom(this->FakeFileMaxSize/2, this->FakeFileMaxSize); 
 	if (createNew)

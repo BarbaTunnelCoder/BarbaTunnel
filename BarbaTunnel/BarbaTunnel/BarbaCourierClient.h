@@ -24,5 +24,5 @@ private:
 	u_short RemotePort;
 	static unsigned int __stdcall ClientWorkerThread(void* clientThreadData);
 	//@fakeFileHeader if null send incoming request
-	u_int SendFakeRequest(BarbaSocket* socket, SimpleBuffer* fakeFileHeader);
+	u_int SendFakeRequest(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader);
 };

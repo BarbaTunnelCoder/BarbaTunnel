@@ -9,10 +9,10 @@ public:
 	explicit BarbaClientHttpCourier(BarbaCourierCreateStrcut* cs, DWORD remoteIp, u_short remotePort, BarbaClientHttpConnection* httpConnection);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
 	void SendPacket(PacketHelper* packet);
-	//virtual void GetFakeFile(TCHAR* filename, u_int* fileSize, SimpleBuffer* fakeFileHeader, bool createNew);
 
 protected:
 	BarbaClientHttpConnection* HttpConnection;
+	virtual void GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
 	virtual ~BarbaClientHttpCourier(void);
 
 private:

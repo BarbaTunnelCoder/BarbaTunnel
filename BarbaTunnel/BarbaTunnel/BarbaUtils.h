@@ -17,7 +17,7 @@ public:
 	//return number of parsed portRanges
 	static void ParsePortRanges(LPCTSTR value, std::vector<PortRange>* portRange);
 	static bool IsThreadAlive(const HANDLE hThread, bool* alive);
-	static bool LoadFileToBuffer(LPCTSTR fileName, SimpleBuffer* buffer);
+	static bool LoadFileToBuffer(LPCTSTR fileName, std::vector<BYTE>* buffer);
 	static std::string LoadFileToString(LPCTSTR fileName);
 	static u_int GetRandom(u_int start, u_int end);
 	static void FindFiles(LPCTSTR folder, LPCTSTR search, std::vector<std::tstring>* files);

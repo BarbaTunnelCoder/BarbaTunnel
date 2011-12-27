@@ -60,7 +60,7 @@ struct ProtocolPort
 struct FakeFileHeader
 {
 	std::tstring Extension;
-	SimpleBuffer Data;
+	std::vector<BYTE> Data;
 };
 
 //BarbaHeader

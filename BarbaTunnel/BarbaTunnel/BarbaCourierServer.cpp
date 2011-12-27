@@ -41,7 +41,7 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 		if (isOutgoing)
 		{
 			//send fake reply 
-			SimpleBuffer fakeFileHeader;
+			std::vector<BYTE> fakeFileHeader;
 			u_int remainBytes = _this->SendFakeReply(socket, threadData->HttpRequest.data(), &fakeFileHeader);
 
 			//sending fake file header
@@ -79,23 +79,23 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 	return 0;
 }
 
-u_int BarbaCourierServer::SendFakeReply(BarbaSocket* socket, LPCTSTR httpRequest, SimpleBuffer* fakeFileHeader)
+u_int BarbaCourierServer::SendFakeReply(BarbaSocket* socket, LPCTSTR httpRequest, std::vector<BYTE>* fakeFileHeader)
 {
 	bool outgoing = fakeFileHeader!=NULL;
 	std::tstring fakeUrl = BarbaUtils::GetFileUrlFromHttpRequest(httpRequest);
 	std::tstring fakefile = BarbaUtils::GetFileNameFromUrl(fakeUrl.data());
-	u_int fakeFileHeaderSize = fakeFileHeader!=NULL ? fakeFileHeader->GetSize() : 0;
 	
 	u_int fileSize;
 	TCHAR filename[MAX_PATH];
 	_tcscpy_s(filename, fakefile.data());
 	GetFakeFile(filename, &fileSize, fakeFileHeader, false);
+	u_int fakeFileHeaderSize = fakeFileHeader!=NULL ? fakeFileHeader->size() : 0;
 
 	std::tstring fakeReply = outgoing ? this->FakeHttpGetTemplate : this->FakeHttpPostTemplate;
 	InitFakeRequestVars(fakeReply, NULL, filename, fileSize, fakeFileHeaderSize);
 
 	if (outgoing)
-		Log(_T("Sending fake GET reply! File: %s (%u KB): HeaderSize: %u."), filename, fileSize, fakeFileHeaderSize);
+		Log(_T("Sending fake GET reply! File: %s (%u KB)."), filename, fileSize, fakeFileHeaderSize);
 	else
 		Log(_T("Sending fake POST reply! FileName: %s."), filename);
 

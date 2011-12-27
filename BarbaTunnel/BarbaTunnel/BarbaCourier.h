@@ -41,7 +41,7 @@ public:
 	explicit BarbaCourier(BarbaCourierCreateStrcut* cs);
 	virtual void Send(BYTE* buffer, size_t bufferCount);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
-	virtual void GetFakeFile(TCHAR* filename, u_int* fileSize, SimpleBuffer* fakeFileHeader, bool createNew);
+	virtual void GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
 	size_t GetReceiveBytesCount() {return this->ReceivedBytesCount;}
 	
@@ -71,7 +71,7 @@ protected:
 	void Sockets_Remove(BarbaSocket* socket, bool isOutgoing);
 	void ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);
-	void SendFakeFileHeader(BarbaSocket* socket, SimpleBuffer* fakeFileHeader);
+	void SendFakeFileHeader(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader);
 	void WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRequest);
 	void InitFakeRequestVars(std::tstring& src, LPCTSTR host, LPCTSTR filename, u_int fileSize, u_int fileHeaderSize);
 

@@ -14,9 +14,9 @@ public:
 	explicit BarbaServerHttpCourier(BarbaCourierCreateStrcut* cs, BarbaServerHttpConnection* httpConnection);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
 	void SendPacket(PacketHelper* packet);
-	//virtual bool GetFakeFile(TCHAR* filename, u_int* fileSize, SimpleBuffer* fakeFileHeader, bool createNew);
 
 protected:
+	virtual void GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
 	virtual ~BarbaServerHttpCourier(void);
 	BarbaServerHttpConnection* HttpConnection;
 };
