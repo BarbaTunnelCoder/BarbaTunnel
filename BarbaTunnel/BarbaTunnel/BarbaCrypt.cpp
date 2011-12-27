@@ -2,14 +2,18 @@
 #include "BarbaCrypt.h"
 #include "BarbaUtils.h"
 
-void BarbaCrypt::Crypt(BYTE* buffer, size_t bufferCount, BYTE* key, size_t keyCount, bool /*encrypt*/)
+void BarbaCrypt::Crypt(BYTE* buffer, size_t bufferCount, BYTE* key, size_t keyCount, bool encrypt)
 {
 	if (keyCount==0)
 		return;
 
 	for (size_t i=0; i<bufferCount; i++)
 	{
-		buffer[i] ^= key[i%keyCount];
+		if (encrypt)
+			buffer[i] = (buffer[i] ^ key[i%keyCount]) + key[i%keyCount];
+		else
+			buffer[i] = (buffer[i] - key[i%keyCount]) ^ key[i%keyCount];
+
 	}
 }
 

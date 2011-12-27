@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "BarbaClientHttpCourier.h"
 #include "BarbaClientHttpConnection.h"
+#include "BarbaClientApp.h"
 
 
 BarbaClientHttpCourier::BarbaClientHttpCourier(BarbaCourierCreateStrcut* cs, DWORD remoteIp, u_short remotePort, BarbaClientHttpConnection* httpConnection)
@@ -18,7 +19,10 @@ void BarbaClientHttpCourier::Receive(BYTE* buffer, size_t bufferCount)
 {
 	this->HttpConnection->DecryptData(buffer, bufferCount);
 	PacketHelper packet;
-	packet.SetIpPacket((iphdr_ptr)buffer);
+	if (!packet.SetIpPacket((iphdr_ptr)buffer) || !packet.IsValidChecksum())
+	{
+		Log(_T("Error: Invalid packet checksum received! Check your key."));
+	}
 	this->HttpConnection->ProcessPacket(&packet, false);
 }
 
@@ -31,3 +35,10 @@ void BarbaClientHttpCourier::SendPacket(PacketHelper* packet)
 	this->HttpConnection->EncryptData(data, dataCount);
 	this->Send(data, dataCount);
 }
+
+void BarbaClientHttpCourier::GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew)
+{
+	if (!theApp->GetFakeFile(&this->HttpConnection->GetConfigItem()->FakeFileTypes, this->FakeFileMaxSize, filename, fileSize, fakeFileHeader, createNew))
+		BarbaCourierClient::GetFakeFile(filename, fileSize, fakeFileHeader, createNew);
+}
+

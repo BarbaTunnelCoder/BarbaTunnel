@@ -117,9 +117,9 @@ bool BarbaUtils::SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine, int n
 
 void BarbaUtils::ParsePortRanges(LPCTSTR value, std::vector<PortRange>* portRanges)
 {
-	SimpleBuffer sbuffer((_tcslen(value)+1)*2);
-	TCHAR* buffer = (TCHAR*)sbuffer.GetData();
-	_tcscpy_s(buffer, sbuffer.GetSize(), value);
+	std::vector<BYTE> sbuffer(_tcslen(value)*2+2);
+	TCHAR* buffer = (TCHAR*)&sbuffer.front();
+	_tcscpy_s(buffer, sbuffer.size(), value);
 	TCHAR* currentPos = NULL;
 	LPCTSTR token = _tcstok_s(buffer, _T(","), &currentPos);
 		
@@ -143,7 +143,7 @@ bool BarbaUtils::IsThreadAlive(const HANDLE hThread, bool* alive)
 	return true;
 }
 
-bool BarbaUtils::LoadFileToBuffer(LPCTSTR fileName, SimpleBuffer* buffer)
+bool BarbaUtils::LoadFileToBuffer(LPCTSTR fileName, std::vector<BYTE>* buffer)
 {
 	bool ret = false;
 
@@ -155,8 +155,8 @@ bool BarbaUtils::LoadFileToBuffer(LPCTSTR fileName, SimpleBuffer* buffer)
 	size_t fileSize = ftell(f); 
 	fseek(f, 0, SEEK_SET);
 
-	buffer->New(fileSize);
-	ret = fread_s(buffer->GetData(), buffer->GetSize(), 1, fileSize, f)==fileSize;
+	buffer->resize(fileSize);
+	ret = fread_s(&buffer->front(), buffer->size(), 1, fileSize, f)==fileSize;
 	fclose(f);
 	return ret;
 }
