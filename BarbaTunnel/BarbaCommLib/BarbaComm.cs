@@ -43,6 +43,7 @@ namespace BarbaTunnel.CommLib
         public BarbaComm()
         {
             Status = BarbaStatus.Stopped;
+            System.IO.Directory.CreateDirectory(WorkinFolderPath);
         }
 
         void CreateFileWatcher()
