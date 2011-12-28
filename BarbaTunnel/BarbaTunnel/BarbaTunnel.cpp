@@ -123,19 +123,8 @@ void InitMemoryLeackReport()
 	_CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDOUT );
 }
 
-void test()
-{
-	//std::tstring ss = BarbaUtils::GetFileTitleFromUrl("http://asfasfasf/asfasfsaf/aa.5?saffffffff");
-	//printf("%s\n", ss.data());
-	//std::vector<BYTE> b;
-	//b.resize(100);
-	//memcpy(&b.front(), "aaaaaaaaaaaaaaaaaaa", 10);
-}
-
 int main(int argc, char* argv[])
 {
-	//test();
-
 	// memory leak detection
 	InitMemoryLeackReport();
 
@@ -147,6 +136,10 @@ int main(int argc, char* argv[])
 	{
 		theApp = IsBarbaServer ? (BarbaApp*)&barbaServerApp : (BarbaApp*)&barbaClientApp ;
 		theApp->Initialize();
+
+		//try prepare Comm Files
+		if (!theApp->Comm.CreateFiles() && !theApp->Comm.CreateFilesWithAdminPrompt())
+			BarbaLog(_T("Could not prepare Barbacomm files!"));
 	}
 	catch(BarbaException* er)
 	{
@@ -192,10 +185,6 @@ int main(int argc, char* argv[])
 		}
 		return 0;
 	}
-
-	//try prepare Comm Files
-	if (!theApp->Comm.CreateFiles() && !theApp->Comm.CreateFilesWithAdminPrompt())
-		BarbaLog(_T("Could not prepare Barbacomm files!"));
 
 	//create command listener event
 	SECURITY_DESCRIPTOR sd = { 0 };
