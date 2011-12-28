@@ -52,14 +52,14 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 		}
 		else
 		{
-			//send fake reply 
-			_this->SendFakeReply(socket, threadData->HttpRequest.data(), NULL);
-
 			//wait for incoming fake file header
 			_this->WaitForIncomingFakeHeader(socket, threadData->HttpRequest.data());
 
 			//process socket until socket closed
 			_this->ProcessIncoming(socket);
+
+			//send fake reply 
+			_this->SendFakeReply(socket, threadData->HttpRequest.data(), NULL);
 		}
 	}
 	catch(BarbaException* er)

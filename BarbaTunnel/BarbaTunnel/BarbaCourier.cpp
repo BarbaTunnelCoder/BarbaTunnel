@@ -15,7 +15,8 @@ BarbaCourier::BarbaCourier(BarbaCourierCreateStrcut* cs)
 	this->FakeFileMaxSize = cs->FakeFileMaxSize!=0 ? cs->FakeFileMaxSize : 15000000; //15MB
 	this->FakeFileHeaderSizeKeyName = cs->FakeFileHeaderSizeKeyName;
 	this->SessionKeyName = cs->SessionKeyName;
-	this->InitFakeRequests(cs->FakeHttpGetTemplate, cs->FakeHttpPostTemplate);
+	this->FakeHttpGetTemplate = PrepareFakeRequests(cs->FakeHttpGetTemplate);
+	this->FakeHttpPostTemplate = PrepareFakeRequests(cs->FakeHttpPostTemplate);
 }
 
 unsigned BarbaCourier::DeleteThread(void* object) 
@@ -128,27 +129,16 @@ void BarbaCourier::Send(Message* message, bool highPriority)
 	SendEvent.Set();
 }
 
-
-void BarbaCourier::InitFakeRequests(LPCTSTR httpGetRequest, LPCTSTR httpPostRequest)
+std::tstring BarbaCourier::PrepareFakeRequests(LPCTSTR request)
 {
-	this->FakeHttpGetTemplate = httpGetRequest;
-	this->FakeHttpPostTemplate = httpPostRequest;
+	std::tstring ret = request;
+	StringUtils::ReplaceAll(ret, _T("\r"), _T(""));
+	while (StringUtils::ReplaceAll(ret, _T("\n\n"), _T("\n"))!=0); //prevent more than one \n\n
+	StringUtils::Trim(ret, '\n');
+	ret.append(_T("\n\n"));
+	StringUtils::ReplaceAll(ret, _T("\n"), _T("\r\n"));
+	return ret;
 
-	//fix next-line
-	std::string n = "\n";
-	std::string r = "\r";
-	std::string e = "";
-	std::string rn = "\r\n";
-
-	this->FakeHttpGetTemplate.append(n);
-	this->FakeHttpGetTemplate.append(n);
-	StringUtils::ReplaceAll(this->FakeHttpGetTemplate, r, e);
-	StringUtils::ReplaceAll(this->FakeHttpGetTemplate, n, rn);
-
-	this->FakeHttpPostTemplate.append(n);
-	this->FakeHttpPostTemplate.append(n);
-	StringUtils::ReplaceAll(this->FakeHttpPostTemplate, r, e);
-	StringUtils::ReplaceAll(this->FakeHttpPostTemplate, n, rn);
 }
 
 void BarbaCourier::Receive(BYTE* /*buffer*/, size_t /*bufferCount*/)
@@ -195,11 +185,26 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 			try
 			{
 				//add message length to start of packet, then add message itself
+				size_t sendPacketSize = 0;
 				BYTE sendPacket[BarbaCourier_MaxMessageLength+2];
-				memcpy_s(sendPacket, 2, &message->Count, 2);
-				memcpy_s(sendPacket+2, BarbaCourier_MaxMessageLength, message->Buffer, message->Count);
+				memcpy_s(sendPacket, sizeof (sendPacket)-sendPacketSize, &message->Count, 2);
+				sendPacketSize += 2;
+				memcpy_s(sendPacket+sendPacketSize, sizeof (sendPacket)-sendPacketSize, message->Buffer, message->Count);
+				sendPacketSize += message->Count;
 
-				int sentCount = barbaSocket->Send(sendPacket, message->Count+2);
+				/*
+				//add dummy byes
+				size_t minSize = 1400;
+				BYTE fakeBuffer[1400];
+				size_t fakeSize =  max(minSize-sendPacketSize, 0);
+				fakeSize = 0;
+				memcpy_s(sendPacket+sendPacketSize, 2, &fakeSize, 2);
+				sendPacketSize += 2;
+				memcpy_s(sendPacket+sendPacketSize, BarbaCourier_MaxMessageLength-sendPacketSize, fakeBuffer, fakeSize);
+				sendPacketSize += fakeSize;
+				*/
+
+				int sentCount = barbaSocket->Send(sendPacket, sendPacketSize);
 				this->SentBytesCount += sentCount; //courier bytes
 				sentBytes += sentCount; //current socket bytes
 				
@@ -220,7 +225,7 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 	}
 }
 
-void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
+void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 {
 	Log(_T("HTTP connection is ready to receive the actual data."));
 
@@ -230,13 +235,6 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
 	//remove message from list
 	while(!this->IsDisposing() && !transferFinish)
 	{
-		transferFinish = maxBytes!=0 && receivedBytes>=maxBytes;
-		if (transferFinish)
-		{
-			Log(_T("Finish receiving fake file."));
-			break;
-		}
-
 		u_short messageLen = 0;
 		if (barbaSocket->Receive((BYTE*)&messageLen, 2, true)!=2)
 			break;
@@ -247,13 +245,31 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
 
 		//read message
 		BYTE messageBuf[BarbaCourier_MaxMessageLength];
+		//printf("receiving %d\n", messageLen);
 		int receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
 		if (receiveCount!=messageLen)
 			new BarbaException( _T("Out of sync while reading message!") );
 
+		//notify new message
 		receivedBytes += receiveCount + 2; //current socket byes
 		this->ReceivedBytesCount += receiveCount + 2; //courier byes
 		this->Receive(messageBuf, receiveCount);
+
+		/*
+		//wait for dummy length
+		messageLen = 0;
+		if (barbaSocket->Receive((BYTE*)&messageLen, 2, true)!=2)
+			break;
+		//check dummy length
+		if (messageLen>BarbaCourier_MaxMessageLength)
+			new BarbaException( _T("Out of sync while reading dummy message length!") );
+		//read message
+		receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
+		if (receiveCount!=messageLen)
+			new BarbaException( _T("Out of sync while reading dummy message!") );
+		receivedBytes += receiveCount + 2; //current socket byes
+		this->ReceivedBytesCount += receiveCount + 2; //courier byes
+		*/
 	}
 }
 

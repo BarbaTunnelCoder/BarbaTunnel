@@ -82,17 +82,17 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 				std::vector<BYTE> fakeFileHeader;
 				u_int fakeFileSize = _this->SendFakeRequest(socket, &fakeFileHeader);
 
-				//wait for fake reply
-				_this->Log(_T("Waiting for server to accept fake HTTP POST request."));
-				std::string header = socket->ReadHttpRequest();
-				if (header.empty())
-					throw new BarbaException( _T("Server does not reply to fake request!") );
-
 				//sending fake file header
 				_this->SendFakeFileHeader(socket, &fakeFileHeader);
 
 				//process socket until socket closed
 				_this->ProcessOutgoing(socket, fakeFileSize - fakeFileHeader.size());
+
+				//wait for fake reply
+				_this->Log(_T("Waiting for server to accept fake HTTP POST request."));
+				std::string header = socket->ReadHttpRequest();
+				if (header.empty())
+					throw new BarbaException( _T("Server does not reply to fake request!") );
 			}
 			else
 			{
