@@ -51,7 +51,7 @@ public:
 	HANDLE Delete();
 
 private:
-	void InitFakeRequests(LPCTSTR httpGetTemplate, LPCTSTR httpPostTemplate);
+	std::tstring PrepareFakeRequests(LPCTSTR request);
 	//@return false if max connection reached
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
 	size_t MaxMessageBuffer;
@@ -69,7 +69,7 @@ protected:
 	virtual void Send(Message* message, bool highPriority=false);
 	void Sockets_Add(BarbaSocket* socket, bool isOutgoing);
 	void Sockets_Remove(BarbaSocket* socket, bool isOutgoing);
-	void ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes=0);
+	void ProcessIncoming(BarbaSocket* barbaSocket);
 	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	void SendFakeFileHeader(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader);
 	void WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRequest);

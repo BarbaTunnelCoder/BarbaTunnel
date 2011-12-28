@@ -3,23 +3,26 @@
 class StringUtils
 {
 public:
-	static void ReplaceAll(std::string& str, const std::string& from, const std::string& to) 
+	static u_int ReplaceAll(std::string& str, const std::string& from, const std::string& to) 
 	{
+		u_int ret = 0;
 		size_t start_pos = 0;
 		while((start_pos = str.find(from, start_pos)) != std::string::npos) 
 		{
 			str.replace(start_pos, from.length(), to);
 			start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+			ret++;
 		}
+		return ret;
 	}
 
-	static void Trim(std::tstring& str)
+	static void Trim(std::tstring& str, TCHAR chr=' ')
 	{
-		std::tstring::size_type pos = str.find_last_not_of(' ');
+		std::tstring::size_type pos = str.find_last_not_of(chr);
 		if(pos != std::tstring::npos) 
 		{
 			str.erase(pos + 1);
-			pos = str.find_first_not_of(' ');
+			pos = str.find_first_not_of(chr);
 			if(pos != std::tstring::npos) 
 				str.erase(0, pos);
 		}
