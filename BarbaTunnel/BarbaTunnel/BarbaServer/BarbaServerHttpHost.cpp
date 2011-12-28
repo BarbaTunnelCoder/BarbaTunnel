@@ -82,7 +82,7 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 		bool isGet = httpRequest.size()>=3 && _strnicmp(httpRequest.data(), "GET", 3)==0;
 		bool isPost = httpRequest.size()>=4 && _strnicmp(httpRequest.data(), "POST", 4)==0;
 		if (!isGet && !isPost)
-			throw new BarbaException(_T("HttpHost: TID: %x, Could not find GET or POST from HTTP request!"), GetCurrentThreadId());
+			throw new BarbaException(_T("Could not find GET or POST from HTTP request!"));
 		bool isOutgoing = isGet;
 
 		//find session
