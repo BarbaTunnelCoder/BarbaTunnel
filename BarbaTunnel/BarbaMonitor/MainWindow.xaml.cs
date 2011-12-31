@@ -44,7 +44,7 @@ namespace BarbaTunnel.Monitor
             BarbaComm.StatusChanged += new EventHandler(BarbaComm_StatusChanged);
             BarbaNotify.NotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_MouseClick);
             BarbaNotify.NotifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_MouseClick);
-            BarbaNotify.MainWindowMenu.Click += delegate(object sender, EventArgs args) { this.Visibility = System.Windows.Visibility.Visible; this.Activate(); };
+            BarbaNotify.MainWindowMenu.Click += delegate(object sender, EventArgs args) { this.DoShowMainWindow(); };
             BarbaNotify.ExitMenu.Click += delegate(object sender, EventArgs args) { this.DoStopAndExit(); };
             BarbaNotify.StartMenu.Click += delegate(object sender, EventArgs args) { this.DoStart(); };
             BarbaNotify.RestartMenu.Click += delegate(object sender, EventArgs args) { this.DoRestart(); };
@@ -54,6 +54,7 @@ namespace BarbaTunnel.Monitor
             this.verboseCheckBox.IsChecked = BarbaComm.VerboseMode;
             if (BarbaComm.Status == BarbaStatus.Stopped)
                 DoStart();
+
         }
 
         void UpdateStatus()
@@ -136,23 +137,29 @@ namespace BarbaTunnel.Monitor
         void NotifyIcon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             if (e.Button == System.Windows.Forms.MouseButtons.Left)
-            {
-                this.Visibility = System.Windows.Visibility.Visible;
-                this.Activate();
-            }
-        }
-
-
-        void NotifyIcon_DoubleClick(object sender, EventArgs e)
-        {
-            this.Visibility = System.Windows.Visibility.Visible;
-            this.Activate();
+                DoShowMainWindow();
         }
 
         void MainWindow_Closed(object sender, EventArgs e)
         {
             BarbaComm.Dispose();
             BarbaNotify.Dispose();
+        }
+
+        void ShowMainWindowTimer(object sender, EventArgs e)
+        {
+            DispatcherTimer timer = (DispatcherTimer)sender;
+            timer.Stop();
+            this.Activate();
+        }
+
+        void DoShowMainWindow()
+        {
+            this.Visibility = System.Windows.Visibility.Visible;
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(0);
+            timer.Tick += new EventHandler(ShowMainWindowTimer); // i don't know why WPF does not activate MainWindow at first-time
+            timer.Start();
         }
 
         void DoStopAndExit()
