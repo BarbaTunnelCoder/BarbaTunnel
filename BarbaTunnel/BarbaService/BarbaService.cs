@@ -16,6 +16,7 @@ namespace BarbaTunnel.Service
         BarbaTunnel.CommLib.BarbaComm BarbaComm = new BarbaTunnel.CommLib.BarbaComm();
         EventWaitHandle ServiceEvent;
         Thread ServiceEventThread;
+        bool Stopping = false;
         public BarbaService()
         {
             InitializeComponent();
@@ -24,6 +25,7 @@ namespace BarbaTunnel.Service
 
         private void InitServiceEvent()
         {
+            Stopping = false;
             EventWaitHandleSecurity sec = new EventWaitHandleSecurity();
             sec.AddAccessRule(new EventWaitHandleAccessRule("Everyone", EventWaitHandleRights.Synchronize | EventWaitHandleRights.Modify, AccessControlType.Allow));
             bool createdNew;
@@ -34,14 +36,15 @@ namespace BarbaTunnel.Service
 
         protected override void OnStart(string[] args)
         {
-            //when BarbaService is running, BarbaTunnel should run by service not by user monitor
+            //when BarbaService is running, BarbaTunnel should run by service not by user
             InitServiceEvent();
-
             BarbaComm.Start(true);
         }
 
         protected override void OnStop()
         {
+            Stopping = true;
+            ServiceEvent.Set();
             ServiceEventThread.Abort();
             BarbaComm.Stop();
             ServiceEvent.Close();
@@ -51,7 +54,7 @@ namespace BarbaTunnel.Service
         {
             try
             {
-                if (ServiceEvent.WaitOne())
+                while (ServiceEvent.WaitOne() && !Stopping)
                 {
                     BarbaComm.Start();
                 }
