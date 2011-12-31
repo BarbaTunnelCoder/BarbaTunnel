@@ -11,6 +11,9 @@ bool IsBarbaServer;
 BarbaClientApp barbaClientApp;
 BarbaServerApp barbaServerApp;
 bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barbaCommandOut);
+void ApplyServerPacketFilter();
+void ApplyClientPacketFilter();
+void ApplyPacketFilter();
 
 bool CheckAdapterIndex()
 {
@@ -143,6 +146,14 @@ int main(int argc, char* argv[])
 		theApp = IsBarbaServer ? (BarbaApp*)&barbaServerApp : (BarbaApp*)&barbaClientApp ;
 		theApp->Initialize();
 
+		//check is already running
+		if (theApp->Comm.IsAlreadyRunning())
+		{
+			if (theApp!=NULL) theApp->Dispose();
+			BarbaLog(_T("BarbaTunnel already running!"));
+			return 0;
+		}
+
 		//try prepare Comm Files
 		if (!theApp->Comm.CreateFiles() && !theApp->Comm.CreateFilesWithAdminPrompt())
 			BarbaLog(_T("Could not prepare BarbaComm files!"));
@@ -151,14 +162,6 @@ int main(int argc, char* argv[])
 	{
 		BarbaLog(er->ToString());
 		delete er;
-		return 0;
-	}
-
-	//check is already running
-	if (theApp->Comm.IsAlreadyRunning())
-	{
-		if (theApp!=NULL) theApp->Dispose();
-		BarbaLog(_T("BarbaTunnel already running!"));
 		return 0;
 	}
 
@@ -238,7 +241,7 @@ int main(int argc, char* argv[])
 	theApp->Comm.SetStatus(_T("Started"));
 	theApp->Start();
 
-	//start process packets
+		//start process packets
 	BarbaComm::CommandEnum barbaCommand = BarbaComm::CommandNone;
 	if (!StartProcessPackets(commandEventHandle, barbaCommand))
 		return 0;
@@ -283,10 +286,11 @@ bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barb
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 
 	ADAPTER_MODE Mode;
-	Mode.dwFlags = MSTCP_FLAG_SENT_TUNNEL|MSTCP_FLAG_RECV_TUNNEL;
+	Mode.dwFlags = MSTCP_FLAG_SENT_TUNNEL | MSTCP_FLAG_RECV_TUNNEL;
 	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
 	api.SetAdapterMode(&Mode);
-	theApp->AdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
+	theApp->SetAdapterHandle( (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex] );
+	ApplyPacketFilter(); //filter IP to optimize network
 
 	// Create notification event
 	hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -359,4 +363,92 @@ bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barb
 	}
 
 	return true;
+}
+
+void ApplyClientPacketFilter()
+{
+	size_t configItemCount = theClientApp->ConfigManager.Configs.size();
+	size_t filterCount = configItemCount*1 + 1;
+	std::vector<BYTE> filterTableBuf( sizeof STATIC_FILTER_TABLE  * filterCount );
+	STATIC_FILTER_TABLE* filterTable = (STATIC_FILTER_TABLE*)&filterTableBuf.front();
+	filterTable->m_TableSize = filterCount;
+
+	for (size_t i=0; i<configItemCount; i++)
+	{
+		BarbaClientConfig* configItem = &theClientApp->ConfigManager.Configs[i];
+
+		//redirect only packet that send to our server
+		STATIC_FILTER* staticFilter = &filterTable->m_StaticFilters[i];
+		staticFilter->m_Adapter.LowPart = (DWORD)theApp->GetAdapterHandle();
+		staticFilter->m_FilterAction = FILTER_PACKET_REDIRECT;
+		staticFilter->m_dwDirectionFlags = PACKET_FLAG_ON_SEND;
+		staticFilter->m_ValidFields = NETWORK_LAYER_VALID;
+		staticFilter->m_NetworkFilter.m_dwUnionSelector = IPV4;
+
+		IP_V4_FILTER* filter = &staticFilter->m_NetworkFilter.m_IPv4;
+		filter->m_ValidFields = IP_V4_FILTER_DEST_ADDRESS;
+		filter->m_DestAddress.m_AddressType=IP_SUBNET_V4_TYPE;
+		filter->m_DestAddress.m_IpSubnet.m_Ip = configItem->ServerIp;
+		filter->m_DestAddress.m_IpSubnet.m_IpMask = 0xFFFFFFFF;
+
+		//redirect only packet that receive from our server
+		staticFilter = &filterTable->m_StaticFilters[i*2];
+		staticFilter->m_Adapter.LowPart = (DWORD)theApp->GetAdapterHandle();
+		staticFilter->m_FilterAction = FILTER_PACKET_REDIRECT;
+		staticFilter->m_dwDirectionFlags = PACKET_FLAG_ON_RECEIVE;
+		staticFilter->m_ValidFields = NETWORK_LAYER_VALID;
+		staticFilter->m_NetworkFilter.m_dwUnionSelector = IPV4;
+
+		filter = &staticFilter->m_NetworkFilter.m_IPv4;
+		filter->m_ValidFields = IP_V4_FILTER_SRC_ADDRESS;
+		filter->m_SrcAddress.m_AddressType=IP_SUBNET_V4_TYPE;
+		filter->m_SrcAddress.m_IpSubnet.m_Ip = configItem->ServerIp;
+		filter->m_SrcAddress.m_IpSubnet.m_IpMask = 0xFFFFFFFF;
+	}
+
+	//pass all other
+	STATIC_FILTER* staticFilter = &filterTable->m_StaticFilters[filterCount-1];
+	staticFilter->m_Adapter.LowPart = (DWORD)theApp->GetAdapterHandle();
+	staticFilter->m_FilterAction = FILTER_PACKET_PASS;
+	staticFilter->m_dwDirectionFlags = PACKET_FLAG_ON_RECEIVE | PACKET_FLAG_ON_SEND;
+	staticFilter->m_ValidFields = 0;
+
+	if (!api.SetPacketFilterTable(filterTable))
+		BarbaLog(_T("Warning: Could not set packet filtering to optimize network performance!"));
+}
+
+void ApplyServerPacketFilter()
+{
+	size_t filterCount = 2;
+	std::vector<BYTE> filterTableBuf( sizeof STATIC_FILTER_TABLE  * filterCount );
+	STATIC_FILTER_TABLE* filterTable = (STATIC_FILTER_TABLE*)&filterTableBuf.front();
+	filterTable->m_TableSize = filterCount;
+
+	//process just IP packets
+	STATIC_FILTER* staticFilter = &filterTable->m_StaticFilters[0];
+	staticFilter->m_Adapter.LowPart = (DWORD)theApp->GetAdapterHandle();
+	staticFilter->m_FilterAction = FILTER_PACKET_REDIRECT;
+	staticFilter->m_dwDirectionFlags = PACKET_FLAG_ON_RECEIVE | PACKET_FLAG_ON_SEND;
+	staticFilter->m_ValidFields = DATA_LINK_LAYER_VALID;
+	staticFilter->m_DataLinkFilter.m_dwUnionSelector = ETH_802_3;
+	staticFilter->m_DataLinkFilter.m_Eth8023Filter.m_ValidFields = ETH_802_3_PROTOCOL;
+	staticFilter->m_DataLinkFilter.m_Eth8023Filter.m_Protocol = ETH_P_IP;
+
+	//pass all other packets
+	staticFilter = &filterTable->m_StaticFilters[1];
+	staticFilter->m_Adapter.LowPart = (DWORD)theApp->GetAdapterHandle();
+	staticFilter->m_FilterAction = FILTER_PACKET_PASS;
+	staticFilter->m_dwDirectionFlags = PACKET_FLAG_ON_RECEIVE | PACKET_FLAG_ON_SEND;
+	staticFilter->m_ValidFields = 0;
+
+	if (!api.SetPacketFilterTable(filterTable))
+		BarbaLog(_T("Warning: Could not set packet filtering to optimize network performance!"));
+}
+
+void ApplyPacketFilter()
+{
+	if (IsBarbaServer)
+		ApplyServerPacketFilter();
+	else
+		ApplyClientPacketFilter();
 }

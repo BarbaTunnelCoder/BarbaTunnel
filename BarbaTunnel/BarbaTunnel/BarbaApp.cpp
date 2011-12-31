@@ -6,6 +6,7 @@ extern CNdisApi	api;
 
 BarbaApp::BarbaApp(void)
 {
+	_AdapterHandle = 0;
 	_IsDisposed = false;
 	srand((UINT)time(0));
 	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetModuleFolder());
@@ -27,6 +28,11 @@ BarbaApp::BarbaApp(void)
 	InitFakeFileHeaders();
 	
 	BarbaSocket::InitializeLib();
+}
+
+void BarbaApp::SetAdapterHandle(HANDLE adapterHandle)
+{
+	this->_AdapterHandle = adapterHandle;
 }
 
 void BarbaApp::InitFakeFileHeaders()
@@ -182,7 +188,7 @@ bool BarbaApp::SendPacketToMstcp(PacketHelper* packet)
 	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
 
 	ETH_REQUEST req;
-	req.hAdapterHandle = this->AdapterHandle;
+	req.hAdapterHandle = _AdapterHandle;
 	req.EthPacket.Buffer = &intBuf;
 	return api.SendPacketToMstcp(&req)!=FALSE;
 }
@@ -195,7 +201,7 @@ bool BarbaApp::SendPacketToAdapter(PacketHelper* packet)
 	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
 
 	ETH_REQUEST req;
-	req.hAdapterHandle = this->AdapterHandle;
+	req.hAdapterHandle = this->_AdapterHandle;
 	req.EthPacket.Buffer = &intBuf;
 	return api.SendPacketToAdapter(&req)!=FALSE;
 }

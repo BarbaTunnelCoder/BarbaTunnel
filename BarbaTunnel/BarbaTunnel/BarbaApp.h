@@ -30,7 +30,8 @@ public:
 	int GetAdapterIndex() {return _AdapterIndex;}
 	bool VerboseMode;
 	BarbaComm Comm;
-	HANDLE AdapterHandle;
+	void SetAdapterHandle(HANDLE adapterHandle);
+	HANDLE GetAdapterHandle() {return _AdapterHandle;}
 	u_int ConnectionTimeout;
 	std::vector<FakeFileHeader> FakeFileHeaders;
 
@@ -42,6 +43,7 @@ public:
 
 
 private:
+	HANDLE _AdapterHandle;
 	int MTUDecrement;
 	bool _IsDisposed;
 	void InitFakeFileHeaders();
