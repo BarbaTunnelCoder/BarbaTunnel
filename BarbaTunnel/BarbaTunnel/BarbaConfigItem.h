@@ -20,10 +20,10 @@ public:
 	std::vector<std::tstring> FakeFileTypes;
 	std::vector<BYTE> Key;
 	u_int FakeFileMaxSize;
-	std::tstring FakeFileHeaderSizeKeyName;
-	std::tstring SessionKeyName;
+	std::tstring RequestDataKeyName;
 
 private:
+	static std::tstring CreateRequestDataKeyName(std::vector<BYTE>* key);
 	void Log(LPCTSTR format, ...);
 	void CheckMaxUserConnections();
 	int _TotalTunnelPortsCount;

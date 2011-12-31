@@ -10,9 +10,8 @@ BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfigItem* conf
 	this->TunnelPort = tunnelPort;
 
 	BarbaCourierCreateStrcut cs = {0};
-	cs.FakeFileHeaderSizeKeyName = configItem->FakeFileHeaderSizeKeyName.data();
 	cs.FakeFileMaxSize = configItem->FakeFileMaxSize;
-	cs.SessionKeyName = configItem->SessionKeyName.data();
+	cs.RequestDataKeyName = configItem->RequestDataKeyName.data();
 	cs.FakeHttpGetTemplate = theServerApp->FakeHttpGetReplyTemplate.data();
 	cs.FakeHttpPostTemplate = theServerApp->FakeHttpPostReplyTemplate.data();
 	cs.MaxConnenction = configItem->MaxUserConnections;

@@ -123,8 +123,14 @@ void InitMemoryLeackReport()
 	_CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDOUT );
 }
 
+void test()
+{
+	printf( BarbaUtils::FormatTimeForHttp().data() );
+}
 int main(int argc, char* argv[])
 {
+	//test(); return 0;
+
 	// memory leak detection
 	InitMemoryLeackReport();
 
@@ -139,7 +145,7 @@ int main(int argc, char* argv[])
 
 		//try prepare Comm Files
 		if (!theApp->Comm.CreateFiles() && !theApp->Comm.CreateFilesWithAdminPrompt())
-			BarbaLog(_T("Could not prepare Barbacomm files!"));
+			BarbaLog(_T("Could not prepare BarbaComm files!"));
 	}
 	catch(BarbaException* er)
 	{

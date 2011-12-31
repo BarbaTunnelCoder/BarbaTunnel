@@ -15,6 +15,18 @@ BarbaServerHttpCourier::~BarbaServerHttpCourier(void)
 {
 }
 
+void BarbaServerHttpCourier::Crypt(BYTE* data, size_t dataLen, bool encrypt)
+{
+	if (encrypt)
+	{
+		this->HttpConnection->EncryptData(data, dataLen);
+	}
+	else
+	{
+		this->HttpConnection->DecryptData(data, dataLen);
+	}
+}
+
 void BarbaServerHttpCourier::SendPacket(PacketHelper* packet)
 {
 	//encrypt whole packet include header

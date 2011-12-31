@@ -117,6 +117,7 @@
     <ClInclude Include="BarbaServer\BarbaServerConnection.h" />
     <ClInclude Include="BarbaSocket.h" />
     <ClInclude Include="BarbaUtils.h" />
+    <ClInclude Include="Base64.h" />
     <ClInclude Include="General.h" />
     <ClInclude Include="PacketHelper.h" />
     <ClInclude Include="BarbaServer\BarbaServerConfig.h" />
@@ -162,6 +163,7 @@
     <ClCompile Include="BarbaSocket.cpp" />
     <ClCompile Include="BarbaTunnel.cpp" />
     <ClCompile Include="BarbaUtils.cpp" />
+    <ClCompile Include="Base64.cpp" />
     <ClCompile Include="General.cpp" />
     <ClCompile Include="PacketHelper.cpp" />
     <ClCompile Include="stdafx.cpp">

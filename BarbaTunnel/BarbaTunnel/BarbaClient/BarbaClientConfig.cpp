@@ -67,40 +67,26 @@ void BarbaClientConfig::ParseGrabProtocols(BarbaClientConfigItem* item, LPCTSTR 
 
 BarbaClientConfigManager::BarbaClientConfigManager()
 {
-	ConfigsCount = 0;
 }
 
 
 void BarbaClientConfigManager::LoadFolder(LPCTSTR folder)
 {
-	TCHAR file[MAX_PATH];
-	WIN32_FIND_DATA findData = {0};
-		
-	//findData.
-	_stprintf_s(file, _countof(file), _T("%s\\*.ini"), folder);
-	HANDLE findHandle = FindFirstFile(file, &findData);
-	BOOL bfind = findHandle!=NULL;
-	while (bfind)
+	std::vector<std::tstring> files;
+	BarbaUtils::FindFiles(folder, _T("*.ini"), &files);
+	for (size_t i=0; i<files.size(); i++)
 	{
-		if (ConfigsCount>=_countof(Configs))
-			break;
-		BarbaClientConfig* config = &Configs[ConfigsCount];
-			
-		TCHAR fullPath[MAX_PATH] = {0};
-		_stprintf_s(fullPath, _T("%s\\%s"), folder, findData.cFileName);
-
-		if (config->LoadFile(fullPath))
-			ConfigsCount++;
-		bfind = FindNextFile(findHandle, &findData);
+		BarbaClientConfig config;
+		if (config.LoadFile(files[i].data()))
+			Configs.push_back(config);
 	}
-	FindClose(findHandle);
 }
 
 BarbaClientConfig* BarbaClientConfigManager::FindByServerIP(DWORD ip)
 {
-	for (int i=0; i<ConfigsCount; i++)
-		if (Configs[i].ServerIp==ip)
-			return &Configs[i];
+	for (size_t i=0; i<this->Configs.size(); i++)
+		if (this->Configs[i].ServerIp==ip)
+			return &this->Configs[i];
 	return NULL;
 }
 
