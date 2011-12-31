@@ -15,6 +15,18 @@ BarbaClientHttpCourier::~BarbaClientHttpCourier(void)
 {
 }
 
+void BarbaClientHttpCourier::Crypt(BYTE* data, size_t dataLen, bool encrypt)
+{
+	if (encrypt)
+	{
+		this->HttpConnection->EncryptData(data, dataLen);
+	}
+	else
+	{
+		this->HttpConnection->DecryptData(data, dataLen);
+	}
+}
+
 void BarbaClientHttpCourier::Receive(BYTE* buffer, size_t bufferCount)
 {
 	this->HttpConnection->DecryptData(buffer, bufferCount);

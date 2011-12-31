@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "BarbaConfigItem.h"
 #include "BarbaUtils.h"
+#include "BarbaCrypt.h"
 
 BarbaConfigItem::BarbaConfigItem()
 {
@@ -78,15 +79,11 @@ bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 	if (this->FakeFileMaxSize==0) this->FakeFileMaxSize = BARBA_HttpMaxFakeFileSize * 1000;
 
 	TCHAR keyName[BARBA_MaxKeyName];
-	//FakeFileHeaderSizeKeyName
 	keyName[0] = 0;
-	GetPrivateProfileString(sectionName, _T("FakeFileHeaderSizeKeyName"), _T("HeaderLen"), keyName, _countof(keyName), file);
-	this->FakeFileHeaderSizeKeyName = keyName;
-
-	//SessionKeyName
-	keyName[0] = 0;
-	GetPrivateProfileString(sectionName, _T("SessionKeyName"), _T("session"), keyName, _countof(keyName), file);
-	this->SessionKeyName = keyName;
+	GetPrivateProfileString(sectionName, _T("RequestDataKeyName"), _T(""), keyName, _countof(keyName), file);
+	this->RequestDataKeyName = keyName;
+	if (this->RequestDataKeyName.empty())
+		this->RequestDataKeyName = CreateRequestDataKeyName(&this->Key);
 
 	//FakeFileTypes
 	TCHAR fakeFileTypes[1000] = {0};
@@ -129,3 +126,21 @@ void BarbaConfigItem::Log(LPCTSTR format, ...)
 	BarbaLog2(msg2);
 }
 
+
+std::tstring BarbaConfigItem::CreateRequestDataKeyName(std::vector<BYTE>* key)
+{
+	std::string keyName = "BData";
+	//add some 'A' to change they KeyName size depending to key len
+	for (int i=0; i<(int)key->size()/2; i++)
+		keyName.push_back( 'A' );
+
+	std::vector<BYTE> keyBuffer(keyName.size());
+	memcpy_s(&keyBuffer.front(), keyBuffer.size(), keyName.data(), keyName.size());
+
+	BarbaCrypt::Crypt(&keyBuffer.front(), keyBuffer.size(), key->data(), key->size(), true);
+	std::tstring ret = Base64::encode(&keyBuffer);
+	StringUtils::ReplaceAll(ret, "=", "");
+	StringUtils::ReplaceAll(ret, "/", "");
+	return ret;
+
+}

@@ -36,7 +36,7 @@ void BarbaServerApp::Initialize()
 		std::vector<std::tstring> files;
 		BarbaUtils::FindFiles( GetConfigItemFolder(), _T("*.ini"),  &files);
 		if (files.size()==0) throw new BarbaException(_T("Could not find any config file."));
-		else if (files.size()>1) throw new BarbaException(_T("ConfigFileName not specified in BarbaTunnel.ini."));
+		else if (files.size()>1) throw new BarbaException(_T("BarbaServer find more than one config file! A ConfigFileName should specified in BarbaTunnel.ini."));
 		else _tcscpy_s(configFile, files.front().data());
 	}
 	else

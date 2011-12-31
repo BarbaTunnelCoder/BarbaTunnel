@@ -12,8 +12,7 @@ struct BarbaCourierCreateStrcut
 {
 	u_int SessionId;
 	u_short MaxConnenction;
-	LPCTSTR FakeFileHeaderSizeKeyName;
-	LPCTSTR SessionKeyName;
+	LPCTSTR RequestDataKeyName;
 	LPCTSTR FakeHttpGetTemplate;
 	LPCTSTR FakeHttpPostTemplate;
 	u_int FakeFileMaxSize;
@@ -42,9 +41,11 @@ public:
 	virtual void Send(BYTE* buffer, size_t bufferCount);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
 	virtual void GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
+	virtual void Crypt(BYTE* data, size_t dataLen, bool encrypt);
+	std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
 	size_t GetReceiveBytesCount() {return this->ReceivedBytesCount;}
-	
+		
 	//Call this method to delete object, This method will signal all created thread to finish their job
 	//This method will call asynchronously. do not use the object after call it 
 	//@return the handle for deleting thread
@@ -83,8 +84,7 @@ protected:
 	size_t MaxConnection;
 	size_t ThreadsStackSize;
 	size_t FakeFileMaxSize;
-	std::tstring FakeFileHeaderSizeKeyName;
-	std::tstring SessionKeyName;
+	std::tstring RequestDataKeyName;
 	std::string FakeHttpGetTemplate;
 	std::string FakeHttpPostTemplate;
 	u_int SessionId;

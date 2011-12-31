@@ -2,6 +2,7 @@
 #include "BarbaServerHttpHost.h"
 #include "BarbaServerHttpConnection.h"
 #include "BarbaServerApp.h"
+#include "BarbaCrypt.h"
 
 
 BarbaServerHttpHost::BarbaServerHttpHost(void)
@@ -62,6 +63,28 @@ bool BarbaServerHttpHost::IsDisposing()
 	return DisposeEvent.Wait(0)==WAIT_OBJECT_0;
 }
 
+std::tstring BarbaServerHttpHost::GetRequestDataFromHttpRequest(LPCTSTR httpRequest, LPCTSTR keyName, std::vector<BYTE>* key)
+{
+	try
+	{
+		std::tstring requestDataEnc = BarbaUtils::GetKeyValueFromString(httpRequest, keyName);
+		if (requestDataEnc.empty())
+			return _T("");
+		std::vector<BYTE> requestDataBuf;
+		Base64::decode(requestDataEnc, requestDataBuf);
+		BarbaCrypt::Crypt(&requestDataBuf.front(), requestDataBuf.size(), key->data(), key->size(), false);
+		requestDataBuf.push_back(0);
+		requestDataBuf.push_back(0);
+		std::string ret = (char*)requestDataBuf.data(); //should be ANSI
+		return ret;
+	}
+	catch (...)
+	{
+	}
+
+	return _T("");
+}
+
 unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 {
 	bool success = false;
@@ -86,10 +109,11 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 		bool isOutgoing = isGet;
 
 		//find session
-		std::tstring sessionIdStr = BarbaUtils::GetKeyValueFromHttpRequest(httpRequest.data(), threadData->ConfigItem->SessionKeyName.data());
-		u_long sessionId = strtoul(sessionIdStr.data(), NULL, 32);
+		std::tstring requestData = GetRequestDataFromHttpRequest(httpRequest.data(), threadData->ConfigItem->RequestDataKeyName.data(), &threadData->ConfigItem->Key);
+		std::tstring sessionIdStr = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("session"));
+		u_long sessionId = strtoul(sessionIdStr.data(), NULL, 0);
 		if (sessionId==0)
-			new BarbaException( _T("Could not extract sessionId from HTTP request!") );
+			throw new BarbaException( _T("Could not extract sessionId from HTTP request!") );
 
 		//find connection by session id
 		SimpleLock lock(&_this->CreateConnectionCriticalSection);

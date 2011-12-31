@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "BarbaCourier.h"
 #include "BarbaUtils.h"
+#include "BarbaCrypt.h"
 
 BarbaCourier::BarbaCourier(BarbaCourierCreateStrcut* cs)
 	: SendEvent(true, true)
@@ -13,8 +14,7 @@ BarbaCourier::BarbaCourier(BarbaCourierCreateStrcut* cs)
 	this->ThreadsStackSize = cs->ThreadsStackSize!=0 ? cs->ThreadsStackSize : 128000; //128KB
 	this->MaxConnection = cs->MaxConnenction;
 	this->FakeFileMaxSize = cs->FakeFileMaxSize!=0 ? cs->FakeFileMaxSize : 15000000; //15MB
-	this->FakeFileHeaderSizeKeyName = cs->FakeFileHeaderSizeKeyName;
-	this->SessionKeyName = cs->SessionKeyName;
+	this->RequestDataKeyName = cs->RequestDataKeyName;
 	this->FakeHttpGetTemplate = PrepareFakeRequests(cs->FakeHttpGetTemplate);
 	this->FakeHttpPostTemplate = PrepareFakeRequests(cs->FakeHttpPostTemplate);
 }
@@ -106,7 +106,7 @@ void BarbaCourier::Dispose()
 void BarbaCourier::Send(BYTE* buffer, size_t bufferCount)
 {
 	if (bufferCount>BarbaCourier_MaxMessageLength)
-		new BarbaException( _T("Message is too big to send!") );
+		throw new BarbaException( _T("Message is too big to send!") );
 
 	if (!this->IsDisposing())
 		Send(new Message(buffer, bufferCount));
@@ -241,14 +241,14 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 
 		//check received message len
 		if (messageLen>BarbaCourier_MaxMessageLength)
-			new BarbaException( _T("Out of sync while reading message length!") );
+			throw new BarbaException( _T("Out of sync while reading message length!") );
 
 		//read message
 		BYTE messageBuf[BarbaCourier_MaxMessageLength];
 		//printf("receiving %d\n", messageLen);
 		int receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
 		if (receiveCount!=messageLen)
-			new BarbaException( _T("Out of sync while reading message!") );
+			throw new BarbaException( _T("Out of sync while reading message!") );
 
 		//notify new message
 		receivedBytes += receiveCount + 2; //current socket byes
@@ -266,7 +266,7 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 		//read message
 		receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
 		if (receiveCount!=messageLen)
-			new BarbaException( _T("Out of sync while reading dummy message!") );
+			throw new BarbaException( _T("Out of sync while reading dummy message!") );
 		receivedBytes += receiveCount + 2; //current socket byes
 		this->ReceivedBytesCount += receiveCount + 2; //courier byes
 		*/
@@ -306,7 +306,8 @@ void BarbaCourier::SendFakeFileHeader(BarbaSocket* socket, std::vector<BYTE>* fa
 
 void BarbaCourier::WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRequest)
 {
-	std::tstring fileHeaderSizeStr = BarbaUtils::GetKeyValueFromHttpRequest(httpRequest, this->FakeFileHeaderSizeKeyName.data());
+	std::tstring requestData = GetRequestDataFromHttpRequest(httpRequest);
+	std::tstring fileHeaderSizeStr = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("hlen"));
 	u_int fileSize = fileHeaderSizeStr.empty() ? 0 : _tcstoul(fileHeaderSizeStr.data(), 0, 0);
 
 	if (fileSize==0)
@@ -339,13 +340,20 @@ void BarbaCourier::GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYT
 
 }
 
+void BarbaCourier::Crypt(BYTE* /*data*/, size_t /*size*/, bool /*encrypt*/)
+{
+}
+
+
 void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR host, LPCTSTR fileName, u_int fileSize, u_int fileHeaderSize)
 {
 	if (host==NULL) host = _T("");
 	if (fileName==NULL) fileName = _T("");
 
+	//host
 	StringUtils::ReplaceAll(src, _T("{host}"), host);
 	
+	//filename
 	if (fileName!=NULL)
 	{
 		StringUtils::ReplaceAll(src, _T("{filename}"), fileName);
@@ -353,19 +361,53 @@ void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR host, LPCTSTR 
 		StringUtils::ReplaceAll(src, _T("{fileextension}"), BarbaUtils::GetFileExtensionFromUrl(fileName));
 	}
 
+	//filesize
 	TCHAR fileSizeStr[20];
 	_ltot_s(fileSize, fileSizeStr, 10);
 	StringUtils::ReplaceAll(src, _T("{filesize}"), fileSizeStr);
 
-	//FileHeaderKeySize; headerkey=2134;
-	TCHAR fileHeaderSizeSection[BARBA_MaxKeyName + 100];
-	_stprintf_s(fileHeaderSizeSection, _T("%s=%u"), this->FakeFileHeaderSizeKeyName.data(), fileHeaderSize);
-	StringUtils::ReplaceAll(src, _T("{fileheadersize}"), fileHeaderSizeSection);
+	//time
+	std::tstring curTime = BarbaUtils::FormatTimeForHttp();
+	StringUtils::ReplaceAll(src, _T("{time}"), curTime);
+	
+	//prepare RequestData: 
+	TCHAR requestDataStr[2000]; //hlen=AAFF;session=AABB
+	_stprintf_s(requestDataStr, _T("hlen=%u;session=%u;"), fileHeaderSize, this->SessionId);
+	//encrypt-data
+	std::vector<BYTE> rdataBuffer;
+	rdataBuffer.resize(_tcslen(requestDataStr)*sizeof TCHAR);
+	memcpy_s(&rdataBuffer.front(), rdataBuffer.size(), requestDataStr, rdataBuffer.size());
+	Crypt(&rdataBuffer.front(), rdataBuffer.size(), true);
+	//convert to base64
+	std::tstring requestData = Base64::encode(&rdataBuffer);
 
-	//session
-	TCHAR sessionStr[100];
-	_ltot_s(this->SessionId, sessionStr, 32);
-	TCHAR sessionSection[BARBA_MaxKeyName + 100];
-	_stprintf_s(sessionSection, _T("%s=%s"), this->SessionKeyName.data(), sessionStr);
-	StringUtils::ReplaceAll(src, _T("{session}"), sessionSection);
+	//RequestData
+	std::tstring data;
+	data.append(this->RequestDataKeyName);
+	data.append(_T("="));
+	data.append(requestData);
+	StringUtils::ReplaceAll(src, _T("{data}"), data);
 }
+
+std::tstring BarbaCourier::GetRequestDataFromHttpRequest(LPCTSTR httpRequest)
+{
+	try
+	{
+		std::tstring requestDataEnc = BarbaUtils::GetKeyValueFromString(httpRequest, this->RequestDataKeyName.data());
+		if (requestDataEnc.empty())
+			return _T("");
+		std::vector<BYTE> requestDataBuf;
+		Base64::decode(requestDataEnc, requestDataBuf);
+		this->Crypt(&requestDataBuf.front(), requestDataBuf.size(), false);
+		requestDataBuf.push_back(0);
+		requestDataBuf.push_back(0);
+		std::string ret = (char*)requestDataBuf.data(); //should be ANSI
+		return ret;
+	}
+	catch (...)
+	{
+	}
+
+	return _T("");
+}
+

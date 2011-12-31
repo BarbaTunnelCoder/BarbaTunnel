@@ -64,14 +64,13 @@ void BarbaUtils::ConvertHexStringToBuffer(LPCTSTR hexString, std::vector<BYTE>* 
 	int len = _tcslen(hexString);
 	buffer->resize(len/2);
 
-	int bufferIndex = 0;
-	for(int i=0; i<(int)buffer->size(); i+=2)
+	for(int i=0; i<(int)buffer->size(); i++)
 	{
 		char b[3];
-		b[0] = hexString[i];
-		b[1] = hexString[i+1];
+		b[0] = hexString[i*2];
+		b[1] = hexString[i*2+1];
 		b[2] = 0;
-		buffer->data()[bufferIndex++] = (BYTE)strtol(b, NULL, 16);
+		buffer->data()[i] = (BYTE)strtol(b, NULL, 16);
 	}
 }
 
@@ -275,7 +274,7 @@ std::tstring BarbaUtils::GetFileTitleFromUrl(LPCTSTR url)
 	return fileTitle;
 }
 
-std::tstring BarbaUtils::GetKeyValueFromHttpRequest(LPCTSTR httpRequest, LPCTSTR key)
+std::tstring BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key)
 {
 	CHAR phrase[BARBA_MaxKeyName+2];
 	_stprintf_s(phrase, "%s=", key);
@@ -286,6 +285,7 @@ std::tstring BarbaUtils::GetKeyValueFromHttpRequest(LPCTSTR httpRequest, LPCTSTR
 
 	const TCHAR* end = _tcsstr(start, ";");
 	if (end==NULL) end = _tcsstr(start, "\r");
+	if (end==NULL) end = _tcsstr(start, "\n");
 	if (end==NULL) end = httpRequest + _tcslen(httpRequest);
 
 	TCHAR buffer[255];
@@ -294,3 +294,19 @@ std::tstring BarbaUtils::GetKeyValueFromHttpRequest(LPCTSTR httpRequest, LPCTSTR
 	return buffer;
 }
 
+std::tstring BarbaUtils::FormatTimeForHttp()
+{
+	time_t t;
+	time(&t);
+	return FormatTimeForHttp(&t);
+}
+
+std::tstring BarbaUtils::FormatTimeForHttp(time_t* t)
+{
+	TCHAR buf[200];
+
+	struct tm timeinfo ;
+	gmtime_s( &timeinfo, t );
+	_tcsftime(buf, sizeof buf, _T("%a, %d %b %Y %H:%M:%S GMT"), &timeinfo);
+	return buf;
+}

@@ -34,8 +34,7 @@ class BarbaClientConfigManager
 {
 public:
 	BarbaClientConfigManager();
-	BarbaClientConfig Configs[BARBA_MAX_CONFIGS];
-	int ConfigsCount;
+	std::vector<BarbaClientConfig> Configs;
 	void LoadFolder(LPCTSTR folder);
 	BarbaClientConfig* FindByServerIP(DWORD ip);
 };
