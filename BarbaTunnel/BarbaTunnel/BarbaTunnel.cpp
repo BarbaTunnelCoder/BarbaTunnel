@@ -368,7 +368,7 @@ bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barb
 void ApplyClientPacketFilter()
 {
 	size_t configItemCount = theClientApp->ConfigManager.Configs.size();
-	size_t filterCount = configItemCount*1 + 1;
+	size_t filterCount = configItemCount*2 + 1;
 	std::vector<BYTE> filterTableBuf( sizeof STATIC_FILTER_TABLE  * filterCount );
 	STATIC_FILTER_TABLE* filterTable = (STATIC_FILTER_TABLE*)&filterTableBuf.front();
 	filterTable->m_TableSize = filterCount;
@@ -378,7 +378,7 @@ void ApplyClientPacketFilter()
 		BarbaClientConfig* configItem = &theClientApp->ConfigManager.Configs[i];
 
 		//redirect only packet that send to our server
-		STATIC_FILTER* staticFilter = &filterTable->m_StaticFilters[i];
+		STATIC_FILTER* staticFilter = &filterTable->m_StaticFilters[i*2];
 		staticFilter->m_Adapter.LowPart = (DWORD)theApp->GetAdapterHandle();
 		staticFilter->m_FilterAction = FILTER_PACKET_REDIRECT;
 		staticFilter->m_dwDirectionFlags = PACKET_FLAG_ON_SEND;
@@ -392,7 +392,7 @@ void ApplyClientPacketFilter()
 		filter->m_DestAddress.m_IpSubnet.m_IpMask = 0xFFFFFFFF;
 
 		//redirect only packet that receive from our server
-		staticFilter = &filterTable->m_StaticFilters[i*2];
+		staticFilter = &filterTable->m_StaticFilters[i*2+1];
 		staticFilter->m_Adapter.LowPart = (DWORD)theApp->GetAdapterHandle();
 		staticFilter->m_FilterAction = FILTER_PACKET_REDIRECT;
 		staticFilter->m_dwDirectionFlags = PACKET_FLAG_ON_RECEIVE;
