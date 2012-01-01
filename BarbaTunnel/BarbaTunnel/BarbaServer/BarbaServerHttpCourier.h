@@ -17,7 +17,7 @@ public:
 	void SendPacket(PacketHelper* packet);
 
 protected:
-	virtual void GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
+	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
 	virtual ~BarbaServerHttpCourier(void);
 	BarbaServerHttpConnection* HttpConnection;
 };

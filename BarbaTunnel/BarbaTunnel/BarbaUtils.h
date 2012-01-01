@@ -22,7 +22,7 @@ public:
 	static std::string LoadFileToString(LPCTSTR fileName);
 	static u_int GetRandom(u_int start, u_int end);
 	static void FindFiles(LPCTSTR folder, LPCTSTR search, std::vector<std::tstring>* files);
-	static std::tstring FindFileName(LPCTSTR filePath);
+	static std::tstring FindFileTitle(LPCTSTR filePath);
 	static std::tstring GetFileExtensionFromUrl(LPCTSTR url);
 	static std::tstring GetFileNameFromUrl(LPCTSTR url);
 	static std::tstring GetFileTitleFromUrl(LPCTSTR url);
@@ -30,4 +30,8 @@ public:
 	static std::tstring GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key);
 	static std::tstring FormatTimeForHttp();
 	static std::tstring FormatTimeForHttp(time_t* t);
+	static std::tstring ConvertIpToString(u_int ip);
+	static bool IsFileExists(LPCTSTR filename);
+	static void UpdateHttpRequest(std::tstring* httpRequest, std::tstring key, std::tstring value);
+
 };

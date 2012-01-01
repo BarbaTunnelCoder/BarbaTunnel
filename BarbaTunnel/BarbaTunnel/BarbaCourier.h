@@ -12,9 +12,10 @@ struct BarbaCourierCreateStrcut
 {
 	u_int SessionId;
 	u_short MaxConnenction;
-	LPCTSTR RequestDataKeyName;
-	LPCTSTR FakeHttpGetTemplate;
-	LPCTSTR FakeHttpPostTemplate;
+	std::tstring RequestDataKeyName;
+	std::tstring FakeHttpGetTemplate;
+	std::tstring FakeHttpPostTemplate;
+	std::tstring HostName;
 	u_int FakeFileMaxSize;
 	size_t ThreadsStackSize;
 };
@@ -40,7 +41,7 @@ public:
 	explicit BarbaCourier(BarbaCourierCreateStrcut* cs);
 	virtual void Send(BYTE* buffer, size_t bufferCount);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
-	virtual void GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
+	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
 	virtual void Crypt(BYTE* data, size_t dataLen, bool encrypt);
 	std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
@@ -52,7 +53,7 @@ public:
 	HANDLE Delete();
 
 private:
-	std::tstring PrepareFakeRequests(LPCTSTR request);
+	std::tstring PrepareFakeRequests(std::tstring request);
 	//@return false if max connection reached
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
 	size_t MaxMessageBuffer;
@@ -74,7 +75,7 @@ protected:
 	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	void SendFakeFileHeader(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader);
 	void WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRequest);
-	void InitFakeRequestVars(std::tstring& src, LPCTSTR host, LPCTSTR filename, u_int fileSize, u_int fileHeaderSize);
+	void InitFakeRequestVars(std::tstring& src, LPCTSTR filename, LPCTSTR contentType, u_int fileSize, u_int fileHeaderSize);
 
 	SimpleSafeList<BarbaSocket*> IncomingSockets;
 	SimpleSafeList<BarbaSocket*> OutgoingSockets;
@@ -85,8 +86,9 @@ protected:
 	size_t ThreadsStackSize;
 	size_t FakeFileMaxSize;
 	std::tstring RequestDataKeyName;
-	std::string FakeHttpGetTemplate;
-	std::string FakeHttpPostTemplate;
+	std::tstring FakeHttpGetTemplate;
+	std::tstring FakeHttpPostTemplate;
+	std::tstring HostName;
 	u_int SessionId;
 };
 

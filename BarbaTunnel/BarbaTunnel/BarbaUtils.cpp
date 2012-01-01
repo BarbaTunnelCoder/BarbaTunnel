@@ -197,7 +197,7 @@ void BarbaUtils::FindFiles(LPCTSTR folder, LPCTSTR search, std::vector<std::tstr
 	FindClose(findHandle);
 }
 
-std::tstring BarbaUtils::FindFileName(LPCTSTR filePath)
+std::tstring BarbaUtils::FindFileTitle(LPCTSTR filePath)
 {
 	int len = _tcslen(filePath);
 	int start = 0;
@@ -217,10 +217,10 @@ std::tstring BarbaUtils::FindFileName(LPCTSTR filePath)
 	if (end<=start)
 		end = len;
 
-	TCHAR fileName[MAX_PATH];
-	_tcsncpy_s(fileName, &filePath[start], end-start);
+	TCHAR fileTitle[MAX_PATH];
+	_tcsncpy_s(fileTitle, &filePath[start], end-start);
 
-	return fileName;
+	return fileTitle;
 }
 
 std::tstring BarbaUtils::GetFileUrlFromHttpRequest(LPCTSTR httpRequest)
@@ -260,7 +260,8 @@ std::tstring BarbaUtils::GetFileExtensionFromUrl(LPCTSTR url)
 {
 	std::tstring fileName = GetFileNameFromUrl(url);
 	LPCTSTR startP = _tcsrchr(fileName.data(), '.');
-	return startP==NULL ? _T("") : startP+1;
+	LPCTSTR startSlash = _tcsrchr(fileName.data(), '/');
+	return startP==NULL || startSlash>startP ? _T("") : startP+1;
 }
 
 std::tstring BarbaUtils::GetFileTitleFromUrl(LPCTSTR url)
@@ -309,4 +310,37 @@ std::tstring BarbaUtils::FormatTimeForHttp(time_t* t)
 	gmtime_s( &timeinfo, t );
 	_tcsftime(buf, sizeof buf, _T("%a, %d %b %Y %H:%M:%S GMT"), &timeinfo);
 	return buf;
+}
+
+void BarbaUtils::UpdateHttpRequest(std::tstring* httpRequest, std::tstring key, std::tstring value)
+{
+	value.insert(0, " ");
+	key.push_back(':');
+
+	size_t start_pos = 0;
+	start_pos = httpRequest->find(key, start_pos);
+	if (start_pos!=std::string::npos)
+	{
+		start_pos = start_pos + key.size();
+		size_t end_pos = httpRequest->find('\r', start_pos);
+		if (end_pos==std::string::npos) end_pos = httpRequest->find('\n', start_pos);
+		if (end_pos==std::string::npos) end_pos = httpRequest->size();
+		httpRequest->replace(start_pos, end_pos-start_pos, value);
+	}
+}
+
+std::tstring BarbaUtils::ConvertIpToString(u_int ip)
+{
+	TCHAR buf[100];
+	PacketHelper::ConvertIpToString(ip, buf, _countof(buf));
+	return buf;
+}
+
+bool BarbaUtils::IsFileExists(LPCTSTR filename)
+{    
+	FILE* f;
+	if (_tfopen_s(&f, filename, _T("rb"))!=0)
+		return false;
+	fclose(f);
+	return true;    
 }

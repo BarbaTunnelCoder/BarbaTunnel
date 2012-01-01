@@ -54,6 +54,7 @@ struct ProtocolPort
 //FakeFileHeader
 struct FakeFileHeader
 {
+	std::tstring ContentType;
 	std::tstring Extension;
 	std::vector<BYTE> Data;
 };

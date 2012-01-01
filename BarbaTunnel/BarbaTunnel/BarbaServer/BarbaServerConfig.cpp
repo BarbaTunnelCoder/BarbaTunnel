@@ -13,6 +13,16 @@ BarbaServerConfig::BarbaServerConfig()
 
 bool BarbaServerConfig::LoadFile(LPCTSTR file)
 {
+	if (!BarbaUtils::IsFileExists(file))
+		return false;
+
+	//ServerIp
+	TCHAR serverAddress[255];
+	GetPrivateProfileString(_T("General"), _T("ServerAddress"), _T(""), serverAddress, _countof(serverAddress), file);
+	this->ServerIp = PacketHelper::ConvertStringIp(serverAddress);
+
+	//Name
+	GetPrivateProfileString(_T("General"), _T("ServerName"), _T(""), ServerName, _countof(ServerName), file);
 
 	//load Items
 	int notfoundCounter = 0;
@@ -31,6 +41,8 @@ bool BarbaServerConfig::LoadFile(LPCTSTR file)
 			continue;
 		}
 
+		//keep alive
+		item.KeepAlive = GetPrivateProfileInt(sectionName, _T("KeepAlive"), 1, file)!=0;
 		this->Items.push_back(item);
 	}
 

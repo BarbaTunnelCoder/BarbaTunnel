@@ -14,7 +14,7 @@ public:
 	virtual void Start();
 	virtual bool ProcessPacket(PacketHelper* packet, bool send)=0;
 	virtual void Dispose();
-	bool GetFakeFile(std::vector<std::tstring>* fakeTypes, u_int fakeFileMaxSize, TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
+	bool GetFakeFile(std::vector<std::tstring>* fakeTypes, u_int fakeFileMaxSize, TCHAR* filename, std::tstring* contentType, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
 	bool SendPacketToAdapter(PacketHelper* packet);
 	bool SendPacketToMstcp(PacketHelper* packet);
 	//@return false to terminate process

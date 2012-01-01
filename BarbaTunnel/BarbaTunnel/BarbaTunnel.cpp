@@ -128,7 +128,11 @@ void InitMemoryLeackReport()
 
 void test()
 {
-	printf( BarbaUtils::FormatTimeForHttp().data() );
+	std::tstring http = "bbb:\r\nbala\nSize: 10\nsfasf\nsfasfsaf\n";
+	BarbaUtils::UpdateHttpRequest(&http, "bbb", "3000");
+	BarbaUtils::UpdateHttpRequest(&http, "Size", "1000");
+	BarbaUtils::UpdateHttpRequest(&http, "Size2", "2000");
+	printf(http.data());
 }
 int main(int argc, char* argv[])
 {

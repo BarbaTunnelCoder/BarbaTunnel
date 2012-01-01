@@ -45,8 +45,9 @@ void BarbaServerApp::Initialize()
 	}
 
 	//Load Config File
-	Config.LoadFile(configFile);
-
+	if (!Config.LoadFile(configFile))
+		throw new BarbaException(_T("Could not load %s file!"), configFileName);
+	
 	//load fake files
 	TCHAR file[MAX_PATH];
 	_stprintf_s(file, _T("%s\\templates\\HTTP-GetReplyTemplate.txt"), GetModuleFolder());

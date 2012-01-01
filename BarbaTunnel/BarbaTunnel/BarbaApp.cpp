@@ -44,8 +44,17 @@ void BarbaApp::InitFakeFileHeaders()
 	BarbaUtils::FindFiles(folder, _T("*.header"), &files);
 	for (int i=0; i<(int)files.size(); i++)
 	{
+		TCHAR contentTypeFile[MAX_PATH];
+		_stprintf_s(contentTypeFile, _T("%s\\ContentType.txt"), folder);
+
 		FakeFileHeader ffh;
-		ffh.Extension = BarbaUtils::FindFileName(files[i].data());
+		//extension
+		ffh.Extension = BarbaUtils::FindFileTitle(files[i].data());
+		//contentType
+		TCHAR contentType[MAX_PATH];
+		GetPrivateProfileString(_T("General"), ffh.Extension.data(), ffh.Extension.data(), contentType, _countof(contentType), contentTypeFile);
+		ffh.ContentType = contentType;
+		//file-header
 		if ( BarbaUtils::LoadFileToBuffer(files[i].data(), &ffh.Data) )
 			this->FakeFileHeaders.push_back(ffh);
 	}
@@ -228,7 +237,7 @@ bool BarbaApp::CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMT
 	return ret;
 }
 
-bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, u_int fakeFileMaxSize, TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew)
+bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, u_int fakeFileMaxSize, TCHAR* filename, std::tstring* contentType, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew)
 {
 	*fileSize = BarbaUtils::GetRandom(fakeFileMaxSize/2, fakeFileMaxSize); 
 
@@ -248,6 +257,7 @@ bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, u_int fakeFileM
 	}
 
 	//find extension and fill fakeFileHeader
+	*contentType = BarbaUtils::GetFileExtensionFromUrl(filename);
 	if (fakeFileHeader!=NULL)
 	{
 		std::tstring extension = BarbaUtils::GetFileExtensionFromUrl(filename);
@@ -255,6 +265,7 @@ bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, u_int fakeFileM
 		{
 			if (_tcsicmp(this->FakeFileHeaders[i].Extension.data(), extension.data())==0)
 			{
+				*contentType = this->FakeFileHeaders[i].ContentType;
 				*fakeFileHeader = this->FakeFileHeaders[i].Data;
 			}
 		}
