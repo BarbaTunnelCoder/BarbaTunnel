@@ -11,12 +11,13 @@ BarbaCourier::BarbaCourier(BarbaCourierCreateStrcut* cs)
 	this->SentBytesCount = 0;
 	this->ReceivedBytesCount = 0;
 	this->SessionId = cs->SessionId;
+	this->HostName = cs->HostName;
 	this->ThreadsStackSize = cs->ThreadsStackSize!=0 ? cs->ThreadsStackSize : 128000; //128KB
 	this->MaxConnection = cs->MaxConnenction;
 	this->FakeFileMaxSize = cs->FakeFileMaxSize!=0 ? cs->FakeFileMaxSize : 15000000; //15MB
 	this->RequestDataKeyName = cs->RequestDataKeyName;
-	this->FakeHttpGetTemplate = PrepareFakeRequests(cs->FakeHttpGetTemplate);
-	this->FakeHttpPostTemplate = PrepareFakeRequests(cs->FakeHttpPostTemplate);
+	this->FakeHttpGetTemplate = PrepareFakeRequests(cs->FakeHttpGetTemplate.data());
+	this->FakeHttpPostTemplate = PrepareFakeRequests(cs->FakeHttpPostTemplate.data());
 }
 
 unsigned BarbaCourier::DeleteThread(void* object) 
@@ -129,9 +130,9 @@ void BarbaCourier::Send(Message* message, bool highPriority)
 	SendEvent.Set();
 }
 
-std::tstring BarbaCourier::PrepareFakeRequests(LPCTSTR request)
+std::tstring BarbaCourier::PrepareFakeRequests(std::tstring request)
 {
-	std::tstring ret = request;
+	std::tstring& ret = request;
 	StringUtils::ReplaceAll(ret, _T("\r"), _T(""));
 	while (StringUtils::ReplaceAll(ret, _T("\n\n"), _T("\n"))!=0); //prevent more than one \n\n
 	StringUtils::Trim(ret, '\n');
@@ -329,7 +330,7 @@ void BarbaCourier::WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRe
 	}
 }
 
-void BarbaCourier::GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYTE>* /*fakeFileHeader*/, bool createNew)
+void BarbaCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, u_int* fileSize, std::vector<BYTE>* /*fakeFileHeader*/, bool createNew)
 {
 	*fileSize = BarbaUtils::GetRandom(this->FakeFileMaxSize/2, this->FakeFileMaxSize); 
 	if (createNew)
@@ -337,6 +338,7 @@ void BarbaCourier::GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYT
 		u_int fileNameId = BarbaUtils::GetRandom(1, UINT_MAX);
 		_ltot_s(fileNameId, filename, MAX_PATH, 32);
 	}
+	*contentType = BarbaUtils::GetFileExtensionFromUrl(filename);
 
 }
 
@@ -345,13 +347,17 @@ void BarbaCourier::Crypt(BYTE* /*data*/, size_t /*size*/, bool /*encrypt*/)
 }
 
 
-void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR host, LPCTSTR fileName, u_int fileSize, u_int fileHeaderSize)
+void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR fileName, LPCTSTR contentType, u_int fileSize, u_int fileHeaderSize)
 {
-	if (host==NULL) host = _T("");
 	if (fileName==NULL) fileName = _T("");
+	if (contentType==NULL) contentType = _T("");
 
 	//host
-	StringUtils::ReplaceAll(src, _T("{host}"), host);
+	if (!this->HostName.empty())
+	{
+		BarbaUtils::UpdateHttpRequest(&src, _T("Host"), HostName);
+		BarbaUtils::UpdateHttpRequest(&src, _T("Origin"), HostName);
+	}
 	
 	//filename
 	if (fileName!=NULL)
@@ -361,14 +367,19 @@ void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR host, LPCTSTR 
 		StringUtils::ReplaceAll(src, _T("{fileextension}"), BarbaUtils::GetFileExtensionFromUrl(fileName));
 	}
 
-	//filesize
+	//fileSize
 	TCHAR fileSizeStr[20];
 	_ltot_s(fileSize, fileSizeStr, 10);
-	StringUtils::ReplaceAll(src, _T("{filesize}"), fileSizeStr);
+	BarbaUtils::UpdateHttpRequest(&src, _T("Content-Length"), fileSizeStr);
 
 	//time
 	std::tstring curTime = BarbaUtils::FormatTimeForHttp();
-	StringUtils::ReplaceAll(src, _T("{time}"), curTime);
+	BarbaUtils::UpdateHttpRequest(&src, _T("Date"), curTime);
+	BarbaUtils::UpdateHttpRequest(&src, _T("Last-Modified"), curTime);
+
+	//contentType
+	if (_tcslen(contentType)>0)
+		BarbaUtils::UpdateHttpRequest(&src, _T("Content-Type"), contentType);
 	
 	//prepare RequestData: 
 	TCHAR requestDataStr[2000]; //hlen=AAFF;session=AABB

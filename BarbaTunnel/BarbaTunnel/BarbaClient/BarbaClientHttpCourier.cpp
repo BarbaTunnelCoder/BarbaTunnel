@@ -48,9 +48,9 @@ void BarbaClientHttpCourier::SendPacket(PacketHelper* packet)
 	this->Send(data, dataCount);
 }
 
-void BarbaClientHttpCourier::GetFakeFile(TCHAR* filename, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew)
+void BarbaClientHttpCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew)
 {
-	if (!theApp->GetFakeFile(&this->HttpConnection->GetConfigItem()->FakeFileTypes, this->FakeFileMaxSize, filename, fileSize, fakeFileHeader, createNew))
-		BarbaCourierClient::GetFakeFile(filename, fileSize, fakeFileHeader, createNew);
+	if (!theApp->GetFakeFile(&this->HttpConnection->GetConfigItem()->FakeFileTypes, this->FakeFileMaxSize, filename, contentType, fileSize, fakeFileHeader, createNew))
+		BarbaCourierClient::GetFakeFile(filename, contentType, fileSize, fakeFileHeader, createNew);
 }
 

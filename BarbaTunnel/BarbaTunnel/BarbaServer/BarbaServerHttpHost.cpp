@@ -3,6 +3,7 @@
 #include "BarbaServerHttpConnection.h"
 #include "BarbaServerApp.h"
 #include "BarbaCrypt.h"
+#include "BarbaUtils.h"
 
 
 BarbaServerHttpHost::BarbaServerHttpHost(void)
@@ -91,15 +92,18 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 	AnswerThreadData* threadData = (AnswerThreadData*)data;
 	BarbaServerHttpHost* _this = (BarbaServerHttpHost*)threadData->HttpHost;
 	BarbaSocket* socket = (BarbaSocket*)threadData->Socket;
-
-	//get clientIp
-	TCHAR clientIpString[30];
-	PacketHelper::ConvertIpToString(socket->GetRemoteIp(), clientIpString, _countof(clientIpString));
+	std::tstring clientIp = BarbaUtils::ConvertIpToString(socket->GetRemoteIp());
 
 	try
 	{
+		//set KeepAlive and TimeOut
+		if (threadData->ConfigItem->KeepAlive)
+			socket->SetKeepAlive(true);
+		else
+			socket->SetReceiveTimeOut(theApp->ConnectionTimeout);
+			
 		//read httpRequest
-		_this->Log(_T("New incoming connection. ServerPort: %d, ClientIp: %s."), threadData->ServerPort, clientIpString);
+		_this->Log(_T("New incoming connection. ServerPort: %d, ClientIp: %s."), threadData->ServerPort, clientIp.data());
 		_this->Log(_T("Waiting for HTTP request."));
 		std::string httpRequest = socket->ReadHttpRequest();
 		bool isGet = httpRequest.size()>=3 && _strnicmp(httpRequest.data(), "GET", 3)==0;

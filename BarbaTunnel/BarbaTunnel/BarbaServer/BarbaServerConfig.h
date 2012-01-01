@@ -6,6 +6,7 @@ class BarbaServerConfigItem : public BarbaConfigItem
 public:
 	BarbaServerConfigItem();
 	virtual ~BarbaServerConfigItem(){}
+	bool KeepAlive;
 };
 
 class BarbaServerConfig
@@ -15,4 +16,6 @@ public:
 	virtual ~BarbaServerConfig(){}
 	bool LoadFile(LPCTSTR file);
 	std::vector<BarbaServerConfigItem> Items;
+	DWORD ServerIp;
+	TCHAR ServerName[BARBA_MaxConfigName];
 };

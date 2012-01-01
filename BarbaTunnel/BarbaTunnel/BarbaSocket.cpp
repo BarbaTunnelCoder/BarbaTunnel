@@ -29,12 +29,11 @@ bool BarbaSocket::IsWritable()
 	return send(this->_Socket, NULL, 0, 0)!=SOCKET_ERROR;
 }
 
-void BarbaSocket::SetReceiveTimeOut(long second)
+void BarbaSocket::SetReceiveTimeOut(DWORD milisecond)
 {
-	timeval tv;
-	tv.tv_sec  = second;  
-	tv.tv_usec = 0;
-	int res = setsockopt(this->_Socket, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
+	//WINDOWS: Timeout value is a DWORD in milliseconds, address passed to setsockopt() is const char *
+	//LINUX: Timeout value is a struct timeval, address passed to setsockopt() is const void *
+	int res = setsockopt(this->_Socket, SOL_SOCKET, SO_RCVTIMEO, (char*)&milisecond, sizeof(milisecond));
 	if (res==SOCKET_ERROR)
 		ThrowSocketError();
 }

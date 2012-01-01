@@ -11,13 +11,14 @@ BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, 
 	this->TunnelPort = tunnelPort;
 
 	BarbaCourierCreateStrcut cs = {0};
-	cs.RequestDataKeyName = configItem->RequestDataKeyName.data();
+	cs.RequestDataKeyName = configItem->RequestDataKeyName;
 	cs.FakeFileMaxSize = configItem->FakeFileMaxSize;
-	cs.FakeHttpGetTemplate = theClientApp->FakeHttpGetTemplate.data();
-	cs.FakeHttpPostTemplate = theClientApp->FakeHttpPostTemplate.data();
+	cs.FakeHttpGetTemplate = theClientApp->FakeHttpGetTemplate;
+	cs.FakeHttpPostTemplate = theClientApp->FakeHttpPostTemplate;
 	cs.MaxConnenction = configItem->MaxUserConnections;
 	cs.SessionId = this->SessionId;
 	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;
+	cs.HostName = BarbaUtils::ConvertIpToString(config->ServerIp);
 	this->Courier = new BarbaClientHttpCourier(&cs, config->ServerIp, tunnelPort, this);
 }
 

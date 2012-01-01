@@ -17,6 +17,7 @@ BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfigItem* conf
 	cs.MaxConnenction = configItem->MaxUserConnections;
 	cs.SessionId = sessionId;
 	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;
+	cs.HostName = theServerApp->Config.ServerName;
 	this->Courier = new BarbaServerHttpCourier(&cs , this);
 }
 

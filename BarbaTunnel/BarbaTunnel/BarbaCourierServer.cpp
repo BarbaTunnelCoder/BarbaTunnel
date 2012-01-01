@@ -88,11 +88,12 @@ u_int BarbaCourierServer::SendFakeReply(BarbaSocket* socket, LPCTSTR httpRequest
 	u_int fileSize;
 	TCHAR filename[MAX_PATH];
 	_tcscpy_s(filename, fakefile.data());
-	GetFakeFile(filename, &fileSize, fakeFileHeader, false);
+	std::tstring contentType;
+	GetFakeFile(filename, &contentType, &fileSize, fakeFileHeader, false);
 	u_int fakeFileHeaderSize = fakeFileHeader!=NULL ? fakeFileHeader->size() : 0;
 
 	std::tstring fakeReply = outgoing ? this->FakeHttpGetTemplate : this->FakeHttpPostTemplate;
-	InitFakeRequestVars(fakeReply, NULL, filename, fileSize, fakeFileHeaderSize);
+	InitFakeRequestVars(fakeReply, filename, contentType.data(), fileSize, fakeFileHeaderSize);
 
 	if (outgoing)
 		Log(_T("Sending fake GET reply! File: %s (%u KB)."), filename, fileSize, fakeFileHeaderSize);
