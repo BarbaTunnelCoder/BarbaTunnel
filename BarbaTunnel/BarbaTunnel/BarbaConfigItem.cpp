@@ -49,10 +49,10 @@ bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 		return false; //could not find item
 
 	this->Mode = BarbaMode_FromString(modeString);
-	if (this->Mode==BarbaModeTcpTunnel || this->Mode==BarbaModeNone)
+	if (this->Mode==BarbaModeTcpTunnel)
 	{
-		Log(_T("Error: %s mode not supported!"), modeString);
-		return false;
+		Log(_T("TCP-Tunnel suppressed by HTTP-Tunnel. HTTP-Tunnel is used as an advanced TCP-Tunnel."));
+		this->Mode = BarbaModeHttpTunnel;
 	}
 
 	//Key

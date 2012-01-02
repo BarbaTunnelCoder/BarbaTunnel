@@ -427,9 +427,10 @@ void ApplyServerPacketFilter()
 	std::vector<BYTE> filterTableBuf( sizeof STATIC_FILTER_TABLE  * filterCount );
 	STATIC_FILTER_TABLE* filterTable = (STATIC_FILTER_TABLE*)&filterTableBuf.front();
 	filterTable->m_TableSize = filterCount;
+	STATIC_FILTER* staticFilter = NULL;
 
 	//process just IP packets
-	STATIC_FILTER* staticFilter = &filterTable->m_StaticFilters[0];
+	staticFilter = &filterTable->m_StaticFilters[0];
 	staticFilter->m_Adapter.LowPart = (DWORD)theApp->GetAdapterHandle();
 	staticFilter->m_FilterAction = FILTER_PACKET_REDIRECT;
 	staticFilter->m_dwDirectionFlags = PACKET_FLAG_ON_RECEIVE | PACKET_FLAG_ON_SEND;
