@@ -60,7 +60,8 @@ void BarbaServerApp::Initialize()
 
 	//VirtualIpRange
 	TCHAR virtualIpRange[100] = {0};
-	GetPrivateProfileString(_T("Server"), _T("VirtualIpRange"), _T("10.207.0.1"), virtualIpRange, _countof(virtualIpRange), GetConfigFile());
+	GetPrivateProfileString(_T("Server"), _T("VirtualIpRange"), _T("") , virtualIpRange, _countof(virtualIpRange), GetConfigFile());
+	if (_tcslen(virtualIpRange)==0) _tcscpy_s(virtualIpRange, _T("10.207.0.1"));
 	TCHAR* dash = _tcschr(virtualIpRange, '-');
 	TCHAR ipBuffer[100];
 	_tcsncpy_s(ipBuffer, _countof(ipBuffer), virtualIpRange, dash!=NULL ? dash-virtualIpRange : _tcslen(virtualIpRange));

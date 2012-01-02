@@ -14,7 +14,7 @@ BarbaApp::BarbaApp(void)
 	this->_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetConfigFile());
 	this->VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetConfigFile())!=0;
 	this->_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetConfigFile())!=0;
-	this->ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), BARBA_ConnectionTimeout, GetConfigFile())*60*1000;
+	this->ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), 0, GetConfigFile())*60*1000;
 	this->MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), -1, GetConfigFile());
 	
 	//ConnectionTimeout
