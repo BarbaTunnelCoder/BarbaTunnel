@@ -43,7 +43,7 @@ u_int BarbaCourierClient::SendFakeRequest(BarbaSocket* socket, std::vector<BYTE>
 	InitFakeRequestVars(fakeRequest, filename, contentType.data(), fileSize, fakeFileHeaderSize);
 
 	if (outgoing)
-		Log(_T("Sending fake POST request! File: %s (%u KB)."), filename, fileSize);
+		Log(_T("Sending fake POST request! File: %s (%u KB)."), filename, fileSize/1000);
 	else
 		Log(_T("Sending fake HTTP GET request! FileName: %s."), filename);
 	std::string fakeRequestA = fakeRequest;
