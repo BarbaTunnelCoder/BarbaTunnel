@@ -270,10 +270,12 @@ namespace BarbaTunnel.CommLib
         {
             try
             {
-                var fs = File.Open(NotifyFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                var logReader = new StreamReader(fs, Encoding.UTF8);
-                title = logReader.ReadLine();
-                return logReader.ReadToEnd();
+                using (var fs = File.Open(NotifyFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var logReader = new StreamReader(fs, Encoding.UTF8))
+                {
+                    title = logReader.ReadLine();
+                    return logReader.ReadToEnd();
+                }
             }
             catch
             {
@@ -286,9 +288,11 @@ namespace BarbaTunnel.CommLib
         {
             try
             {
-                var fs = File.Open(LogFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                var logReader = new StreamReader(fs, Encoding.UTF8);
-                return logReader.ReadToEnd();
+                using (var fs = File.Open(LogFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var logReader = new StreamReader(fs, Encoding.UTF8))
+                {
+                    return logReader.ReadToEnd();
+                }
             }
             catch
             {
