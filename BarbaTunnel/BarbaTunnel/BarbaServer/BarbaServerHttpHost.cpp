@@ -93,15 +93,10 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 	BarbaServerHttpHost* _this = (BarbaServerHttpHost*)threadData->HttpHost;
 	BarbaSocket* socket = (BarbaSocket*)threadData->Socket;
 	std::tstring clientIp = BarbaUtils::ConvertIpToString(socket->GetRemoteIp());
+	socket->SetReceiveTimeOut(theApp->ConnectionTimeout);
 
 	try
 	{
-		//set KeepAlive and TimeOut
-		if (threadData->ConfigItem->KeepAlive)
-			socket->SetKeepAlive(true);
-		else
-			socket->SetReceiveTimeOut(theApp->ConnectionTimeout);
-			
 		//read httpRequest
 		_this->Log(_T("New incoming connection. ServerPort: %d, ClientIp: %s."), threadData->ServerPort, clientIp.data());
 		_this->Log(_T("Waiting for HTTP request."));
@@ -163,7 +158,6 @@ unsigned int BarbaServerHttpHost::ListenerThread(void* data)
 		while (!_this->IsDisposing())
 		{
 			BarbaSocket* socket = listenerSocket->Accept(); 
-			//socket->SetKeepAlive(true); //todo: should use keep alive?
 			_this->AnswerSockets.AddTail(socket);
 			AnswerThreadData* answerThreadData = new AnswerThreadData(_this, socket, threadData->ConfigItem, listenerSocket->GetListenPort());
 			_this->AnswerThreads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, AnswerThread, answerThreadData, 0, NULL));

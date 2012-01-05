@@ -15,6 +15,7 @@ BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfigItem* conf
 	cs.FakeHttpGetTemplate = theServerApp->FakeHttpGetReplyTemplate.data();
 	cs.FakeHttpPostTemplate = theServerApp->FakeHttpPostReplyTemplate.data();
 	cs.MaxConnenction = configItem->MaxUserConnections;
+	cs.ConnectionTimeout = theApp->ConnectionTimeout;
 	cs.SessionId = sessionId;
 	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;
 	cs.HostName = theServerApp->Config.ServerName;

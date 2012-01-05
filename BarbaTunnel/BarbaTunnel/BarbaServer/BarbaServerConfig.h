@@ -6,7 +6,6 @@ class BarbaServerConfigItem : public BarbaConfigItem
 public:
 	BarbaServerConfigItem();
 	virtual ~BarbaServerConfigItem(){}
-	bool KeepAlive;
 };
 
 class BarbaServerConfig

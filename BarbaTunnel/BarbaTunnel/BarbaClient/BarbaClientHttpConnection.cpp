@@ -19,6 +19,7 @@ BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, 
 	cs.SessionId = this->SessionId;
 	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;
 	cs.HostName = BarbaUtils::ConvertIpToString(config->ServerIp);
+	cs.ConnectionTimeout = theApp->ConnectionTimeout;
 	this->Courier = new BarbaClientHttpCourier(&cs, config->ServerIp, tunnelPort, this);
 }
 

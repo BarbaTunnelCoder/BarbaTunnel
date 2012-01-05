@@ -33,7 +33,7 @@ public:
 	void SetNoDelay(bool value);
 	void SetKeepAlive(bool value);
 	void SetReceiveTimeOut(DWORD milisecond);
-	void SetSendTimeOut(long second);
+	void SetSendTimeOut(DWORD milisecond);
 	u_long GetRemoteIp() { return this->RemoteIp;}
 	static bool InitializeLib(); 
 	static void UninitializeLib(); 
