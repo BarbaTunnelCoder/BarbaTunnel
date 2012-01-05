@@ -329,7 +329,7 @@ void BarbaCourier::WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRe
 	else
 	{
 		std::tstring url = BarbaUtils::GetFileUrlFromHttpRequest(httpRequest);
-		Log(_T("Waiting for incoming fake file header. URL: %s, HeaderSize: %u"), url.data(), fileSize);
+		Log(_T("Waiting for incoming fake file header. URL: %s, HeaderSize: %u."), url.data(), fileSize);
 		
 		std::vector<BYTE> buffer(fileSize);
 		if (socket->Receive(&buffer.front(), buffer.size(), true)!=(int)buffer.size())
