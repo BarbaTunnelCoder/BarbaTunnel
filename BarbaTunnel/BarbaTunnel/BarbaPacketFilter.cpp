@@ -11,157 +11,14 @@ ULARGE_INTEGER BarbaPacketFilter::GetAdapterHandle()
 	return ret;
 }
 
-void BarbaPacketFilter::GetClientFilters(std::vector<STATIC_FILTER>* filters, BarbaClientConfig* config)
+bool BarbaPacketFilter::ApplyFilters(std::vector<STATIC_FILTER>* filters)
 {
-	for (size_t i=0; i<config->Items.size(); i++)
-	{
-		BarbaClientConfigItem* item = &config->Items[i];
-		if (item->Enabled)
-		{
-			//filter only required packet going to server
-			GetClientGrabFilters(filters, config->ServerIp, &item->GrabProtocols);
-			//filter only tunnel packet that come from server except http-tunnel that use socket
-			//if (item->Mode!=BarbaModeHttpTunnel) 
-				//GetClientTunnelFilters(filters, config->ServerIp, item->GetTunnelProtocol(), &item->TunnelPorts);
-			//bypass all other packet
-			GetBypassPacketFilter(filters);
-		}
-	}
-}
-
-void BarbaPacketFilter::GetFilter(STATIC_FILTER* staticFilter, bool send, u_long startIp, u_long endIp, u_char protocol, PortRange* srcPortRange, PortRange* desPortRange)
-{
-	staticFilter->m_Adapter = GetAdapterHandle();
-	staticFilter->m_FilterAction = FILTER_PACKET_REDIRECT;
-	staticFilter->m_dwDirectionFlags = send ? PACKET_FLAG_ON_SEND : PACKET_FLAG_ON_RECEIVE;
-
-	//ip filter
-	if (startIp!=0)
-	{
-		staticFilter->m_ValidFields |= NETWORK_LAYER_VALID;
-		staticFilter->m_NetworkFilter.m_dwUnionSelector = IPV4;
-		if (send)
-		{
-			staticFilter->m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_DEST_ADDRESS;
-			staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_AddressType=IP_RANGE_V4_TYPE;
-			staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_StartIp = startIp;
-			staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_EndIp = endIp;
-		}
-		else
-		{
-			staticFilter->m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_SRC_ADDRESS;
-			staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_AddressType=IP_RANGE_V4_TYPE;
-			staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_IpRange.m_StartIp = startIp;
-			staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_IpRange.m_EndIp = endIp;
-		}
-	}
-
-	//protocol filter
-	if (protocol!=0)
-	{
-		staticFilter->m_ValidFields |= NETWORK_LAYER_VALID;
-		staticFilter->m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_PROTOCOL;
-		staticFilter->m_NetworkFilter.m_IPv4.m_Protocol = protocol;
-	}
-
-	//source port filter
-	if (srcPortRange!=NULL && (protocol==IPPROTO_TCP || protocol==IPPROTO_UDP))
-	{
-		staticFilter->m_ValidFields |= TRANSPORT_LAYER_VALID;
-		staticFilter->m_TransportFilter.m_dwUnionSelector = TCPUDP;
-		staticFilter->m_TransportFilter.m_TcpUdp.m_ValidFields |= TCPUDP_SRC_PORT;
-		staticFilter->m_TransportFilter.m_TcpUdp.m_SourcePort.m_StartRange = srcPortRange->StartPort;
-		staticFilter->m_TransportFilter.m_TcpUdp.m_SourcePort.m_EndRange = srcPortRange->EndPort;
-	}
-
-	//destination port filter
-	if (desPortRange!=NULL && (protocol==IPPROTO_TCP || protocol==IPPROTO_UDP))
-	{
-		staticFilter->m_ValidFields |= TRANSPORT_LAYER_VALID;
-		staticFilter->m_TransportFilter.m_dwUnionSelector = TCPUDP;
-		staticFilter->m_TransportFilter.m_TcpUdp.m_ValidFields |= TCPUDP_DEST_PORT;
-		staticFilter->m_TransportFilter.m_TcpUdp.m_DestPort.m_StartRange = desPortRange->StartPort;
-		staticFilter->m_TransportFilter.m_TcpUdp.m_DestPort.m_EndRange = desPortRange->EndPort;
-	}
-
-}
-
-
-void BarbaPacketFilter::GetClientGrabFilters(std::vector<STATIC_FILTER>* filters, u_long remoteIp, std::vector<ProtocolPort>* protocolPorts)
-{
-	for (size_t i=0; i<protocolPorts->size(); i++)
-	{
-		ProtocolPort* protocolPort = &protocolPorts->at(i);
-
-		STATIC_FILTER staticFilter = {0};
-		staticFilter.m_Adapter = GetAdapterHandle();
-		staticFilter.m_FilterAction = FILTER_PACKET_REDIRECT;
-		staticFilter.m_dwDirectionFlags = PACKET_FLAG_ON_SEND;
-		staticFilter.m_ValidFields |= NETWORK_LAYER_VALID;
-
-		//set remoteIp
-		staticFilter.m_NetworkFilter.m_dwUnionSelector = IPV4;
-		staticFilter.m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_DEST_ADDRESS;
-		staticFilter.m_NetworkFilter.m_IPv4.m_DestAddress.m_AddressType=IP_RANGE_V4_TYPE;
-		staticFilter.m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_StartIp = remoteIp;
-		staticFilter.m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_EndIp = remoteIp;
-	
-		//set protocol
-		if (protocolPort->Protocol!=0)
-		{
-			staticFilter.m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_PROTOCOL;
-			staticFilter.m_NetworkFilter.m_IPv4.m_Protocol = protocolPort->Protocol;
-		}
-
-		//set port
-		if (protocolPort->Protocol==IPPROTO_TCP || protocolPort->Protocol==IPPROTO_UDP)
-		{
-			staticFilter.m_ValidFields |= TRANSPORT_LAYER_VALID;
-			staticFilter.m_TransportFilter.m_dwUnionSelector = TCPUDP;
-			staticFilter.m_TransportFilter.m_TcpUdp.m_ValidFields |= TCPUDP_DEST_PORT;
-			staticFilter.m_TransportFilter.m_TcpUdp.m_DestPort.m_StartRange = protocolPort->Port;
-			staticFilter.m_TransportFilter.m_TcpUdp.m_DestPort.m_EndRange = protocolPort->Port;
-		}
-
-		filters->push_back(staticFilter);
-	}
-}
-
-void BarbaPacketFilter::GetClientTunnelFilters(std::vector<STATIC_FILTER>* filters, u_long remoteIp, u_char protocol, std::vector<PortRange>* portRanges)
-{
-	for (size_t i=0; i<portRanges->size(); i++)
-	{
-		PortRange* portRange = &portRanges->at(i);
-
-		STATIC_FILTER staticFilter = {0};
-		staticFilter.m_Adapter = GetAdapterHandle();
-		staticFilter.m_FilterAction = FILTER_PACKET_REDIRECT;
-		staticFilter.m_dwDirectionFlags = PACKET_FLAG_ON_RECEIVE;
-		staticFilter.m_ValidFields |= NETWORK_LAYER_VALID;
-
-		//set remoteIp
-		staticFilter.m_NetworkFilter.m_dwUnionSelector = IPV4;
-		staticFilter.m_NetworkFilter.m_IPv4.m_ValidFields = IP_V4_FILTER_SRC_ADDRESS;
-		staticFilter.m_NetworkFilter.m_IPv4.m_DestAddress.m_AddressType=IP_RANGE_V4_TYPE;
-		staticFilter.m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_StartIp = remoteIp;
-		staticFilter.m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_EndIp = remoteIp;
-
-		//set protocol
-		staticFilter.m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_PROTOCOL;
-		staticFilter.m_NetworkFilter.m_IPv4.m_Protocol = protocol;
-
-		//only TCP & UDP tunnel supported yet
-		if (protocol==IPPROTO_TCP || protocol==IPPROTO_UDP)
-		{
-			staticFilter.m_ValidFields |= TRANSPORT_LAYER_VALID;
-			staticFilter.m_TransportFilter.m_dwUnionSelector = TCPUDP;
-			staticFilter.m_TransportFilter.m_TcpUdp.m_ValidFields |= TCPUDP_SRC_PORT;
-			staticFilter.m_TransportFilter.m_TcpUdp.m_DestPort.m_StartRange = portRange->StartPort;
-			staticFilter.m_TransportFilter.m_TcpUdp.m_DestPort.m_EndRange = portRange->EndPort;
-		}
-
-		filters->push_back(staticFilter);
-	}
+	size_t filtersBufSize = sizeof (STATIC_FILTER)*filters->size();
+	std::vector<BYTE> filterTableBuf( sizeof STATIC_FILTER_TABLE +  filtersBufSize );
+	STATIC_FILTER_TABLE* filterTable = (STATIC_FILTER_TABLE*)&filterTableBuf.front();
+	filterTable->m_TableSize = filters->size();
+	memcpy_s(filterTable->m_StaticFilters, filtersBufSize, filters->data(), filtersBufSize);
+	return api.SetPacketFilterTable(filterTable)!=FALSE;
 }
 
 void BarbaPacketFilter::GetBypassPacketFilter(std::vector<STATIC_FILTER>* filters)
@@ -176,6 +33,116 @@ void BarbaPacketFilter::GetBypassPacketFilter(std::vector<STATIC_FILTER>* filter
 	filters->push_back(staticFilter);
 }
 
+void BarbaPacketFilter::GetFilter(STATIC_FILTER* staticFilter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
+{
+	if (ipEnd==0) ipEnd = ipStart;
+	if (srcPortEnd==0) srcPortEnd = srcPortStart;
+	if (desPortEnd==0) desPortEnd = desPortStart;
+
+	staticFilter->m_Adapter = GetAdapterHandle();
+	staticFilter->m_FilterAction = FILTER_PACKET_REDIRECT;
+	staticFilter->m_dwDirectionFlags = send ? PACKET_FLAG_ON_SEND : PACKET_FLAG_ON_RECEIVE;
+
+	//ip filter
+	if (ipStart!=0)
+	{
+		staticFilter->m_ValidFields |= NETWORK_LAYER_VALID;
+		staticFilter->m_NetworkFilter.m_dwUnionSelector = IPV4;
+		if (send)
+		{
+			staticFilter->m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_DEST_ADDRESS;
+			staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_AddressType=IP_RANGE_V4_TYPE;
+			staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_StartIp = ipStart;
+			staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_EndIp = ipEnd;
+		}
+		else
+		{
+			staticFilter->m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_SRC_ADDRESS;
+			staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_AddressType=IP_RANGE_V4_TYPE;
+			staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_IpRange.m_StartIp = ipStart;
+			staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_IpRange.m_EndIp = ipEnd;
+		}
+	}
+
+	//protocol filter
+	if (protocol!=0)
+	{
+		staticFilter->m_ValidFields |= NETWORK_LAYER_VALID;
+		staticFilter->m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_PROTOCOL;
+		staticFilter->m_NetworkFilter.m_IPv4.m_Protocol = protocol;
+	}
+
+	//source port filter
+	if (srcPortStart!=0 && (protocol==IPPROTO_TCP || protocol==IPPROTO_UDP))
+	{
+		staticFilter->m_ValidFields |= TRANSPORT_LAYER_VALID;
+		staticFilter->m_TransportFilter.m_dwUnionSelector = TCPUDP;
+		staticFilter->m_TransportFilter.m_TcpUdp.m_ValidFields |= TCPUDP_SRC_PORT;
+		staticFilter->m_TransportFilter.m_TcpUdp.m_SourcePort.m_StartRange = srcPortStart;
+		staticFilter->m_TransportFilter.m_TcpUdp.m_SourcePort.m_EndRange = srcPortEnd;
+	}
+
+	//destination port filter
+	if (desPortStart!=0 && (protocol==IPPROTO_TCP || protocol==IPPROTO_UDP))
+	{
+		staticFilter->m_ValidFields |= TRANSPORT_LAYER_VALID;
+		staticFilter->m_TransportFilter.m_dwUnionSelector = TCPUDP;
+		staticFilter->m_TransportFilter.m_TcpUdp.m_ValidFields |= TCPUDP_DEST_PORT;
+		staticFilter->m_TransportFilter.m_TcpUdp.m_DestPort.m_StartRange = desPortStart;
+		staticFilter->m_TransportFilter.m_TcpUdp.m_DestPort.m_EndRange = desPortEnd;
+	}
+}
+
+void BarbaPacketFilter::AddFilter(std::vector<STATIC_FILTER>* filters, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
+{
+	STATIC_FILTER staticFilter = {0};
+	GetFilter(&staticFilter, send, ipStart, ipEnd, protocol, srcPortStart, srcPortEnd, desPortStart, desPortEnd);
+	filters->push_back(staticFilter);
+}
+
+void BarbaPacketFilter::GetClientFilters(std::vector<STATIC_FILTER>* filters, BarbaClientConfig* config)
+{
+	for (size_t i=0; i<config->Items.size(); i++)
+	{
+		BarbaClientConfigItem* item = &config->Items[i];
+		if (!item->Enabled)
+			continue;
+
+		//filter only required packet going to server
+		for (size_t i=0; i<item->GrabProtocols.size(); i++)
+			AddFilter(filters, true, config->ServerIp, 0, item->GrabProtocols[i].Protocol, 0, 0, item->GrabProtocols[i].Port, 0);
+
+		//redirect port
+		if (item->RealPort!=0)
+			AddFilter(filters, true, config->ServerIp, 0, item->GetTunnelProtocol(), 0, 0, item->RealPort, 0);
+
+		//filter only tunnel packet that come from server except http-tunnel that use socket
+		if (item->Mode!=BarbaModeHttpTunnel) 
+			for (size_t i=0; i<item->TunnelPorts.size(); i++)
+				AddFilter(filters, false, config->ServerIp, 0, item->GetTunnelProtocol(), item->TunnelPorts[i].StartPort, item->TunnelPorts[i].EndPort, 0, 0);
+	}
+}
+
+void BarbaPacketFilter::GetServerFilters(std::vector<STATIC_FILTER>* filters, BarbaServerConfig* config)
+{
+	//filter incoming tunnel
+	for (size_t i=0; i<config->Items.size(); i++)
+	{
+		BarbaServerConfigItem* item = &config->Items[i];
+		if (!item->Enabled)
+			continue;
+
+		//filter only tunnel packet that come from server except http-tunnel that use socket
+		if (item->Mode!=BarbaModeHttpTunnel) 
+			for (size_t i=0; i<item->TunnelPorts.size(); i++)
+				AddFilter(filters, false, 0, 0, item->GetTunnelProtocol(), 0, 0, item->TunnelPorts[i].StartPort, item->TunnelPorts[i].EndPort);
+	}
+
+	//filter outgoing virtual IP
+	AddFilter(filters, true, theServerApp->VirtualIpRange.StartIp, theServerApp->VirtualIpRange.EndIp, 0, 0, 0, 0, 0);
+}
+
+
 void BarbaPacketFilter::ApplyClientPacketFilter()
 {
 	std::vector<STATIC_FILTER> filters;
@@ -185,23 +152,25 @@ void BarbaPacketFilter::ApplyClientPacketFilter()
 		GetClientFilters(&filters, config);
 	}
 	
+	//bypass all other packet
+	GetBypassPacketFilter(&filters);
+
+	//apply filters
 	if (!ApplyFilters(&filters))
 		throw new BarbaException(_T("Could not set packet filtering!"));
 }
 
 void BarbaPacketFilter::ApplyServerPacketFilter()
 {
-}
+	std::vector<STATIC_FILTER> filters;
+	GetServerFilters(&filters, &theServerApp->Config);
 
-bool BarbaPacketFilter::ApplyFilters(std::vector<STATIC_FILTER>* filters)
-{
-	size_t filtersBufSize = sizeof (STATIC_FILTER)*filters->size();
-	std::vector<BYTE> filterTableBuf( sizeof STATIC_FILTER_TABLE +  filtersBufSize );
-	STATIC_FILTER_TABLE* filterTable = (STATIC_FILTER_TABLE*)&filterTableBuf.front();
-	filterTable->m_TableSize = filters->size();
-	memcpy_s(filterTable->m_StaticFilters, filtersBufSize, filters->data(), filtersBufSize);
+	//bypass all other packet
+	GetBypassPacketFilter(&filters);
 
-	return api.SetPacketFilterTable(filterTable)!=FALSE;
+	//apply filters
+	if (!ApplyFilters(&filters))
+		throw new BarbaException(_T("Could not set packet filtering!"));
 }
 
 bool BarbaPacketFilter::ApplyPacketFilter()

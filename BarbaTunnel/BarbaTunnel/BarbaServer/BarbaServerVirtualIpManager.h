@@ -17,7 +17,7 @@ public:
 	
 	DWORD GetNewIp()
 	{
-		int maxIp = VirtualIpRange.EndIp - VirtualIpRange.StartIp + 1;
+		int maxIp = ntohl(VirtualIpRange.EndIp) - (VirtualIpRange.StartIp) + 1;
 		for (int i=0; i<_countof(VirtualIps) && i<maxIp; i++)
 		{
 			if ( !VirtualIps[i] )

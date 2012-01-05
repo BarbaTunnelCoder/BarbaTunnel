@@ -18,6 +18,7 @@ BarbaCourier::BarbaCourier(BarbaCourierCreateStrcut* cs)
 	this->RequestDataKeyName = cs->RequestDataKeyName;
 	this->FakeHttpGetTemplate = PrepareFakeRequests(cs->FakeHttpGetTemplate.data());
 	this->FakeHttpPostTemplate = PrepareFakeRequests(cs->FakeHttpPostTemplate.data());
+	this->ConnectionTimeout = cs->ConnectionTimeout;
 }
 
 unsigned BarbaCourier::DeleteThread(void* object) 
@@ -276,12 +277,18 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 
 void BarbaCourier::Sockets_Add(BarbaSocket* socket, bool isOutgoing)
 {
+	if (this->MaxConnection==0)
+		throw new BarbaException(_T("Reject new HTTP connection due the maximum connections. MaxUserConnection is: %d."), this->MaxConnection);
+
 	SimpleSafeList<BarbaSocket*>* list = isOutgoing ? &this->OutgoingSockets : &this->IncomingSockets;
 	SimpleLock lock(list->GetCriticalSection());
 	if (list->GetCount()>=this->MaxConnection)
-		throw new BarbaException(_T("Reject new HTTP connection due the maximum connections. MaxUserConnection is: %d."), this->MaxConnection);
+		list->RemoveHead()->Close(); //close head collection
+
 	list->AddTail(socket);
 	socket->SetNoDelay(true);
+	if (this->ConnectionTimeout!=0)
+		socket->SetReceiveTimeOut(this->ConnectionTimeout);
 }
 
 void BarbaCourier::Sockets_Remove(BarbaSocket* socket, bool isOutgoing)

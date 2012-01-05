@@ -41,8 +41,6 @@ bool BarbaServerConfig::LoadFile(LPCTSTR file)
 			continue;
 		}
 
-		//keep alive
-		item.KeepAlive = GetPrivateProfileInt(sectionName, _T("KeepAlive"), 1, file)!=0;
 		this->Items.push_back(item);
 	}
 

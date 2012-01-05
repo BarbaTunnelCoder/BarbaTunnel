@@ -18,6 +18,7 @@ struct BarbaCourierCreateStrcut
 	std::tstring HostName;
 	u_int FakeFileMaxSize;
 	size_t ThreadsStackSize;
+	u_int ConnectionTimeout;
 };
 
 //BarbaCourier
@@ -90,5 +91,6 @@ protected:
 	std::tstring FakeHttpPostTemplate;
 	std::tstring HostName;
 	u_int SessionId;
+	u_int ConnectionTimeout;
 };
 

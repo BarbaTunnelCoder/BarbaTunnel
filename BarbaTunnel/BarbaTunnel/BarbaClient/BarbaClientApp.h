@@ -10,6 +10,7 @@ public:
 	virtual ~BarbaClientApp();
 	virtual void Initialize();
 	virtual void Dispose();
+	virtual bool IsServerMode() {return false;}
 	
 	BarbaClientConfigManager ConfigManager;
 	BarbaClientConnectionManager ConnectionManager;

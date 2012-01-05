@@ -66,7 +66,7 @@ void BarbaServerApp::Initialize()
 	TCHAR ipBuffer[100];
 	_tcsncpy_s(ipBuffer, _countof(ipBuffer), virtualIpRange, dash!=NULL ? dash-virtualIpRange : _tcslen(virtualIpRange));
 	this->VirtualIpRange.StartIp = PacketHelper::ConvertStringIp(ipBuffer);
-	this->VirtualIpRange.EndIp = this->VirtualIpRange.StartIp + 0xFFFE; //default
+	this->VirtualIpRange.EndIp = htonl( ntohl(VirtualIpRange.StartIp) + 0xFFFE ); //default
 	if (dash!=NULL)
 	{
 		_tcscpy_s(ipBuffer, _countof(ipBuffer), dash+1);

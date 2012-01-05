@@ -13,6 +13,7 @@ public:
 	virtual void Start();
 	virtual bool ProcessPacket(PacketHelper* packet, bool send);
 	virtual void Dispose();
+	virtual bool IsServerMode() {return true;}
 
 	BarbaServerHttpHost HttpHost;
 	BarbaServerConfig Config;
