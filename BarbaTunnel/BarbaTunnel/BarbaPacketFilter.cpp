@@ -139,7 +139,7 @@ void BarbaPacketFilter::GetServerFilters(std::vector<STATIC_FILTER>* filters, Ba
 	}
 
 	//filter outgoing virtual IP
-	AddFilter(filters, false, theServerApp->VirtualIpRange.StartIp, theServerApp->VirtualIpRange.EndIp, 0, 0, 0, 0, 0);
+	AddFilter(filters, true, theServerApp->VirtualIpRange.StartIp, theServerApp->VirtualIpRange.EndIp, 0, 0, 0, 0, 0);
 
 	//filter ICMP for debug mode
 	if (theApp->IsDebugMode())
@@ -181,6 +181,7 @@ bool BarbaPacketFilter::ApplyPacketFilter()
 {
 	try
 	{
+		return true;
 		if (theApp->IsServerMode())
 			ApplyServerPacketFilter();
 		else
