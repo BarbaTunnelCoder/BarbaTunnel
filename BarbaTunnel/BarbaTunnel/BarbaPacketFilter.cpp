@@ -181,7 +181,6 @@ bool BarbaPacketFilter::ApplyPacketFilter()
 {
 	try
 	{
-		return true;
 		if (theApp->IsServerMode())
 			ApplyServerPacketFilter();
 		else
