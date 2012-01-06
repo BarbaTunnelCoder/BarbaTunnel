@@ -162,6 +162,8 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 		//check is connection still writable
 		if (waitResult==WAIT_TIMEOUT && !barbaSocket->IsWritable())
 			break;
+
+		//process KeepAlive packet
 		
 		//reset if there is no message
 		SimpleLock lock(this->Messages.GetCriticalSection());
@@ -231,31 +233,36 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 {
 	Log(_T("HTTP connection is ready to receive the actual data."));
 
-	size_t receivedBytes = 0;
+	size_t socketReceivedBytes = 0;
 	bool transferFinish = false;
 
 	//remove message from list
 	while(!this->IsDisposing() && !transferFinish)
 	{
+		size_t messageRecievedBytes = 0;
+
+
 		u_short messageLen = 0;
 		if (barbaSocket->Receive((BYTE*)&messageLen, 2, true)!=2)
-			break;
-
-		//check received message len
-		if (messageLen>BarbaCourier_MaxMessageLength)
 			throw new BarbaException( _T("Out of sync while reading message length!") );
+		messageRecievedBytes+=2;
+
+		//check received message length
+		if (messageLen>BarbaCourier_MaxMessageLength)
+			throw new BarbaException( _T("Unexpected Message Length! Length: %d"),  messageLen);
 
 		//read message
-		BYTE messageBuf[BarbaCourier_MaxMessageLength];
-		//printf("receiving %d\n", messageLen);
-		int receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
-		if (receiveCount!=messageLen)
-			throw new BarbaException( _T("Out of sync while reading message!") );
-
-		//notify new message
-		receivedBytes += receiveCount + 2; //current socket byes
-		this->ReceivedBytesCount += receiveCount + 2; //courier byes
-		this->Receive(messageBuf, receiveCount);
+		if (messageLen!=0)
+		{
+			BYTE messageBuf[BarbaCourier_MaxMessageLength];
+			int receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
+			if (receiveCount!=messageLen)
+				throw new BarbaException( _T("Out of sync while reading message!") );
+			messageRecievedBytes+= receiveCount; //current socket byes
+			
+			//notify new message
+			this->Receive(messageBuf, receiveCount);
+		}
 
 		/*
 		//wait for dummy length
@@ -272,6 +279,9 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 		receivedBytes += receiveCount + 2; //current socket byes
 		this->ReceivedBytesCount += receiveCount + 2; //courier byes
 		*/
+
+		socketReceivedBytes += messageRecievedBytes;
+		this->ReceivedBytesCount += messageRecievedBytes;
 	}
 }
 
