@@ -6,6 +6,7 @@ class BarbaClientConfigItem : public BarbaConfigItem
 {
 public:
 	virtual ~BarbaClientConfigItem(){}
+	u_short FakePacketMinSize;
 	u_short GetNewTunnelPort();
 	std::vector<ProtocolPort> GrabProtocols;//valid when in Tunnel mode
 	BarbaClientConfigItem();

@@ -32,12 +32,12 @@ public:
 	void ReleaseIp(DWORD Ip)
 	{
 		int index = ntohl(Ip) - ntohl(VirtualIpRange.StartIp);
-		if (index>0 && index<BARBA_MAX_VIRTUALIP)
+		if (index>0 && index<BARBA_ServerMaxVirtualIps)
 			VirtualIps[index] = false;
 	}
 
 private:
-	bool VirtualIps[BARBA_MAX_VIRTUALIP];
+	bool VirtualIps[BARBA_ServerMaxVirtualIps];
 	IpRange VirtualIpRange;
 };
 

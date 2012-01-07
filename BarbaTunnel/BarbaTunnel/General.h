@@ -5,11 +5,11 @@
 #include "SimpleSafeList.h"
 #include "BarbaException.h"
 
-#define BARBA_MAX_VIRTUALIP 0xFFFF
 #define BARBA_MaxConfigName 100
-#define BARBA_MAX_SERVERLISTENSOCKET 50
+#define BARBA_ServerMaxVirtualIps 0xFFFF
+#define BARBA_ServerMaxListenSockets 50
 #define BARBA_MaxLogFileSize (1000) //1000K (1MB)
-#define BARBA_CURRENT_VERSION _T("2.2")
+#define BARBA_CurrentVersion _T("2.2")
 #define BARBA_WorkingStateRefreshTime (1*60*1000)
 #define BARBA_SocketThreadStackSize (32*1000)
 #define BARBA_MaxKeyName 1000

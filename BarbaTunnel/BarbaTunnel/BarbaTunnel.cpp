@@ -232,8 +232,8 @@ int main(int argc, char* argv[])
 	TCHAR adapterName[ADAPTER_NAME_SIZE];
 	CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[CurrentAdapterIndex], adapterName, _countof(adapterName));
 	LPCTSTR barbaName = theApp->IsServerMode() ? _T("Barba Server") : _T("Barba Client");
-	BarbaLog(_T("%s Started...\r\nVersion: %s\r\nAdapter: %s\r\nReady!"), barbaName, BARBA_CURRENT_VERSION, adapterName);
-	BarbaNotify(_T("%s Started\r\nVersion: %s\r\nAdpater: %s"), barbaName, BARBA_CURRENT_VERSION, adapterName);
+	BarbaLog(_T("%s Started...\r\nVersion: %s\r\nAdapter: %s\r\nReady!"), barbaName, BARBA_CurrentVersion, adapterName);
+	BarbaNotify(_T("%s Started\r\nVersion: %s\r\nAdpater: %s"), barbaName, BARBA_CurrentVersion, adapterName);
 	theApp->Comm.SetStatus(_T("Started"));
 	theApp->Start();
 
@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
 		inf.cb = sizeof STARTUPINFO;
 		GetStartupInfo(&inf);
 		PROCESS_INFORMATION pi = {0};
-		if (CreateProcess(BarbaApp::GetModuleFile(), _T(""), NULL, NULL, FALSE, 0, NULL, NULL, &inf, &pi))
+		if (CreateProcess(BarbaApp::GetModuleFile(), _T(""), NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &inf, &pi))
 			newThreadHandle = pi.hThread;
 		else
 			BarbaLog(_T("Failed to restart BarbaTunnel!"));
@@ -279,7 +279,8 @@ int main(int argc, char* argv[])
 bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barbaCommand)
 {
 	//set current process priority to process network packets as fast as possible
-	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+	if (!theApp->IsDebugMode())
+		SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 
 	ADAPTER_MODE Mode;
 	Mode.dwFlags = MSTCP_FLAG_SENT_TUNNEL | MSTCP_FLAG_RECV_TUNNEL;
@@ -329,6 +330,7 @@ bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barb
 					{
 						BarbaLog(_T("Terminate Command Received."));
 						terminate = true;
+						break;
 					}
 
 					//process packet

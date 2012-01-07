@@ -206,9 +206,9 @@ void BarbaServerHttpHost::Initialize()
 			for (u_short port=portRange->StartPort; port<=portRange->EndPort; port++)
 			{
 				//check added port count
-				if (createdSocket>=BARBA_MAX_SERVERLISTENSOCKET)
+				if (createdSocket>=BARBA_ServerMaxListenSockets)
 				{
-					Log(_T("Error: HTTP Tunnel could not listen more than %d ports!"), BARBA_MAX_SERVERLISTENSOCKET);
+					Log(_T("Error: HTTP Tunnel could not listen more than %d ports!"), BARBA_ServerMaxListenSockets);
 					j = item->TunnelPorts.size();
 					break;
 				}

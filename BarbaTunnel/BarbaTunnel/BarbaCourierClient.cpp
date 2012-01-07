@@ -9,15 +9,15 @@ BarbaCourierClient::BarbaCourierClient(BarbaCourierCreateStrcut* cs, DWORD remot
 	this->RemoteIp = remoteIp;
 	this->RemotePort = remotePort;
 
-	for (u_short i=0; i<this->MaxConnection; i++)
+	for (u_short i=0; i<this->CreateStruct.MaxConnection; i++)
 	{
 		//create outgoing connection thread
 		ClientThreadData* outgoingThreadData = new ClientThreadData(this, true);
-		Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->ThreadsStackSize, ClientWorkerThread, outgoingThreadData, 0, NULL));
+		Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->CreateStruct.ThreadsStackSize, ClientWorkerThread, outgoingThreadData, 0, NULL));
 
 		//create incoming connection thread
 		ClientThreadData* incomingThreadData = new ClientThreadData(this, false);
-		Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->ThreadsStackSize, ClientWorkerThread, incomingThreadData, 0, NULL));
+		Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->CreateStruct.ThreadsStackSize, ClientWorkerThread, incomingThreadData, 0, NULL));
 	}
 }
 
@@ -39,7 +39,7 @@ u_int BarbaCourierClient::SendFakeRequest(BarbaSocket* socket, std::vector<BYTE>
 	TCHAR serverIp[20];
 	PacketHelper::ConvertIpToString(socket->GetRemoteIp(), serverIp, _countof(serverIp));
 
-	std::tstring fakeRequest = outgoing ? this->FakeHttpPostTemplate : this->FakeHttpGetTemplate;
+	std::tstring fakeRequest = outgoing ? this->CreateStruct.FakeHttpPostTemplate : this->CreateStruct.FakeHttpGetTemplate;
 	InitFakeRequestVars(fakeRequest, filename, contentType.data(), fileSize, fakeFileHeaderSize);
 
 	if (outgoing)
