@@ -21,10 +21,10 @@ public:
 	std::vector<BYTE> Key;
 	u_int FakeFileMaxSize;
 	std::tstring RequestDataKeyName;
+	void Log(LPCTSTR format, ...);
 
 private:
 	static std::tstring CreateRequestDataKeyName(std::vector<BYTE>* key);
-	void Log(LPCTSTR format, ...);
 	void CheckMaxUserConnections();
 	int _TotalTunnelPortsCount;
 	std::tstring FileName; //used for report

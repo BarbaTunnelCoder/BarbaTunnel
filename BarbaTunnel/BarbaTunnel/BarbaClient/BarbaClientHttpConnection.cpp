@@ -15,11 +15,12 @@ BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, 
 	cs.FakeFileMaxSize = configItem->FakeFileMaxSize;
 	cs.FakeHttpGetTemplate = theClientApp->FakeHttpGetTemplate;
 	cs.FakeHttpPostTemplate = theClientApp->FakeHttpPostTemplate;
-	cs.MaxConnenction = configItem->MaxUserConnections;
+	cs.MaxConnection = configItem->MaxUserConnections;
 	cs.SessionId = this->SessionId;
 	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;
 	cs.HostName = BarbaUtils::ConvertIpToString(config->ServerIp);
 	cs.ConnectionTimeout = theApp->ConnectionTimeout;
+	cs.FakePacketMinSize = configItem->FakePacketMinSize;
 	this->Courier = new BarbaClientHttpCourier(&cs, config->ServerIp, tunnelPort, this);
 }
 

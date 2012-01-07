@@ -28,6 +28,7 @@ public:
 	static std::tstring GetFileTitleFromUrl(LPCTSTR url);
 	static std::tstring GetFileUrlFromHttpRequest(LPCTSTR httpRequest);
 	static std::tstring GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key);
+	static u_int GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key, u_int defValue);
 	static std::tstring FormatTimeForHttp();
 	static std::tstring FormatTimeForHttp(time_t* t);
 	static std::tstring ConvertIpToString(u_int ip);

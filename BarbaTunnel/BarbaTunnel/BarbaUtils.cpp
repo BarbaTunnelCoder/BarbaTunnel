@@ -295,6 +295,14 @@ std::tstring BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key)
 	return buffer;
 }
 
+u_int BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key, u_int defValue)
+{
+	std::tstring valueStr = BarbaUtils::GetKeyValueFromString(httpRequest,key);
+	u_int fileSize = valueStr.empty() ? defValue : _tcstoul(valueStr.data(), 0, 0);
+	return fileSize;
+}
+
+
 std::tstring BarbaUtils::FormatTimeForHttp()
 {
 	time_t t;

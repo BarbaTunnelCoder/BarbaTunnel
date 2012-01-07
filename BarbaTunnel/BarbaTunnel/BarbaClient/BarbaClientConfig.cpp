@@ -129,6 +129,15 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 		TCHAR grabProtocols[1000];
 		GetPrivateProfileString(sectionName, _T("GrabProtocols"), _T(""), grabProtocols, _countof(grabProtocols), file);
 		ParseGrabProtocols(&item, grabProtocols);
+
+		//FakePacketMinSize
+		item.FakePacketMinSize = (u_short)GetPrivateProfileInt(sectionName, _T("FakePacketMinSize"), 0, file);
+		if (item.FakePacketMinSize>1450)
+		{
+			item.Log(_T("FakePacketMinSize could not be more than 1450!"));
+			item.FakePacketMinSize = 1450;
+		}
+
 		this->Items.push_back(item);
 	}
 

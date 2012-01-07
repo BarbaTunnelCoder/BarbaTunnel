@@ -19,8 +19,14 @@ bool BarbaCourierServer::AddSocket(BarbaSocket* barbaSocket, LPCSTR httpRequest,
 
 	Sockets_Add(barbaSocket, isOutgoing);
 
+	//set fakePacketMinSize
+	std::tstring requestData = GetRequestDataFromHttpRequest(httpRequest);
+	if (this->CreateStruct.FakePacketMinSize==0) //can change only one time; instead using mutex
+		this->CreateStruct.FakePacketMinSize = (u_short)BarbaUtils::GetKeyValueFromString(requestData.data(), _T("packetminsize"), 0);
+
+	//start threads
 	ServerThreadData* threadData = new ServerThreadData(this, barbaSocket, httpRequest, isOutgoing);
-	Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->ThreadsStackSize, ServerWorkerThread, (void*)threadData, 0, NULL) );
+	Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->CreateStruct.ThreadsStackSize, ServerWorkerThread, (void*)threadData, 0, NULL) );
 	return true;
 }
 
@@ -32,7 +38,7 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 	BarbaSocket* socket = (BarbaSocket*)threadData->Socket;
 	bool isOutgoing = threadData->IsOutgoing;
 	LPCTSTR requestMode = isOutgoing ? _T("GET") : _T("POST"); //request always come from client
-
+	
 	//report new connection in current thread
 	_this->Log(_T("HTTP %s connection added. Connections Count: %d."), requestMode,  isOutgoing ? _this->OutgoingSockets.GetCount() : _this->IncomingSockets.GetCount());
 
@@ -92,7 +98,7 @@ u_int BarbaCourierServer::SendFakeReply(BarbaSocket* socket, LPCTSTR httpRequest
 	GetFakeFile(filename, &contentType, &fileSize, fakeFileHeader, false);
 	u_int fakeFileHeaderSize = fakeFileHeader!=NULL ? fakeFileHeader->size() : 0;
 
-	std::tstring fakeReply = outgoing ? this->FakeHttpGetTemplate : this->FakeHttpPostTemplate;
+	std::tstring fakeReply = outgoing ? this->CreateStruct.FakeHttpGetTemplate : this->CreateStruct.FakeHttpPostTemplate;
 	InitFakeRequestVars(fakeReply, filename, contentType.data(), fileSize, fakeFileHeaderSize);
 
 	if (outgoing)

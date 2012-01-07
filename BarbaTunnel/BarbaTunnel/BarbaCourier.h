@@ -11,7 +11,7 @@
 struct BarbaCourierCreateStrcut
 {
 	u_int SessionId;
-	u_short MaxConnenction;
+	u_short MaxConnection;
 	std::tstring RequestDataKeyName;
 	std::tstring FakeHttpGetTemplate;
 	std::tstring FakeHttpPostTemplate;
@@ -19,6 +19,7 @@ struct BarbaCourierCreateStrcut
 	u_int FakeFileMaxSize;
 	size_t ThreadsStackSize;
 	u_int ConnectionTimeout;
+	u_short FakePacketMinSize;
 };
 
 //BarbaCourier
@@ -54,7 +55,7 @@ public:
 	HANDLE Delete();
 
 private:
-	std::tstring PrepareFakeRequests(std::tstring request);
+	std::tstring PrepareFakeRequests(std::tstring* request);
 	//@return false if max connection reached
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
 	size_t MaxMessageBuffer;
@@ -83,14 +84,6 @@ protected:
 	SimpleSafeList<HANDLE> Threads;
 	SimpleEvent DisposeEvent;
 
-	size_t MaxConnection;
-	size_t ThreadsStackSize;
-	size_t FakeFileMaxSize;
-	std::tstring RequestDataKeyName;
-	std::tstring FakeHttpGetTemplate;
-	std::tstring FakeHttpPostTemplate;
-	std::tstring HostName;
-	u_int SessionId;
-	u_int ConnectionTimeout;
+	BarbaCourierCreateStrcut CreateStruct;
 };
 
