@@ -5,7 +5,7 @@
     <Grid>
         
         <TextBlock Height="18" HorizontalAlignment="Left" Margin="15,94,0,0" Name="textBlock1" Text="Report" VerticalAlignment="Top" Width="57" />
-        <TextBox Margin="12,116,12,12" Name="reportTextBox" IsReadOnly="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="LightGray"></TextBox>
+        <TextBox Margin="12,116,12,12" Name="reportTextBox" IsReadOnly="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="LightGray" UndoLimit="0"></TextBox>
         <Button Height="23" Margin="0,86,175,0" Name="startButton" VerticalAlignment="Top" Click="startButton_Click" HorizontalAlignment="Right" Width="75">
             <StackPanel Orientation="Horizontal">
                 <Image Height="16" Width="16" HorizontalAlignment="Left" VerticalAlignment="Top"  Source="/BarbaMonitor;component/Resources/start.png" ></Image>
