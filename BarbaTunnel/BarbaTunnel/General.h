@@ -9,7 +9,7 @@
 #define BARBA_ServerMaxVirtualIps 0xFFFF
 #define BARBA_ServerMaxListenSockets 50
 #define BARBA_MaxLogFileSize (1 * 1000000) //(1MB)
-#define BARBA_CurrentVersion _T("2.2")
+#define BARBA_CurrentVersion _T("3.0")
 #define BARBA_WorkingStateRefreshTime (1*60*1000) //1 Min
 #define BARBA_SocketThreadStackSize (32*1000)
 #define BARBA_MaxKeyName 1000
