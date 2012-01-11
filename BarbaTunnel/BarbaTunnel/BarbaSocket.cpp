@@ -6,8 +6,11 @@ BarbaSocket::BarbaSocket()
 	this->RemoteIp = 0;
 	this->SentBytesCount = 0;
 	this->ReceivedBytesCount = 0;
+	this->LastReceivedTime = 0;
+	this->LastSentTime = 0;
+	this->_IsReceiving = false;
 	InitializeLib();
-	_Socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	this->_Socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (_Socket == INVALID_SOCKET)
 		ThrowSocketError();
 }
@@ -99,10 +102,13 @@ int BarbaSocket::Receive(BYTE* buf, size_t bufCount, bool waitAll)
 {
 	int flags = 0;
 	if (waitAll) flags |= MSG_WAITALL;
+	_IsReceiving = true;
 	int ret = ::recv(_Socket, (char*)buf, bufCount, flags);
+	_IsReceiving = false;
 	if (ret==SOCKET_ERROR)
 		ThrowSocketError();
 	this->ReceivedBytesCount += ret;
+	this->LastReceivedTime = GetTickCount();
 	return ret;
 }
 
@@ -112,6 +118,7 @@ int BarbaSocket::Send(BYTE* buf, size_t bufCount)
 	if (ret==SOCKET_ERROR)
 		ThrowSocketError();
 	this->SentBytesCount += ret;
+	this->LastSentTime = GetTickCount();
 	return ret;
 }
 

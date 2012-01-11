@@ -11,7 +11,7 @@ BarbaConfigItem::BarbaConfigItem()
 	RealPort = 0;
 	_TotalTunnelPortsCount = 0;
 	MaxUserConnections = BARBA_HttpMaxUserConnection;
-	FakeFileMaxSize = BARBA_HttpMaxFakeFileSize;
+	FakeFileMaxSize = BARBA_HttpFakeFileMaxSize;
 }
 
 
@@ -75,8 +75,8 @@ bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 	CheckMaxUserConnections();
 
 	//FakeFileMaxSize
-	this->FakeFileMaxSize = (u_short)GetPrivateProfileInt(sectionName, _T("FakeFileMaxSize"), this->FakeFileMaxSize, file) * 1000;
-	if (this->FakeFileMaxSize==0) this->FakeFileMaxSize = BARBA_HttpMaxFakeFileSize * 1000;
+	this->FakeFileMaxSize = (u_short)GetPrivateProfileInt(sectionName, _T("FakeFileMaxSize"), this->FakeFileMaxSize/1000, file) * 1000;
+	if (this->FakeFileMaxSize==0) this->FakeFileMaxSize = BARBA_HttpFakeFileMaxSize;
 
 	TCHAR keyName[BARBA_MaxKeyName];
 	keyName[0] = 0;

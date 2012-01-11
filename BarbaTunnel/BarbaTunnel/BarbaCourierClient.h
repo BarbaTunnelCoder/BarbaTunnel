@@ -15,6 +15,7 @@ private:
 
 public:
 	BarbaCourierClient(BarbaCourierCreateStrcut* cs, DWORD remoteIp, u_short remotePort);
+	bool IsServer() {return false;}
 
 protected:
 	virtual ~BarbaCourierClient();
@@ -23,6 +24,8 @@ private:
 	DWORD RemoteIp;
 	u_short RemotePort;
 	static unsigned int __stdcall ClientWorkerThread(void* clientThreadData);
+	static unsigned int __stdcall CheckKeepAliveThread(void* BarbaCourier);
 	//@fakeFileHeader if null send incoming request
 	u_int SendFakeRequest(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader);
+	void CheckKeepAlive();
 };

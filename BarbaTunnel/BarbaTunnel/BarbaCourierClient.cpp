@@ -19,6 +19,9 @@ BarbaCourierClient::BarbaCourierClient(BarbaCourierCreateStrcut* cs, DWORD remot
 		ClientThreadData* incomingThreadData = new ClientThreadData(this, false);
 		Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->CreateStruct.ThreadsStackSize, ClientWorkerThread, incomingThreadData, 0, NULL));
 	}
+
+	if (this->CreateStruct.KeepAliveInterval!=0)
+		Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->CreateStruct.ThreadsStackSize, CheckKeepAliveThread, this, 0, NULL));
 }
 
 BarbaCourierClient::~BarbaCourierClient()
@@ -53,6 +56,35 @@ u_int BarbaCourierClient::SendFakeRequest(BarbaSocket* socket, std::vector<BYTE>
 	return fileSize;
 }
 
+void BarbaCourierClient::CheckKeepAlive()
+{
+	//close connection that does not receive keep alive
+	if (this->CreateStruct.KeepAliveInterval==0 || this->LastSentTime==0)
+		return; //keep live not enabled or no data sent yet
+
+	SimpleSafeList<BarbaSocket*>* list = &this->IncomingSockets;
+	SimpleSafeList<BarbaSocket*>::AutoLockBuffer autoLockBuf(list);
+	BarbaSocket** sockets = autoLockBuf.GetBuffer();
+	for (size_t i=0; i<list->GetCount(); i++)
+	{
+		if ( GetTickCount()>(this->LastSentTime + this->CreateStruct.KeepAliveInterval*2) && sockets[i]->GetLastReceivedTime()<this->LastSentTime )
+		{
+			Log(_T("Connection closed due to keep alive timeout!"));
+			sockets[i]->Close();
+		}
+	}
+}
+
+unsigned int __stdcall BarbaCourierClient::CheckKeepAliveThread(void* barbaCourier)
+{
+	BarbaCourierClient* _this = (BarbaCourierClient*)barbaCourier;
+	while (_this->DisposeEvent.Wait(2000)==WAIT_TIMEOUT)
+	{
+		_this->CheckKeepAlive();
+	}
+	return 0;
+}
+
 unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 {
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
@@ -60,7 +92,6 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 	BarbaCourierClient* _this = (BarbaCourierClient*)threadData->Courier;
 	bool isOutgoing = threadData->IsOutgoing;
 	LPCTSTR requestMode = isOutgoing ? _T("POST") : _T("GET");
-	
 	BarbaSocketClient* socket = NULL;
 	bool hasError = false;
 	while (!_this->IsDisposing())
