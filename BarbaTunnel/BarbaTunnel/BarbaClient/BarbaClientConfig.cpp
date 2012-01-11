@@ -132,10 +132,18 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 
 		//FakePacketMinSize
 		item.FakePacketMinSize = (u_short)GetPrivateProfileInt(sectionName, _T("FakePacketMinSize"), 0, file);
-		if (item.FakePacketMinSize>1450)
+		if (item.FakePacketMinSize>BARBA_HttpFakePacketMaxSize)
 		{
-			item.Log(_T("FakePacketMinSize could not be more than 1450!"));
-			item.FakePacketMinSize = 1450;
+			item.Log(_T("FakePacketMinSize could not be more than %d!"), BARBA_HttpFakePacketMaxSize);
+			item.FakePacketMinSize = BARBA_HttpFakePacketMaxSize;
+		}
+
+		//KeepAliveInterval
+		item.KeepAliveInterval = (size_t)GetPrivateProfileInt(sectionName, _T("KeepAliveInterval"), BARBA_HttpKeepAliveInterval/1000, file) * 1000;
+		if (item.KeepAliveInterval!=0 && item.KeepAliveInterval<BARBA_HttpKeepAliveIntervalMin)
+		{
+			item.Log(_T("KeepAliveInterval could not be less than %d!"), BARBA_HttpKeepAliveIntervalMin/1000);
+			item.KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
 		}
 
 		this->Items.push_back(item);

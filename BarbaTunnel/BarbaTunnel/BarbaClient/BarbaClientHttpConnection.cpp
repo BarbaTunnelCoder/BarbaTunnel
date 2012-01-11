@@ -21,6 +21,7 @@ BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, 
 	cs.HostName = BarbaUtils::ConvertIpToString(config->ServerIp);
 	cs.ConnectionTimeout = theApp->ConnectionTimeout;
 	cs.FakePacketMinSize = configItem->FakePacketMinSize;
+	cs.KeepAliveInterval = configItem->KeepAliveInterval;
 	this->Courier = new BarbaClientHttpCourier(&cs, config->ServerIp, tunnelPort, this);
 }
 

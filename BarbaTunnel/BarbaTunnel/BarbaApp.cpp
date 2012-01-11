@@ -18,11 +18,11 @@ BarbaApp::BarbaApp(void)
 	this->MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), -1, GetConfigFile());
 	
 	//ConnectionTimeout
-	if (this->ConnectionTimeout==0) this->ConnectionTimeout = BARBA_ConnectionTimeout*60*1000;
+	if (this->ConnectionTimeout==0) this->ConnectionTimeout = BARBA_ConnectionTimeout;
 	
 	//MaxLogFilesize
-	this->Comm.MaxLogFilesize = GetPrivateProfileInt(_T("General"), _T("MaxLogFileSize"), BARBA_MaxLogFileSize, GetConfigFile())*1000;
-	if (this->Comm.MaxLogFilesize==0) this->Comm.MaxLogFilesize = BARBA_MaxLogFileSize*1000;
+	this->Comm.MaxLogFilesize = GetPrivateProfileInt(_T("General"), _T("MaxLogFileSize"), BARBA_MaxLogFileSize/1000, GetConfigFile())*1000;
+	if (this->Comm.MaxLogFilesize==0) this->Comm.MaxLogFilesize = BARBA_MaxLogFileSize;
 
 	//FakeFileHeaders
 	InitFakeFileHeaders();

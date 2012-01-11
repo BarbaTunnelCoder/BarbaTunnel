@@ -11,8 +11,11 @@ BarbaCourier::BarbaCourier(BarbaCourierCreateStrcut* cs)
 	this->SentBytesCount = 0;
 	this->ReceivedBytesCount = 0;
 	this->CreateStruct = *cs;
-	if (this->CreateStruct.ThreadsStackSize==0) this->CreateStruct.ThreadsStackSize = 32000; //32KB;
-	if (this->CreateStruct.FakeFileMaxSize==0) this->CreateStruct.FakeFileMaxSize = 15000000; //15MB;
+	this->LastReceivedTime = 0;
+	this->LastSentTime = 0;
+	if (this->CreateStruct.KeepAliveInterval!=0 && this->CreateStruct.KeepAliveInterval<BARBA_HttpKeepAliveIntervalMin) this->CreateStruct.KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
+	if (this->CreateStruct.ThreadsStackSize==0) this->CreateStruct.ThreadsStackSize = BARBA_SocketThreadStackSize; 
+	if (this->CreateStruct.FakeFileMaxSize==0) this->CreateStruct.FakeFileMaxSize = BARBA_HttpFakeFileMaxSize; 
 	PrepareFakeRequests(&this->CreateStruct.FakeHttpGetTemplate);
 	PrepareFakeRequests(&this->CreateStruct.FakeHttpPostTemplate);
 }
@@ -161,6 +164,18 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 
 		//post all message
 		Message* message = this->Messages.RemoveHead();
+
+		//send KeepAlive from server to client
+		//if lastKeepAliveTime > this->LastReceivedTime it mean keepAlive already sent and it does not need more until next receive
+		if (IsServer() && message==NULL &&
+			this->CreateStruct.KeepAliveInterval!=0 && 
+			barbaSocket->GetLastSentTime() < this->LastReceivedTime &&
+			GetTickCount()> (barbaSocket->GetLastSentTime() + this->CreateStruct.KeepAliveInterval) )
+		{
+			message = new Message(NULL, 0);
+			Log("keepAliveSent");
+		}
+
 		while (message!=NULL)
 		{
 			try
@@ -174,10 +189,10 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 				sendPacketSize += message->Count;
 
 				//add fake data
-				if (this->CreateStruct.FakePacketMinSize>0 && this->CreateStruct.FakePacketMinSize<1450)
+				if (this->CreateStruct.FakePacketMinSize>0 && this->CreateStruct.FakePacketMinSize<BARBA_HttpFakePacketMaxSize)
 				{
 					size_t fakeSize = max(this->CreateStruct.FakePacketMinSize, 2)-2; //2 bytes always added for fakeSize
-					BYTE fakeBuffer[BARBA_HttpMaxFakeFileSize] = {0};
+					BYTE fakeBuffer[BARBA_HttpFakePacketMaxSize] = {0};
 					fakeSize = fakeSize > sendPacketSize ? fakeSize-sendPacketSize : 0;
 					memcpy_s(sendPacket+sendPacketSize, 2, &fakeSize, 2);
 					sendPacketSize += 2;
@@ -189,6 +204,7 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 				int sentCount = barbaSocket->Send(sendPacket, sendPacketSize);
 				this->SentBytesCount += sentCount; //courier bytes
 				sentBytes += sentCount; //current socket bytes
+				this->LastSentTime = GetTickCount();
 				
 				//delete sent message
 				delete message;
@@ -214,6 +230,7 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 			}
 		}
 
+
 		//reset if there is no message
 		SimpleLock lock(this->Messages.GetCriticalSection());
 		if (this->Messages.IsEmpty() && !this->IsDisposing())
@@ -238,6 +255,7 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 		if (barbaSocket->Receive((BYTE*)&messageLen, 2, true)!=2)
 			throw new BarbaException( _T("Out of sync while reading message length!") );
 		messageRecievedBytes+=2;
+		this->LastReceivedTime = GetTickCount();
 
 		//check received message length
 		if (messageLen>BarbaCourier_MaxMessageLength)
@@ -296,8 +314,14 @@ void BarbaCourier::Sockets_Add(BarbaSocket* socket, bool isOutgoing)
 
 	list->AddTail(socket);
 	socket->SetNoDelay(true);
+
+	//Receive Timeout
 	if (this->CreateStruct.ConnectionTimeout!=0)
 		socket->SetReceiveTimeOut(this->CreateStruct.ConnectionTimeout);
+
+	//KeepAliveTimeout
+	if (this->CreateStruct.KeepAliveInterval!=0)
+		socket->SetSendTimeOut(this->CreateStruct.KeepAliveInterval); //I don't know why it doesn't any effect, anyway I set it
 }
 
 void BarbaCourier::Sockets_Remove(BarbaSocket* socket, bool isOutgoing)
@@ -398,7 +422,7 @@ void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR fileName, LPCT
 	
 	//prepare RequestData: 
 	TCHAR requestDataStr[2000]; //hlen=AAFF;session=AABB
-	_stprintf_s(requestDataStr, _T("hlen=%u;session=%u;packetminsize=%d;"), fileHeaderSize, this->CreateStruct.SessionId, this->CreateStruct.FakePacketMinSize);
+	_stprintf_s(requestDataStr, _T("hlen=%u;session=%u;packetminsize=%u;keepalive=%u;"), fileHeaderSize, this->CreateStruct.SessionId, this->CreateStruct.FakePacketMinSize, this->CreateStruct.KeepAliveInterval);
 	//encrypt-data
 	std::vector<BYTE> rdataBuffer;
 	rdataBuffer.resize(_tcslen(requestDataStr)*sizeof TCHAR);

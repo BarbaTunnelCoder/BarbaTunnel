@@ -18,11 +18,15 @@ bool BarbaCourierServer::AddSocket(BarbaSocket* barbaSocket, LPCSTR httpRequest,
 		throw new BarbaException(_T("Could not add to disposing object!"));
 
 	Sockets_Add(barbaSocket, isOutgoing);
+	std::tstring requestData = GetRequestDataFromHttpRequest(httpRequest);
 
 	//set fakePacketMinSize
-	std::tstring requestData = GetRequestDataFromHttpRequest(httpRequest);
 	if (this->CreateStruct.FakePacketMinSize==0) //can change only one time; instead using mutex
 		this->CreateStruct.FakePacketMinSize = (u_short)BarbaUtils::GetKeyValueFromString(requestData.data(), _T("packetminsize"), 0);
+
+	//set KeepAliveInterval
+	if (this->CreateStruct.KeepAliveInterval==0) //can change only one time; instead using mutex
+		this->CreateStruct.KeepAliveInterval = (u_short)BarbaUtils::GetKeyValueFromString(requestData.data(), _T("keepalive"), 0);
 
 	//start threads
 	ServerThreadData* threadData = new ServerThreadData(this, barbaSocket, httpRequest, isOutgoing);

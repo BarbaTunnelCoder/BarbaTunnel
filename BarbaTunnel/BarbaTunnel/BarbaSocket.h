@@ -1,5 +1,6 @@
 #pragma once
 #include "BarbaException.h"
+#include "SimpleCriticalSection.h"
 
 class BarbaSocketException : public BarbaException
 {
@@ -34,18 +35,25 @@ public:
 	void SetKeepAlive(bool value);
 	void SetReceiveTimeOut(DWORD milisecond);
 	void SetSendTimeOut(DWORD milisecond);
+	u_long GetLastReceivedTime() {return this->LastReceivedTime;}
+	u_long GetLastSentTime() {return this->LastSentTime;}
 	u_long GetRemoteIp() { return this->RemoteIp;}
+	bool IsReceiving() {return this->_IsReceiving;}
 	static bool InitializeLib(); 
 	static void UninitializeLib(); 
 
 protected:
-
+	volatile u_long LastReceivedTime;
+	volatile u_long LastSentTime;
+	volatile u_long SentBytesCount;
+	volatile u_long ReceivedBytesCount;
 	u_long RemoteIp;
 	BarbaSocket();
-	size_t SentBytesCount;
-	size_t ReceivedBytesCount;
 	SOCKET _Socket;
 	void ThrowSocketError();
+
+private:
+	volatile bool _IsReceiving;
 };  
 
 //BarbaSocketClient

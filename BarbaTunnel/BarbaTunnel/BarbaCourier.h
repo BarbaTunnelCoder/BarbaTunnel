@@ -17,9 +17,10 @@ struct BarbaCourierCreateStrcut
 	std::tstring FakeHttpPostTemplate;
 	std::tstring HostName;
 	u_int FakeFileMaxSize;
+	u_short FakePacketMinSize;
 	size_t ThreadsStackSize;
 	u_int ConnectionTimeout;
-	u_short FakePacketMinSize;
+	u_int KeepAliveInterval;
 };
 
 //BarbaCourier
@@ -45,6 +46,7 @@ public:
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
 	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
 	virtual void Crypt(BYTE* data, size_t dataLen, bool encrypt);
+	virtual bool IsServer()=0;
 	std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
 	size_t GetReceiveBytesCount() {return this->ReceivedBytesCount;}
@@ -78,6 +80,8 @@ protected:
 	void SendFakeFileHeader(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader);
 	void WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRequest);
 	void InitFakeRequestVars(std::tstring& src, LPCTSTR filename, LPCTSTR contentType, u_int fileSize, u_int fileHeaderSize);
+	volatile DWORD LastReceivedTime;
+	volatile DWORD LastSentTime;
 
 	SimpleSafeList<BarbaSocket*> IncomingSockets;
 	SimpleSafeList<BarbaSocket*> OutgoingSockets;

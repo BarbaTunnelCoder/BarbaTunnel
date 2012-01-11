@@ -20,6 +20,7 @@ public:
 	//@return false if no new connection accepted and caller should delete the socket
 	//@return true if connection accepted, in this case caller should not delete the socket and it will be deleted automatically
 	bool AddSocket(BarbaSocket* Socket, LPCSTR httpRequest, bool isOutgoing);
+	bool IsServer() {return true;}
 
 protected:
 	virtual ~BarbaCourierServer(void);
