@@ -170,10 +170,9 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 		if (IsServer() && message==NULL &&
 			this->CreateStruct.KeepAliveInterval!=0 && 
 			barbaSocket->GetLastSentTime() < this->LastReceivedTime &&
-			GetTickCount()> (barbaSocket->GetLastSentTime() + this->CreateStruct.KeepAliveInterval) )
+			GetTickCount() > (barbaSocket->GetLastSentTime() + this->CreateStruct.KeepAliveInterval) )
 		{
 			message = new Message(NULL, 0);
-			Log("keepAliveSent");
 		}
 
 		while (message!=NULL)

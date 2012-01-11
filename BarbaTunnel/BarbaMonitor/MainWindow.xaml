@@ -3,8 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="BarbaTunnel Monitor" Height="427" Width="810" Closing="Window_Closing" Visibility="Hidden">
     <Grid>
-        
-        <TextBlock Height="18" HorizontalAlignment="Left" Margin="15,94,0,0" Name="textBlock1" Text="Report" VerticalAlignment="Top" Width="57" />
         <TextBox Margin="12,116,12,12" Name="reportTextBox" IsReadOnly="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="LightGray" UndoLimit="0"></TextBox>
         <Button Height="23" Margin="0,86,175,0" Name="startButton" VerticalAlignment="Top" Click="startButton_Click" HorizontalAlignment="Right" Width="75">
             <StackPanel Orientation="Horizontal">
@@ -30,6 +28,7 @@
         <Image Height="32" Width="32" HorizontalAlignment="Left" Margin="172,12,0,0" Name="StartIcon" VerticalAlignment="Top" Source="/BarbaMonitor;component/Resources/Status_Started.ico" Visibility="Hidden"  />
         <Image Height="32" Width="32" HorizontalAlignment="Left" Margin="172,12,0,0" Name="StopIcon" VerticalAlignment="Top" Source="/BarbaMonitor;component/Resources/Status_Stopped.ico" Visibility="Hidden" />
         <TextBlock Height="23" HorizontalAlignment="Left" Margin="12,12,0,0" Name="textBlock3" Text="BarbaTunnel Monitor" VerticalAlignment="Top" Width="259" FontWeight="Bold" FontSize="16" />
-        <CheckBox Content="Verbose" Height="18" Margin="0,93,264,0" Name="verboseCheckBox" VerticalAlignment="Top" Click="verboseCheckBox_Click" HorizontalAlignment="Right" Width="68" />
+        <CheckBox Content="Verbose" Height="18" Margin="83,95,0,0" Name="verboseCheckBox" VerticalAlignment="Top" Click="verboseCheckBox_Click" HorizontalAlignment="Left" Width="68" />
+        <CheckBox Content="Report" Height="16" HorizontalAlignment="Left" Margin="15,95,0,0" Name="reportCheckBox" VerticalAlignment="Top" IsChecked="True" />
     </Grid>
 </Window>
