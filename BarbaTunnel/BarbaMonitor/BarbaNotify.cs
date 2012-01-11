@@ -15,10 +15,14 @@ namespace BarbaTunnel.Monitor
         public MenuItem RestartMenu { get; private set; }
         public MenuItem StopMenu { get; private set; }
         public MenuItem MainWindowMenu { get; private set; }
+        public MenuItem AutoStartMenu { get; private set; }
         public BarbaNotify()
         {
             var menu = new System.Windows.Forms.ContextMenu();
             MainWindowMenu = menu.MenuItems.Add("Barba Monitor Window");
+            MainWindowMenu.DefaultItem = true;
+            menu.MenuItems.Add("-");
+            AutoStartMenu = menu.MenuItems.Add("Start when I log on to my computer");
             menu.MenuItems.Add("-");
             StartMenu = menu.MenuItems.Add("Start");
             RestartMenu = menu.MenuItems.Add("Restart");

@@ -26,13 +26,33 @@ namespace BarbaTunnel.Monitor
     /// </summary>
     public partial class MainWindow : Window
     {
+        [DllImport("kernel32.dll")]
+        private static extern int GetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName);
+
         BarbaComm BarbaComm = new BarbaComm();
         BarbaNotify BarbaNotify = new BarbaNotify();
 
         public String AppName { get { return "BarbaTunnel Monitor"; } }
+        public String ModuleFile { get { return System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName; } }
+        private const String CurrentUserRunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+        private String AutoStartRegValue { get { return String.Format("\"{0}\" /delaystart", ModuleFile); } }
 
-        [DllImport("kernel32.dll")]
-        private static extern int GetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName);
+        public bool IsAutoStart
+        {
+            get
+            {
+                String val = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(CurrentUserRunKeyPath, true).GetValue("BarbaMonitor", null) as String;
+                return AutoStartRegValue.Equals(val, StringComparison.InvariantCultureIgnoreCase);
+            }
+            set
+            {
+                if (value)
+                    Microsoft.Win32.Registry.CurrentUser.OpenSubKey(CurrentUserRunKeyPath, true).SetValue("BarbaMonitor", AutoStartRegValue);
+                else
+                    Microsoft.Win32.Registry.CurrentUser.OpenSubKey(CurrentUserRunKeyPath, true).DeleteValue("BarbaMonitor");
+            }
+        }
+
 
         bool ExitMode = false;
         public MainWindow()
@@ -49,6 +69,8 @@ namespace BarbaTunnel.Monitor
             BarbaNotify.StartMenu.Click += delegate(object sender, EventArgs args) { this.DoStart(); };
             BarbaNotify.RestartMenu.Click += delegate(object sender, EventArgs args) { this.DoRestart(); };
             BarbaNotify.StopMenu.Click += delegate(object sender, EventArgs args) { this.DoStop(); };
+            BarbaNotify.AutoStartMenu.Click += delegate(object sender, EventArgs args) { IsAutoStart = !IsAutoStart; BarbaNotify.AutoStartMenu.Checked = IsAutoStart; };
+            BarbaNotify.AutoStartMenu.Checked = IsAutoStart;
             InitializeComponent();
             BarbaComm.Initialize();
             this.verboseCheckBox.IsChecked = BarbaComm.VerboseMode;
