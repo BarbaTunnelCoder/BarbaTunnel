@@ -120,8 +120,13 @@ namespace BarbaTunnel.Monitor
         {
             this.Dispatcher.Invoke(DispatcherPriority.Normal, (ThreadStart)delegate
             {
-                reportTextBox.Text = BarbaComm.ReadLog();
-                reportTextBox.ScrollToEnd();
+                if (reportCheckBox.IsChecked.Value)
+                {
+                    if (reportTextBox.IsFocused)
+                        reportCheckBox.Focus(); // TextBox jump to start if have focus
+                    reportTextBox.Text = BarbaComm.ReadLog();
+                    reportTextBox.ScrollToEnd();
+                }
             });
 
         }
