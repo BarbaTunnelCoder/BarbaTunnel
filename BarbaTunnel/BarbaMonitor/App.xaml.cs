@@ -36,6 +36,8 @@ namespace BarbaTunnel.Monitor
         {
             // handle command line arguments of second instance
             // ...
+            if (this.MainWindow.WindowState == System.Windows.WindowState.Minimized)
+                this.MainWindow.WindowState = System.Windows.WindowState.Normal;
             this.MainWindow.Visibility = Visibility.Visible;
             this.MainWindow.Activate();
             return true;

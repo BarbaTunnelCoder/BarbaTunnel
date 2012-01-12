@@ -192,6 +192,8 @@ namespace BarbaTunnel.Monitor
         void DoShowMainWindow()
         {
             this.Visibility = System.Windows.Visibility.Visible;
+            this.Activate();
+            if (this.WindowState == System.Windows.WindowState.Minimized) this.WindowState = System.Windows.WindowState.Normal;
             DispatcherTimer timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromMilliseconds(0);
             timer.Tick += new EventHandler(ShowMainWindowTimer); // i don't know why WPF does not activate MainWindow at first-time
