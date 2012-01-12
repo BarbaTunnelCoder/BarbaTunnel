@@ -67,7 +67,7 @@ void BarbaCourierClient::CheckKeepAlive()
 	BarbaSocket** sockets = autoLockBuf.GetBuffer();
 	for (size_t i=0; i<list->GetCount(); i++)
 	{
-		if ( sockets[i]->GetLastReceivedTime() < this->LastSentTime &&
+		if (sockets[i]->GetLastReceivedTime() < this->LastSentTime &&
 			GetTickCount() > (sockets[i]->GetLastReceivedTime() + this->CreateStruct.KeepAliveInterval*2) )
 		{
 			Log(_T("Connection closed due to keep alive timeout!"));

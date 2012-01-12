@@ -51,6 +51,7 @@ protected:
 	BarbaSocket();
 	SOCKET _Socket;
 	void ThrowSocketError();
+	void Init();
 
 private:
 	volatile bool _IsReceiving;
