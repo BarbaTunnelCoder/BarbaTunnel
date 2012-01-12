@@ -59,12 +59,6 @@ void BarbaCourier::Log(LPCTSTR format, ...)
 	BarbaLog2(msg2);
 }
 
-HANDLE BarbaCourier::Delete()
-{
-	return (HANDLE)_beginthreadex(0, this->CreateStruct.ThreadsStackSize, DeleteThread, (void*)this, 0, NULL);
-}
-
-
 BarbaCourier::~BarbaCourier(void)
 {
 }
@@ -74,9 +68,15 @@ bool BarbaCourier::IsDisposing()
 	return DisposeEvent.Wait(0)==WAIT_OBJECT_0;
 }
 
-void BarbaCourier::Dispose()
+HANDLE BarbaCourier::Delete()
 {
 	Log(_T("BarbaCourier disposing."));
+	DisposeEvent.Set();
+	return (HANDLE)_beginthreadex(0, this->CreateStruct.ThreadsStackSize, DeleteThread, (void*)this, 0, NULL);
+}
+
+void BarbaCourier::Dispose()
+{
 	DisposeEvent.Set();
 
 	CloseSocketsList(&this->IncomingSockets);

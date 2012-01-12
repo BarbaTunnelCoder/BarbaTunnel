@@ -10,13 +10,15 @@ BarbaServerHttpCourier::BarbaServerHttpCourier(BarbaCourierCreateStrcut* cs, Bar
 {
 }
 
-
 BarbaServerHttpCourier::~BarbaServerHttpCourier(void)
 {
 }
 
 void BarbaServerHttpCourier::Crypt(BYTE* data, size_t dataLen, bool encrypt)
 {
+	if (IsDisposing()) 
+		return; 
+
 	if (encrypt)
 	{
 		this->HttpConnection->EncryptData(data, dataLen);
@@ -29,6 +31,9 @@ void BarbaServerHttpCourier::Crypt(BYTE* data, size_t dataLen, bool encrypt)
 
 void BarbaServerHttpCourier::SendPacket(PacketHelper* packet)
 {
+	if (IsDisposing()) 
+		return; 
+
 	//encrypt whole packet include header
 	BYTE data[MAX_ETHER_FRAME];
 	size_t dataCount = packet->GetPacketLen();
@@ -39,6 +44,9 @@ void BarbaServerHttpCourier::SendPacket(PacketHelper* packet)
 
 void BarbaServerHttpCourier::Receive(BYTE* buffer, size_t bufferCount)
 {
+	if (IsDisposing()) 
+		return; 
+
 	this->HttpConnection->DecryptData(buffer, bufferCount);
 	PacketHelper packet;
 	if (!packet.SetIpPacket((iphdr_ptr)buffer) || !packet.IsValidChecksum())
@@ -51,6 +59,9 @@ void BarbaServerHttpCourier::Receive(BYTE* buffer, size_t bufferCount)
 
 void BarbaServerHttpCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew)
 {
+	if (IsDisposing()) 
+		return; 
+
 	if (!theApp->GetFakeFile(&this->HttpConnection->GetConfigItem()->FakeFileTypes, this->CreateStruct.FakeFileMaxSize, filename, contentType, fileSize, fakeFileHeader, createNew))
 		BarbaCourierServer::GetFakeFile(filename, contentType, fileSize, fakeFileHeader, createNew);
 }

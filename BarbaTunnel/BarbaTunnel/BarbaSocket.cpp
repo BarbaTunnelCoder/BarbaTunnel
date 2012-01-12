@@ -20,6 +20,12 @@ BarbaSocket::BarbaSocket(SOCKET s, u_long remoteIp)
 	InitializeLib();
 	_Socket = s;
 	this->RemoteIp = remoteIp;
+	Init();
+}
+
+void BarbaSocket::Init()
+{
+	this->LastSentTime = this->LastReceivedTime = GetTickCount();
 }
 
 void BarbaSocket::ThrowSocketError()
@@ -155,6 +161,7 @@ BarbaSocketClient::BarbaSocketClient(u_long serverIp, u_short port)
 	this->RemoteIp = serverIp;
 	if (::connect(_Socket, (sockaddr*)&addr, sizeof sockaddr)==SOCKET_ERROR)
 		ThrowSocketError();
+	Init();
 }
 
 BarbaSocketServer::BarbaSocketServer(u_short port) 

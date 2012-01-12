@@ -116,19 +116,28 @@ namespace BarbaTunnel.Monitor
             });
         }
 
+        void UpdateLog()
+        {
+            if (reportCheckBox.IsChecked.Value)
+            {
+                if (reportTextBox.IsFocused)
+                    reportCheckBox.Focus(); // TextBox jump to start if have focus
+                reportTextBox.Text = BarbaComm.ReadLog();
+                reportTextBox.ScrollToEnd();
+            }
+        }
+
         void BarbaComm_LogAdded(object sender, EventArgs e)
         {
             this.Dispatcher.Invoke(DispatcherPriority.Normal, (ThreadStart)delegate
             {
-                if (reportCheckBox.IsChecked.Value)
-                {
-                    if (reportTextBox.IsFocused)
-                        reportCheckBox.Focus(); // TextBox jump to start if have focus
-                    reportTextBox.Text = BarbaComm.ReadLog();
-                    reportTextBox.ScrollToEnd();
-                }
+                UpdateLog();
             });
+        }
 
+        private void reportCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            UpdateLog();
         }
 
         void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -270,6 +279,5 @@ namespace BarbaTunnel.Monitor
         {
             BarbaComm.VerboseMode = verboseCheckBox.IsChecked.Value;
         }
-
     }
 }

@@ -91,6 +91,7 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 
 u_int BarbaCourierServer::SendFakeReply(BarbaSocket* socket, LPCTSTR httpRequest, std::vector<BYTE>* fakeFileHeader)
 {
+	if ( IsDisposing() ) throw new BarbaException(_T("Could not send fake request while disposing!"));
 	bool outgoing = fakeFileHeader!=NULL;
 	std::tstring fakeUrl = BarbaUtils::GetFileUrlFromHttpRequest(httpRequest);
 	std::tstring fakefile = BarbaUtils::GetFileNameFromUrl(fakeUrl.data());
