@@ -14,24 +14,24 @@ BarbaClientConnectionManager::~BarbaClientConnectionManager(void)
 {
 }
 
-BarbaClientConnection* BarbaClientConnectionManager::CreateConnection(PacketHelper* packet, BarbaClientConfig* config, BarbaClientConfigItem* configItem)
+BarbaClientConnection* BarbaClientConnectionManager::CreateConnection(PacketHelper* packet, BarbaClientConfig* config)
 {
 	BarbaClientConnection* conn = NULL;
-	if (configItem->Mode==BarbaModeTcpRedirect || configItem->Mode==BarbaModeUdpRedirect)
+	if (config->Mode==BarbaModeTcpRedirect || config->Mode==BarbaModeUdpRedirect)
 	{
-		conn = new BarbaClientRedirectConnection(config, configItem, packet->GetSrcPort(), configItem->GetNewTunnelPort());
+		conn = new BarbaClientRedirectConnection(config, packet->GetSrcPort(), config->GetNewTunnelPort());
 	}
-	else if (configItem->Mode==BarbaModeUdpTunnel)
+	else if (config->Mode==BarbaModeUdpTunnel)
 	{
-		conn = new BarbaClientUdpConnection(config, configItem, packet->GetSrcPort(), configItem->GetNewTunnelPort());
+		conn = new BarbaClientUdpConnection(config, packet->GetSrcPort(), config->GetNewTunnelPort());
 	}
-	else if (configItem->Mode==BarbaModeHttpTunnel)
+	else if (config->Mode==BarbaModeHttpTunnel)
 	{
-		conn = new BarbaClientHttpConnection(config, configItem, configItem->GetNewTunnelPort());
+		conn = new BarbaClientHttpConnection(config, config->GetNewTunnelPort());
 	}
 	else
 	{
-		throw new BarbaException(_T("%s mode not supported!"), BarbaMode_ToString(configItem->Mode));
+		throw new BarbaException(_T("%s mode not supported!"), BarbaMode_ToString(config->Mode));
 	}
 
 	AddConnection(conn);

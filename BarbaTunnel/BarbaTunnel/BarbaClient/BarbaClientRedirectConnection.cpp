@@ -1,9 +1,10 @@
 #include "StdAfx.h"
+#include "BarbaClientApp.h"
 #include "BarbaClientRedirectConnection.h"
 
 
-BarbaClientRedirectConnection::BarbaClientRedirectConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short clientPort, u_short tunnelPort)
-	: BarbaClientConnection(config, configItem)
+BarbaClientRedirectConnection::BarbaClientRedirectConnection(BarbaClientConfig* config, u_short clientPort, u_short tunnelPort)
+	: BarbaClientConnection(config)
 {
 	this->ClientPort = clientPort;
 	this->TunnelPort = tunnelPort;
@@ -16,7 +17,7 @@ u_short BarbaClientRedirectConnection::GetTunnelPort()
 
 u_short BarbaClientRedirectConnection::GetRealPort()
 {
-	return this->ConfigItem->RealPort;
+	return this->Config->RealPort;
 }
 
 BarbaClientRedirectConnection::~BarbaClientRedirectConnection(void)
@@ -28,7 +29,7 @@ bool BarbaClientRedirectConnection::ShouldProcessPacket(PacketHelper* packet)
 	//check outgoing packets
 	if (packet->GetDesIp()==GetServerIp())
 	{
-		return packet->GetSrcPort()==this->ClientPort && ConfigItem->ShouldGrabPacket(packet);
+		return packet->GetSrcPort()==this->ClientPort && BarbaClientApp::ShouldGrabPacket(packet, Config);
 	}
 	//check incoming packets
 	else if (packet->GetSrcIp()==GetServerIp())

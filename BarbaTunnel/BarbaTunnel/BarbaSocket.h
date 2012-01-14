@@ -70,7 +70,7 @@ public:
 class BarbaSocketServer : public BarbaSocket 
 {
 public:
-	explicit BarbaSocketServer(u_short port);
+	explicit BarbaSocketServer(u_short port, DWORD ipAddress=0);
 	virtual ~BarbaSocketServer(){}
 	BarbaSocket* Accept();
 	u_short GetListenPort() {return this->ListenPort;}

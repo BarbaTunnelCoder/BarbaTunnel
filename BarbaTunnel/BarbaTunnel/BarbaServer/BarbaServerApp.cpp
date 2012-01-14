@@ -23,33 +23,13 @@ void BarbaServerApp::Initialize()
 	}
 	theServerApp = this;
 	BarbaApp::Initialize();
+	TCHAR file[MAX_PATH];
 
-	//configFileName
-	TCHAR configFileName[MAX_PATH] = {0};
-	GetPrivateProfileString(_T("Server"), _T("ConfigFileName"), _T(""), configFileName, _countof(configFileName), GetConfigFile());
-	this->ConfigFileName = configFileName;
-
-	//find config file
-	TCHAR  configFile[MAX_PATH];
-	if (this->ConfigFileName.empty())
-	{
-		std::vector<std::tstring> files;
-		BarbaUtils::FindFiles( GetConfigItemFolder(), _T("*.ini"),  &files);
-		if (files.size()==0) throw new BarbaException(_T("Could not find any config file."));
-		else if (files.size()>1) throw new BarbaException(_T("BarbaServer find more than one config file! A ConfigFileName should specified in BarbaTunnel.ini."));
-		else _tcscpy_s(configFile, files.front().data());
-	}
-	else
-	{
-		_stprintf_s(configFile, _T("%s\\%s"), GetConfigItemFolder(), configFileName);
-	}
-
-	//Load Config File
-	if (!Config.LoadFile(configFile))
-		throw new BarbaException(_T("Could not load %s file!"), configFileName);
+	//Load Configs
+	_stprintf_s(file, _countof(file), _T("%s\\config"), GetModuleFolder());
+	BarbaServerConfig::LoadFolder(file, &this->Configs);
 	
 	//load fake files
-	TCHAR file[MAX_PATH];
 	_stprintf_s(file, _T("%s\\templates\\HTTP-GetReplyTemplate.txt"), GetModuleFolder());
 	this->FakeHttpGetReplyTemplate = BarbaUtils::LoadFileToString(file);
 	_stprintf_s(file, _T("%s\\templates\\HTTP-PostReplyTemplate.txt"), GetModuleFolder());
@@ -83,25 +63,34 @@ void BarbaServerApp::Start()
 	HttpHost.Initialize();
 }
 
-BarbaServerConfigItem* BarbaServerApp::ShouldGrabPacket(PacketHelper* packet)
+bool BarbaServerApp::ShouldGrabPacket(PacketHelper* packet, BarbaServerConfig* config)
 {
-	for (size_t i=0; i<this->Config.Items.size(); i++)
-	{
-		BarbaServerConfigItem* item = &this->Config.Items[i];
-		
-		//check protocol
-		if (item->GetTunnelProtocol()!=packet->ipHeader->ip_p)
-			continue;
+	if (config->ServerIp!=0 && packet->GetDesIp()!=config->ServerIp)
+		return false;
 
-		//check port
-		u_short port = packet->GetDesPort();
-		for (size_t j=0; j<item->TunnelPorts.size(); j++)
-		{
-			if (port>=item->TunnelPorts[j].StartPort && port<=item->TunnelPorts[j].EndPort)
-				return item;
-		}
+	//check protocol
+	if (config->GetTunnelProtocol()!=packet->ipHeader->ip_p)
+		return false;
+
+	//check port
+	u_short port = packet->GetDesPort();
+	for (size_t j=0; j<config->TunnelPorts.size(); j++)
+	{
+		if (port>=config->TunnelPorts[j].StartPort && port<=config->TunnelPorts[j].EndPort)
+			return true;
 	}
 
+	return false;
+}
+
+BarbaServerConfig* BarbaServerApp::ShouldGrabPacket(PacketHelper* packet)
+{
+	for (size_t i=0; i<this->Configs.size(); i++)
+	{
+		BarbaServerConfig* item = &this->Configs[i];
+		if (ShouldGrabPacket(packet, item))
+			return item;
+	}
 	return NULL;
 }
 
@@ -123,7 +112,7 @@ bool BarbaServerApp::ProcessPacket(PacketHelper* packet, bool send)
 	//create new connection if not found
 	if (!send && connection==NULL)
 	{
-		BarbaServerConfigItem* item = ShouldGrabPacket(packet);
+		BarbaServerConfig* item = ShouldGrabPacket(packet);
 		if (item!=NULL)
 			connection = ConnectionManager.CreateConnection(packet, item);
 	}

@@ -2,25 +2,24 @@
 #include "BarbaClientApp.h"
 #include "BarbaCrypt.h"
 
-BarbaClientConnection::BarbaClientConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem)
+BarbaClientConnection::BarbaClientConnection(BarbaClientConfig* config)
 {
 	this->Config = config;
-	this->ConfigItem = configItem;
 }
 
 BarbaModeEnum BarbaClientConnection::GetMode()
 {
-	return this->ConfigItem->Mode;
+	return this->Config->Mode;
 }
 
 LPCTSTR BarbaClientConnection::GetName()
 {
-	return _tcslen(this->ConfigItem->Name )>0 ? this->ConfigItem->Name : _T("Connection");
+	return this->Config->Name.empty() ? _T("Connection") : this->Config->Name.data();
 }
 
 std::vector<BYTE>* BarbaClientConnection::GetKey()
 {
-	return &this->ConfigItem->Key;
+	return &this->Config->Key;
 }
 
 u_long BarbaClientConnection::GetServerIp()
@@ -30,15 +29,8 @@ u_long BarbaClientConnection::GetServerIp()
 
 void BarbaClientConnection::ReportNewConnection()
 {
-	TCHAR serverIp[100];
-	PacketHelper::ConvertIpToString(Config->ServerIp, serverIp, _countof(serverIp));
 	LPCTSTR mode = BarbaMode_ToString(GetMode());
-	TCHAR serverName[BARBA_MaxConfigName];
-	if (_tcslen(Config->ServerName)>0)
-		_stprintf_s(serverName, _T("%s (%s)"), Config->ServerName, serverIp);
-	else
-		_stprintf_s(serverName, _T("%s"), serverIp);
-	BarbaLog(_T("New %s, Server: %s, Protocol: %s:%d, ConnectionID: %u."), GetName(), serverName, mode, this->GetTunnelPort(), this->GetId());
-	BarbaNotify(_T("New %s\r\nServer: %s\r\nProtocol: %s:%d"), GetName(), serverName, mode, this->GetTunnelPort());
+	BarbaLog(_T("New %s! Server: %s, Protocol: %s:%d, ConnectionID: %u."), GetName(), this->Config->ServerAddress.data(), mode, this->GetTunnelPort(), this->GetId());
+	BarbaNotify(_T("New %s\r\nServer: %s\r\nProtocol: %s:%d"), GetName(), this->Config->ServerAddress.data(), mode, this->GetTunnelPort());
 }
 

@@ -11,16 +11,16 @@ public:
 	virtual void Initialize();
 	virtual void Dispose();
 	virtual bool IsServerMode() {return false;}
-	
-	BarbaClientConfigManager ConfigManager;
-	BarbaClientConnectionManager ConnectionManager;
 	virtual bool ProcessPacket(PacketHelper* packet, bool send);
+	static bool ShouldGrabPacket(PacketHelper* packet, BarbaClientConfig* config);
+	
+	std::vector<BarbaClientConfig> Configs;
+	BarbaClientConnectionManager ConnectionManager;
 	std::string FakeHttpGetTemplate;
 	std::string FakeHttpPostTemplate;
 
 private:
-	//return pointer to BarbaClientConfigItem if the packed should grabbed before send
-	BarbaClientConfigItem* ShouldGrabPacket(PacketHelper* packet, BarbaClientConfig* config);
+	BarbaClientConfig* ShouldGrabPacket(PacketHelper* packet);
 };
 
 extern BarbaClientApp* theClientApp;

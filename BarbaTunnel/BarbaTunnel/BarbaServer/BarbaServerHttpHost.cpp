@@ -108,7 +108,7 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 		bool isOutgoing = isGet;
 
 		//find session
-		std::tstring requestData = GetRequestDataFromHttpRequest(httpRequest.data(), threadData->ConfigItem->RequestDataKeyName.data(), &threadData->ConfigItem->Key);
+		std::tstring requestData = GetRequestDataFromHttpRequest(httpRequest.data(), threadData->Config->RequestDataKeyName.data(), &threadData->Config->Key);
 		std::tstring sessionIdStr = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("session"));
 		u_long sessionId = strtoul(sessionIdStr.data(), NULL, 0);
 		if (sessionId==0)
@@ -119,7 +119,7 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 		BarbaServerHttpConnection* conn = (BarbaServerHttpConnection*)theServerApp->ConnectionManager.FindBySessionId(sessionId);
 		//create new connection if session not found
 		if (conn==NULL)
-			conn = theServerApp->ConnectionManager.CreateHttpConnection(threadData->ConfigItem, socket->GetRemoteIp(), threadData->ServerPort, sessionId);
+			conn = theServerApp->ConnectionManager.CreateHttpConnection(threadData->Config, socket->GetRemoteIp(), threadData->ServerPort, sessionId);
 		lock.Unlock();
 
 		//add socket to HTTP connection
@@ -159,7 +159,7 @@ unsigned int BarbaServerHttpHost::ListenerThread(void* data)
 		{
 			BarbaSocket* socket = listenerSocket->Accept(); 
 			_this->AnswerSockets.AddTail(socket);
-			AnswerThreadData* answerThreadData = new AnswerThreadData(_this, socket, threadData->ConfigItem, listenerSocket->GetListenPort());
+			AnswerThreadData* answerThreadData = new AnswerThreadData(_this, socket, threadData->Config, listenerSocket->GetListenPort());
 			_this->AnswerThreads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, AnswerThread, answerThreadData, 0, NULL));
 			BarbaServerApp::CloseFinishedThreadHandle(&_this->AnswerThreads);
 		}
@@ -181,11 +181,11 @@ unsigned int BarbaServerHttpHost::ListenerThread(void* data)
 	return 0;
 }
 
-void BarbaServerHttpHost::AddListenerPort(BarbaServerConfigItem* configItem, u_short port)
+void BarbaServerHttpHost::AddListenerPort(BarbaServerConfig* config, u_short port)
 {
-	BarbaSocketServer* listenSocket = new BarbaSocketServer(port);
+	BarbaSocketServer* listenSocket = new BarbaSocketServer(port, config->ServerIp);
 	ListenerSockets.AddTail(listenSocket);
-	ListenerThreadData* threadData = new ListenerThreadData(this, listenSocket, configItem);
+	ListenerThreadData* threadData = new ListenerThreadData(this, listenSocket, config);
 	ListenerThreads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, ListenerThread, threadData, 0, NULL));
 }
 
@@ -193,9 +193,9 @@ void BarbaServerHttpHost::Initialize()
 {
 	//Initialize listeners
 	int createdSocket = 0;
-	for (size_t i=0; i<theServerApp->Config.Items.size(); i++)
+	for (size_t i=0; i<theServerApp->Configs.size(); i++)
 	{
-		BarbaServerConfigItem* item = &theServerApp->Config.Items[i];
+		BarbaServerConfig* item = &theServerApp->Configs[i];
 		if (item->Mode!=BarbaModeHttpTunnel)
 			continue;
 
@@ -216,13 +216,14 @@ void BarbaServerHttpHost::Initialize()
 				//add port
 				try
 				{
-					Log(_T("Listening to TCP port %d."), portRange->StartPort);
+					Log(_T("Listening to TCP %s:%d."), item->ServerAddress.data(), portRange->StartPort);
 					this->AddListenerPort(item, port);
 					createdSocket++;
 				}
-				catch (...)
+				catch (BarbaException* er)
 				{
-					Log(_T("Error! HTTP Host could not listen to TCP port %d!"), portRange->StartPort);
+					Log(_T("Error! Could not listen to TCP %s:%d. %s"), item->ServerAddress.data(), portRange->StartPort, er->ToString());
+					delete er;
 				}
 			}
 		}// for j

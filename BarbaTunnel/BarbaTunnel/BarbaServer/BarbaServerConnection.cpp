@@ -3,17 +3,17 @@
 #include "BarbaServerConnection.h"
 #include "BarbaCrypt.h"
 
-BarbaServerConnection::BarbaServerConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, u_long clientIp)
+BarbaServerConnection::BarbaServerConnection(BarbaServerConfig* config, u_long clientVirtualIp, u_long clientIp)
 	: BarbaConnection()
 {
-	this->ConfigItem = configItem;
+	this->Config = config;
 	this->ClientVirtualIp = clientVirtualIp;
 	this->ClientIp = clientIp;
 }
 
 std::vector<BYTE>* BarbaServerConnection::GetKey()
 {
-	return &this->ConfigItem->Key;
+	return &this->Config->Key;
 }
 
 u_long BarbaServerConnection::GetClientVirtualIp()
@@ -23,12 +23,12 @@ u_long BarbaServerConnection::GetClientVirtualIp()
 
 LPCTSTR BarbaServerConnection::GetName()
 {
-	return _tcslen(this->ConfigItem->Name)>0 ? this->ConfigItem->Name : _T("Connection");
+	return this->Config->Name.empty() ? _T("Connection") : this->Config->Name.data();
 }
 
 BarbaModeEnum BarbaServerConnection::GetMode()
 {
-	return this->ConfigItem->Mode;
+	return this->Config->Mode;
 }
 
 void BarbaServerConnection::ReportNewConnection()

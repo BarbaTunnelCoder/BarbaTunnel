@@ -3,9 +3,9 @@
 #include "BarbaServerApp.h"
 
 
-BarbaServerUdpConnection::BarbaServerUdpConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, 
+BarbaServerUdpConnection::BarbaServerUdpConnection(BarbaServerConfig* config, u_long clientVirtualIp, 
 	u_long clientIp, u_short clientPort, u_short tunnelPort, BYTE* clientRouteEthAddress)
-	: BarbaServerConnection(configItem, clientVirtualIp, clientIp)
+	: BarbaServerConnection(config, clientVirtualIp, clientIp)
 {
 	this->ClientIp = clientIp;
 	this->ClientPort = clientPort;

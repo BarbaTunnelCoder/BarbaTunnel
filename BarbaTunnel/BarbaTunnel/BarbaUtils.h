@@ -8,6 +8,7 @@ public:
 	static void GetModuleFolder(TCHAR* folder);
 	static bool GetPortRange(LPCTSTR value, u_short* startPort, u_short* endPort);
 	static bool GetProtocolAndPort(LPCTSTR value, BYTE* protocol, u_short* port);
+	static void GetProtocolAndPortArray(LPCTSTR value, std::vector<ProtocolPort>* result);
 	//@return number of bytes copied to buffer
 	static void ConvertHexStringToBuffer(LPCTSTR hexString, std::vector<BYTE>* buffer);
 	static std::tstring ConvertBufferToHexString(std::vector<BYTE>* buffer);

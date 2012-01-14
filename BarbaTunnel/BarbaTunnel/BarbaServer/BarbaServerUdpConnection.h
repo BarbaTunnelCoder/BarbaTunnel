@@ -4,7 +4,7 @@
 class BarbaServerUdpConnection : public BarbaServerConnection
 {
 public:
-	explicit BarbaServerUdpConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, 
+	explicit BarbaServerUdpConnection(BarbaServerConfig* config, u_long clientVirtualIp, 
 		u_long clientIp, u_short clientPort, u_short tunnelPort, BYTE* clientRouteEthAddress);
 	virtual ~BarbaServerUdpConnection(void);
 	virtual bool ShouldProcessPacket(PacketHelper* packet);

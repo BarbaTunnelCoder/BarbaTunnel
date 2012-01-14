@@ -49,20 +49,20 @@ BarbaServerConnection* BarbaServerConnectionManager::FindBySessionId(DWORD sessi
 }
 	
 
-BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelper* packet, BarbaServerConfigItem* configItem)
+BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelper* packet, BarbaServerConfig* config)
 {
 	BarbaServerConnection* conn = NULL;
-	if (configItem->Mode==BarbaModeUdpRedirect || configItem->Mode==BarbaModeTcpRedirect)
+	if (config->Mode==BarbaModeUdpRedirect || config->Mode==BarbaModeTcpRedirect)
 	{
-		conn = new BarbaServerRedirectConnection(configItem, this->VirtualIpManager.GetNewIp(), packet->GetSrcIp(), packet->GetSrcPort(), packet->GetDesPort());
+		conn = new BarbaServerRedirectConnection(config, this->VirtualIpManager.GetNewIp(), packet->GetSrcIp(), packet->GetSrcPort(), packet->GetDesPort());
 	}
-	else if (configItem->Mode==BarbaModeUdpTunnel)
+	else if (config->Mode==BarbaModeUdpTunnel)
 	{
-		conn = new BarbaServerUdpConnection(configItem, this->VirtualIpManager.GetNewIp(), packet->GetSrcIp(), packet->GetSrcPort(), packet->GetDesPort(), packet->ethHeader->h_source);
+		conn = new BarbaServerUdpConnection(config, this->VirtualIpManager.GetNewIp(), packet->GetSrcIp(), packet->GetSrcPort(), packet->GetDesPort(), packet->ethHeader->h_source);
 	}
 	else
 	{
-		throw new BarbaException(_T("%s mode not supported!"), BarbaMode_ToString(configItem->Mode));
+		throw new BarbaException(_T("%s mode not supported!"), BarbaMode_ToString(config->Mode));
 	}
 
 
@@ -70,9 +70,9 @@ BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelp
 	return conn;
 }
 
-BarbaServerHttpConnection* BarbaServerConnectionManager::CreateHttpConnection(BarbaServerConfigItem* configItem, u_long clientIp, u_short tunnelPort, u_long sessionId)
+BarbaServerHttpConnection* BarbaServerConnectionManager::CreateHttpConnection(BarbaServerConfig* config, u_long clientIp, u_short tunnelPort, u_long sessionId)
 {
-	BarbaServerHttpConnection* conn = new BarbaServerHttpConnection(configItem, this->VirtualIpManager.GetNewIp(), clientIp, tunnelPort, sessionId);
+	BarbaServerHttpConnection* conn = new BarbaServerHttpConnection(config, this->VirtualIpManager.GetNewIp(), clientIp, tunnelPort, sessionId);
 	AddConnection(conn);
 	return conn;
 

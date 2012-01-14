@@ -2,9 +2,9 @@
 #include "BarbaServerRedirectConnection.h"
 
 
-BarbaServerRedirectConnection::BarbaServerRedirectConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, u_long clientIp, 
+BarbaServerRedirectConnection::BarbaServerRedirectConnection(BarbaServerConfig* config, u_long clientVirtualIp, u_long clientIp, 
 	u_short clientPort, u_short tunnelPort)
-	: BarbaServerConnection(configItem, clientVirtualIp, clientIp)
+	: BarbaServerConnection(config, clientVirtualIp, clientIp)
 {
 	this->ClientPort = clientPort;
 	this->TunnelPort = tunnelPort;
@@ -22,7 +22,7 @@ u_short BarbaServerRedirectConnection::GetTunnelPort()
 
 u_short BarbaServerRedirectConnection::GetRealPort()
 {
-	return ConfigItem->RealPort;
+	return Config->RealPort;
 }
 
 bool BarbaServerRedirectConnection::ShouldProcessPacket(PacketHelper* packet)

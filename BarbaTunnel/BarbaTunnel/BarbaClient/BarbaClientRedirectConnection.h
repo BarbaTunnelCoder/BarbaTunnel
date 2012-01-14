@@ -4,7 +4,7 @@ class BarbaClientRedirectConnection :
 	public BarbaClientConnection
 {
 public:
-	explicit BarbaClientRedirectConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short clientPort, u_short tunnelPort);
+	explicit BarbaClientRedirectConnection(BarbaClientConfig* config, u_short clientPort, u_short tunnelPort);
 	virtual ~BarbaClientRedirectConnection(void);
 	virtual bool ProcessPacket(PacketHelper* packet, bool send);
 	virtual bool ShouldProcessPacket(PacketHelper* packet);

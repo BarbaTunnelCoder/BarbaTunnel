@@ -5,7 +5,7 @@ class BarbaClientUdpConnection :
 	public BarbaClientConnection
 {
 public:
-	explicit BarbaClientUdpConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short clientPort, u_short tunnelPort);
+	explicit BarbaClientUdpConnection(BarbaClientConfig* config, u_short clientPort, u_short tunnelPort);
 	virtual ~BarbaClientUdpConnection(void);
 	virtual bool ProcessPacket(PacketHelper* packet, bool send);
 	virtual bool ShouldProcessPacket(PacketHelper* packet);
