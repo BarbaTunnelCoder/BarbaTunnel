@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
 	CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[CurrentAdapterIndex], adapterName, _countof(adapterName));
 	LPCTSTR barbaName = theApp->IsServerMode() ? _T("Barba Server") : _T("Barba Client");
 	BarbaLog(_T("%s Started...\r\nVersion: %s\r\nAdapter: %s\r\nReady!"), barbaName, BARBA_CurrentVersion, adapterName);
-	BarbaNotify(_T("%s Started\r\nVersion: %s\r\nAdpater: %s"), barbaName, BARBA_CurrentVersion, adapterName);
+	BarbaNotify(_T("%s Started\r\nVersion: %s\r\nAdapter: %s"), barbaName, BARBA_CurrentVersion, adapterName);
 	theApp->Comm.SetStatus(_T("Started"));
 	theApp->Start();
 
