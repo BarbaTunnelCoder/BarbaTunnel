@@ -1,8 +1,8 @@
 #pragma once
-#include "BarbaConfigItem.h"
+#include "BarbaConfig.h"
 
 //BarbaClientConfig
-class BarbaClientConfig : public BarbaConfigItem
+class BarbaClientConfig : public BarbaConfig
 {
 public:
 	BarbaClientConfig();

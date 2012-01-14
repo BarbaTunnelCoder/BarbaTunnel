@@ -1,9 +1,9 @@
 #include "stdafx.h"
-#include "BarbaConfigItem.h"
+#include "BarbaConfig.h"
 #include "BarbaUtils.h"
 #include "BarbaCrypt.h"
 
-BarbaConfigItem::BarbaConfigItem()
+BarbaConfig::BarbaConfig()
 {
 	this->ServerIp = 0;
 	this->Mode = BarbaModeNone;
@@ -15,7 +15,7 @@ BarbaConfigItem::BarbaConfigItem()
 }
 
 
-size_t BarbaConfigItem::GetTotalTunnelPortsCount()
+size_t BarbaConfig::GetTotalTunnelPortsCount()
 {
 	if (_TotalTunnelPortsCount==0)
 	{
@@ -29,10 +29,28 @@ size_t BarbaConfigItem::GetTotalTunnelPortsCount()
 	return _TotalTunnelPortsCount;
 }
 
-bool BarbaConfigItem::LoadFile(LPCTSTR file)
+std::tstring BarbaConfig::GetNameFromFileName(LPCTSTR fileName)
+{
+	std::tstring ret = BarbaUtils::GetFileTitleFromUrl(fileName);
+	std::tstring parentFolder = BarbaUtils::GetFileFolderFromUrl(fileName);
+	std::tstring parentFolderName = BarbaUtils::GetFileNameFromUrl(parentFolder.data());
+	while ( !parentFolderName.empty() && _tcsicmp(parentFolderName.data(), BARBA_ConfigFolderName)!=0 )
+	{
+		TCHAR name[MAX_PATH];
+		_stprintf_s(name, _T("%s\\%s"), parentFolderName.data(), ret.data());
+		ret = name;
+		parentFolder = BarbaUtils::GetFileFolderFromUrl(parentFolder.data());
+		parentFolderName = BarbaUtils::GetFileNameFromUrl(parentFolder.data());
+	}
+	return ret;
+}
+
+
+
+bool BarbaConfig::LoadFile(LPCTSTR file)
 {
 	this->FileName = BarbaUtils::GetFileNameFromUrl(file);
-	this->Name = BarbaUtils::GetFileTitleFromUrl(file);
+	this->Name = GetNameFromFileName(file);
 
 	//ServerIp
 	TCHAR serverAddress[1000];
@@ -101,7 +119,7 @@ bool BarbaConfigItem::LoadFile(LPCTSTR file)
 	return true;
 }
 
-void BarbaConfigItem::CheckMaxUserConnections()
+void BarbaConfig::CheckMaxUserConnections()
 {
 	if (this->MaxUserConnections==0)
 	{
@@ -119,7 +137,7 @@ void BarbaConfigItem::CheckMaxUserConnections()
 	}
 }
 
-void BarbaConfigItem::Log(LPCTSTR format, ...)
+void BarbaConfig::Log(LPCTSTR format, ...)
 {
 	va_list argp;
 	va_start(argp, format);
@@ -133,7 +151,7 @@ void BarbaConfigItem::Log(LPCTSTR format, ...)
 }
 
 
-std::tstring BarbaConfigItem::CreateRequestDataKeyName(std::vector<BYTE>* key)
+std::tstring BarbaConfig::CreateRequestDataKeyName(std::vector<BYTE>* key)
 {
 	std::string keyName = "BData";
 	//add some 'A' to change they KeyName size depending to key len

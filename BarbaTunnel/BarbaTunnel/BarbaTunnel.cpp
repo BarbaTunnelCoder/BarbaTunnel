@@ -125,8 +125,9 @@ void InitMemoryLeackReport()
 
 int test()
 {
-	hostent *he;
-	he = gethostbyname("gdsgslgsdlgj");
+	std::tstring folder = BarbaUtils::GetFileFolderFromUrl("d:\\mmm\\sss\\bb.txt\\");
+	std::tstring folderName = BarbaUtils::GetFileNameFromUrl(folder.data());
+	printf("%s\n%s\n", folder.data(), folderName.data());
 	return 0;
 }
 

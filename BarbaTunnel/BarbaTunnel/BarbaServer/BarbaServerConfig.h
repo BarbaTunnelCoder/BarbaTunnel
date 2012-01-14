@@ -1,7 +1,7 @@
 #pragma once
-#include "BarbaConfigItem.h"
+#include "BarbaConfig.h"
 
-class BarbaServerConfig : public BarbaConfigItem
+class BarbaServerConfig : public BarbaConfig
 {
 public:
 	BarbaServerConfig();

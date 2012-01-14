@@ -20,6 +20,7 @@
 #define BARBA_HttpMaxUserConnection 5
 #define BARBA_HttpKeepAliveIntervalMin (10 * 1000) //10 second
 #define BARBA_HttpKeepAliveInterval (60 * 1000) //60 second
+#define BARBA_ConfigFolderName _T("config")
 
 //BarbaModeEnum
 enum BarbaModeEnum

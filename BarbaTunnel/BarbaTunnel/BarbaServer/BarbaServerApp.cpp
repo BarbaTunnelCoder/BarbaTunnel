@@ -26,7 +26,7 @@ void BarbaServerApp::Initialize()
 	TCHAR file[MAX_PATH];
 
 	//Load Configs
-	_stprintf_s(file, _countof(file), _T("%s\\config"), GetModuleFolder());
+	_stprintf_s(file, _countof(file), _T("%s\\%s"), GetModuleFolder(), BARBA_ConfigFolderName);
 	BarbaServerConfig::LoadFolder(file, &this->Configs);
 	
 	//load fake files

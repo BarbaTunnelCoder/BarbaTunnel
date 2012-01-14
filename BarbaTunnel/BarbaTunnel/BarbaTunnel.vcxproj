@@ -99,7 +99,7 @@
     <ClInclude Include="BarbaClient\BarbaClientConfig.h" />
     <ClInclude Include="BarbaClient\BarbaClientConnection.h" />
     <ClInclude Include="BarbaComm.h" />
-    <ClInclude Include="BarbaConfigItem.h" />
+    <ClInclude Include="BarbaConfig.h" />
     <ClInclude Include="BarbaConnection.h" />
     <ClInclude Include="BarbaConnectionManager.h" />
     <ClInclude Include="BarbaCourier.h" />
@@ -145,7 +145,7 @@
     <ClCompile Include="BarbaClient\BarbaClientConfig.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientConnection.cpp" />
     <ClCompile Include="BarbaComm.cpp" />
-    <ClCompile Include="BarbaConfigItem.cpp" />
+    <ClCompile Include="BarbaConfig.cpp" />
     <ClCompile Include="BarbaConnection.cpp" />
     <ClCompile Include="BarbaConnectionManager.cpp" />
     <ClCompile Include="BarbaCourier.cpp" />
