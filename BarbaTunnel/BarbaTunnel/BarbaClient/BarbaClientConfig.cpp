@@ -24,7 +24,7 @@ u_short BarbaClientConfig::GetNewTunnelPort()
 
 bool BarbaClientConfig::LoadFile(LPCTSTR file)
 {
-	if (!BarbaConfigItem::LoadFile(file))
+	if (!BarbaConfig::LoadFile(file))
 		return false;
 
 	//grabProtocols
@@ -54,7 +54,7 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 void BarbaClientConfig::LoadFolder(LPCTSTR folder, std::vector<BarbaClientConfig>* configs)
 {
 	std::vector<std::tstring> files;
-	BarbaUtils::FindFiles(folder, _T("*.ini"), &files);
+	BarbaUtils::FindFiles(folder, _T("*.ini"), true, &files);
 	for (size_t i=0; i<files.size(); i++)
 	{
 		BarbaClientConfig config;

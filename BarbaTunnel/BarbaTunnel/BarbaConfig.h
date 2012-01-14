@@ -1,11 +1,11 @@
 #pragma once
 #include "General.h"
 
-class BarbaConfigItem
+class BarbaConfig
 {
 public:
-	BarbaConfigItem();
-	virtual ~BarbaConfigItem() {}
+	BarbaConfig();
+	virtual ~BarbaConfig() {}
 	virtual bool LoadFile(LPCTSTR file);
 	void Log(LPCTSTR format, ...);
 	bool Enabled;
@@ -26,6 +26,7 @@ public:
 	std::tstring RequestDataKeyName; //use by HTTP-Tunnel
 
 private:
+	static std::tstring GetNameFromFileName(LPCTSTR fileName);
 	static std::tstring CreateRequestDataKeyName(std::vector<BYTE>* key);
 	void CheckMaxUserConnections();
 	int _TotalTunnelPortsCount;

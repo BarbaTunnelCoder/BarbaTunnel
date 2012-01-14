@@ -63,9 +63,6 @@
     <ClInclude Include="BarbaComm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaConfigItem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WinpkFilter\Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -150,6 +147,9 @@
     <ClInclude Include="BarbaPacketFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BarbaConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -192,9 +192,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BarbaComm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BarbaConfigItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BarbaSocket.cpp">
@@ -252,6 +249,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BarbaPacketFilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

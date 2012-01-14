@@ -199,6 +199,11 @@ u_int BarbaUtils::GetRandom(u_int start, u_int end)
 
 void BarbaUtils::FindFiles(LPCTSTR folder, LPCTSTR search, std::vector<std::tstring>* files)
 {
+	FindFiles(folder, search, false, files);
+}
+
+void BarbaUtils::FindFiles(LPCTSTR folder, LPCTSTR search, bool recursive, std::vector<std::tstring>* files)
+{
 	TCHAR file[MAX_PATH];
 	WIN32_FIND_DATA findData = {0};
 		
@@ -209,11 +214,33 @@ void BarbaUtils::FindFiles(LPCTSTR folder, LPCTSTR search, std::vector<std::tstr
 	while (bfind)
 	{
 		TCHAR fullPath[MAX_PATH] = {0};
-		_stprintf_s(fullPath, _T("%s\\%s"), folder, findData.cFileName);
-		files->push_back(fullPath);
+		if (_tcslen(findData.cFileName)>0 && _tcscmp(findData.cFileName, _T("."))!= 0 && _tcscmp(findData.cFileName, _T(".."))!= 0)
+		{
+			_stprintf_s(fullPath, _T("%s\\%s"), folder, findData.cFileName);
+			files->push_back(fullPath);
+		}
 		bfind = FindNextFile(findHandle, &findData);
 	}
 	FindClose(findHandle);
+
+	if (recursive)
+	{
+		_stprintf_s(file, _countof(file), _T("%s\\*"), folder);
+		HANDLE findHandle = FindFirstFile(file, &findData);
+		BOOL bfind = findHandle!=NULL;
+		while (bfind)
+		{
+			TCHAR fullPath[MAX_PATH] = {0};
+			if( (findData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0 && (findData.dwFileAttributes&FILE_ATTRIBUTE_HIDDEN)==0 && (findData.dwFileAttributes& FILE_ATTRIBUTE_SYSTEM)==0 && 
+				_tcscmp(findData.cFileName, _T("."))!= 0 && _tcscmp(findData.cFileName, _T(".."))!= 0)
+			{
+				_stprintf_s(fullPath, _T("%s\\%s"), folder, findData.cFileName);
+				FindFiles(fullPath, search, recursive, files);
+			}
+			bfind = FindNextFile(findHandle, &findData);
+		}
+		FindClose(findHandle);
+	}
 }
 
 std::tstring BarbaUtils::FindFileTitle(LPCTSTR filePath)
@@ -291,6 +318,18 @@ std::tstring BarbaUtils::GetFileTitleFromUrl(LPCTSTR url)
 	ptrdiff_t end = endP!=NULL ? endP-fileName : _tcslen(fileName);
 	TCHAR fileTitle[MAX_PATH];
 	_tcsncpy_s(fileTitle, fileName, end);
+	return fileTitle;
+}
+
+std::tstring BarbaUtils::GetFileFolderFromUrl(LPCTSTR url)
+{
+	LPCTSTR endP = _tcsrchr(url, '\\');
+	if (endP==NULL) endP = _tcsrchr(url, '/');
+	if (endP==NULL)
+		return _T("");
+	ptrdiff_t end = endP-url;
+	TCHAR fileTitle[MAX_PATH];
+	_tcsncpy_s(fileTitle, url, end);
 	return fileTitle;
 }
 

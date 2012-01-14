@@ -8,13 +8,13 @@ BarbaServerConfig::BarbaServerConfig()
 
 bool BarbaServerConfig::LoadFile(LPCTSTR file)
 {
-	return 	BarbaConfigItem::LoadFile(file);
+	return 	BarbaConfig::LoadFile(file);
 }
 
 void BarbaServerConfig::LoadFolder(LPCTSTR folder, std::vector<BarbaServerConfig>* configs)
 {
 	std::vector<std::tstring> files;
-	BarbaUtils::FindFiles(folder, _T("*.ini"), &files);
+	BarbaUtils::FindFiles(folder, _T("*.ini"), true, &files);
 	for (size_t i=0; i<files.size(); i++)
 	{
 		BarbaServerConfig config;

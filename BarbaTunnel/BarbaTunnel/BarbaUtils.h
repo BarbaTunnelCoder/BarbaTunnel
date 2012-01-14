@@ -23,10 +23,12 @@ public:
 	static std::string LoadFileToString(LPCTSTR fileName);
 	static u_int GetRandom(u_int start, u_int end);
 	static void FindFiles(LPCTSTR folder, LPCTSTR search, std::vector<std::tstring>* files);
+	static void FindFiles(LPCTSTR folder, LPCTSTR search, bool recursive, std::vector<std::tstring>* files);
 	static std::tstring FindFileTitle(LPCTSTR filePath);
 	static std::tstring GetFileExtensionFromUrl(LPCTSTR url);
 	static std::tstring GetFileNameFromUrl(LPCTSTR url);
 	static std::tstring GetFileTitleFromUrl(LPCTSTR url);
+	static std::tstring BarbaUtils::GetFileFolderFromUrl(LPCTSTR url);
 	static std::tstring GetFileUrlFromHttpRequest(LPCTSTR httpRequest);
 	static std::tstring GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key);
 	static u_int GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key, u_int defValue);
