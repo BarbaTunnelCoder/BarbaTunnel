@@ -4,7 +4,7 @@
 class BarbaClientHttpConnection : public BarbaClientConnection
 {
 public:
-	explicit BarbaClientHttpConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short tunnelPort);
+	explicit BarbaClientHttpConnection(BarbaClientConfig* config, u_short tunnelPort);
 	virtual ~BarbaClientHttpConnection(void);
 	virtual bool ShouldProcessPacket(PacketHelper* packet);
 	virtual bool ProcessPacket(PacketHelper * packet, bool send);

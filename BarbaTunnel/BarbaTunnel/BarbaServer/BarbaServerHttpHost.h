@@ -14,20 +14,20 @@ private:
 	//used to pass data to created thread
 	struct ListenerThreadData
 	{
-		ListenerThreadData(BarbaServerHttpHost* httpHost, BarbaSocketServer* socketServer, BarbaServerConfigItem* configItem) { this->HttpHost=httpHost; this->SocketServer=socketServer; this->ConfigItem = configItem;}
+		ListenerThreadData(BarbaServerHttpHost* httpHost, BarbaSocketServer* socketServer, BarbaServerConfig* config) { this->HttpHost=httpHost; this->SocketServer=socketServer; this->Config = config;}
 		BarbaServerHttpHost* HttpHost;
 		BarbaSocketServer* SocketServer;
-		BarbaServerConfigItem* ConfigItem;
+		BarbaServerConfig* Config;
 	};
 
 	//used to pass data to created thread
 	struct AnswerThreadData
 	{
-		AnswerThreadData(BarbaServerHttpHost* httpHost, BarbaSocket* socket, BarbaServerConfigItem* configItem, u_short serverPort) { this->HttpHost=httpHost; this->Socket=socket; this->ConfigItem = configItem; this->ServerPort = serverPort;}
+		AnswerThreadData(BarbaServerHttpHost* httpHost, BarbaSocket* socket, BarbaServerConfig* config, u_short serverPort) { this->HttpHost=httpHost; this->Socket=socket; this->Config = config; this->ServerPort = serverPort;}
 		BarbaServerHttpHost* HttpHost;
 		u_short ServerPort;
 		BarbaSocket* Socket;
-		BarbaServerConfigItem* ConfigItem;
+		BarbaServerConfig* Config;
 	};
 
 public:
@@ -38,7 +38,7 @@ public:
 
 private:
 	static std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest, LPCTSTR keyName, std::vector<BYTE>* key);
-	void AddListenerPort(BarbaServerConfigItem* configItem, u_short port);
+	void AddListenerPort(BarbaServerConfig* config, u_short port);
 	void Log(LPCTSTR format, ...);
 	SimpleCriticalSection CreateConnectionCriticalSection;
 	bool IsDisposing();

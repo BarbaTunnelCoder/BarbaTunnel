@@ -150,7 +150,7 @@ void BarbaLog(LPCTSTR format, ...)
 {
 	va_list argp;
 	va_start(argp, format);
-	CHAR msg[10000];
+	CHAR msg[5000];
 	_vstprintf_s(msg, format, argp);
 	va_end(argp);
 

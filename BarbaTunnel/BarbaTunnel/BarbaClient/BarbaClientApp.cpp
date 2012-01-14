@@ -26,10 +26,11 @@ void BarbaClientApp::Initialize()
 	}
 	theClientApp = this;
 	BarbaApp::Initialize();
-
 	TCHAR file[MAX_PATH];
+
+	//Load Configs
 	_stprintf_s(file, _countof(file), _T("%s\\config"), GetModuleFolder());
-	ConfigManager.LoadFolder(file);
+	BarbaClientConfig::LoadFolder(file, &this->Configs);
 
 	//load fake files
 	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-GetTemplate.txt"), GetModuleFolder());
@@ -39,15 +40,36 @@ void BarbaClientApp::Initialize()
 
 }
 
-
-
-BarbaClientConfigItem* BarbaClientApp::ShouldGrabPacket(PacketHelper* packet, BarbaClientConfig* config)
+bool BarbaClientApp::ShouldGrabPacket(PacketHelper* packet, BarbaClientConfig* config)
 {
-	for (int i=0; i<(int)config->Items.size(); i++)
+	if (packet->GetDesIp()!=config->ServerIp)
+		return false;
+
+	//check RealPort for redirect modes
+	if (config->Mode==BarbaModeTcpRedirect || config->Mode==BarbaModeUdpRedirect)
+		return packet->GetDesPort()==config->RealPort;
+
+	for (size_t i=0; i<config->GrabProtocols.size(); i++)
 	{
-		BarbaClientConfigItem* item = &config->Items[i];
-		if (item->ShouldGrabPacket(packet))
-			return item;
+		//check GrabProtocols for tunnel modes
+		ProtocolPort* protocolPort = &config->GrabProtocols[i];
+		if (protocolPort->Protocol==0 || protocolPort->Protocol==packet->ipHeader->ip_p)
+		{
+			if (protocolPort->Port==0 || protocolPort->Port==packet->GetDesPort())
+				return true;
+		}
+	}
+
+	return false;
+}
+
+BarbaClientConfig* BarbaClientApp::ShouldGrabPacket(PacketHelper* packet)
+{
+	for (size_t i=0; i<this->Configs.size(); i++)
+	{
+		BarbaClientConfig* config = &this->Configs[i];
+		if (ShouldGrabPacket(packet, config))
+			return config;
 	}
 	return NULL;
 }
@@ -74,10 +96,9 @@ bool BarbaClientApp::ProcessPacket(PacketHelper* packet, bool send)
 	//create new connection if not found
 	if (send && connection==NULL)
 	{
-		BarbaClientConfig* config = ConfigManager.FindByServerIP(packet->GetDesIp());
-		BarbaClientConfigItem* configItem = config!=NULL ? ShouldGrabPacket(packet, config) : NULL;
-		if (configItem!=NULL)
-			connection = ConnectionManager.CreateConnection(packet, config, configItem);
+		BarbaClientConfig* config = ShouldGrabPacket(packet);
+		if (config!=NULL)
+			connection = ConnectionManager.CreateConnection(packet, config);
 	}
 
 	//process packet for connection

@@ -7,7 +7,6 @@ class BarbaClientConnectionManager : public BarbaConnectionManager
 public:
 	BarbaClientConnectionManager(void);
 	virtual ~BarbaClientConnectionManager(void);
-	BarbaClientConnection* CreateConnection(PacketHelper* packet, BarbaClientConfig* config, BarbaClientConfigItem* configItem);
-
+	BarbaClientConnection* CreateConnection(PacketHelper* packet, BarbaClientConfig* config);
 };
 

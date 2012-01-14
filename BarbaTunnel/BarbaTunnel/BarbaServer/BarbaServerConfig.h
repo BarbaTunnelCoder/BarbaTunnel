@@ -1,20 +1,11 @@
 #pragma once
 #include "BarbaConfigItem.h"
 
-class BarbaServerConfigItem : public BarbaConfigItem
-{
-public:
-	BarbaServerConfigItem();
-	virtual ~BarbaServerConfigItem(){}
-};
-
-class BarbaServerConfig
+class BarbaServerConfig : public BarbaConfigItem
 {
 public:
 	BarbaServerConfig();
 	virtual ~BarbaServerConfig(){}
-	bool LoadFile(LPCTSTR file);
-	std::vector<BarbaServerConfigItem> Items;
-	DWORD ServerIp;
-	TCHAR ServerName[BARBA_MaxConfigName];
+	virtual bool LoadFile(LPCTSTR file);
+	static void LoadFolder(LPCTSTR folder, std::vector<BarbaServerConfig>* configs);
 };

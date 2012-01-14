@@ -123,9 +123,13 @@ void InitMemoryLeackReport()
 	_CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDOUT );
 }
 
-void test()
+int test()
 {
+	hostent *he;
+	he = gethostbyname("gdsgslgsdlgj");
+	return 0;
 }
+
 int main(int argc, char* argv[])
 {
 	//test(); return 0; //just for debug

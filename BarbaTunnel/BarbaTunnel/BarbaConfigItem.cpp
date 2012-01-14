@@ -5,13 +5,13 @@
 
 BarbaConfigItem::BarbaConfigItem()
 {
-	Mode = BarbaModeNone;
-	Name[0] = 0;
-	Enabled = true;
-	RealPort = 0;
-	_TotalTunnelPortsCount = 0;
-	MaxUserConnections = BARBA_HttpMaxUserConnection;
-	FakeFileMaxSize = BARBA_HttpFakeFileMaxSize;
+	this->ServerIp = 0;
+	this->Mode = BarbaModeNone;
+	this->Enabled = true;
+	this->RealPort = 0;
+	this->_TotalTunnelPortsCount = 0;
+	this->MaxUserConnections = BARBA_HttpMaxUserConnection;
+	this->FakeFileMaxSize = BARBA_HttpFakeFileMaxSize;
 }
 
 
@@ -29,22 +29,28 @@ size_t BarbaConfigItem::GetTotalTunnelPortsCount()
 	return _TotalTunnelPortsCount;
 }
 
-bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
+bool BarbaConfigItem::LoadFile(LPCTSTR file)
 {
 	this->FileName = BarbaUtils::GetFileNameFromUrl(file);
-	this->SectionName = sectionName;
+	this->Name = BarbaUtils::GetFileTitleFromUrl(file);
 
-	//name
-	GetPrivateProfileString(sectionName, _T("Name"), _T(""), this->Name, _countof(this->Name), file);
+	//ServerIp
+	TCHAR serverAddress[1000];
+	GetPrivateProfileString(_T("General"), _T("ServerAddress"), _T("*"), serverAddress, _countof(serverAddress), file);
+	this->ServerAddress = serverAddress;
+	if (this->ServerAddress.empty() || this->ServerAddress.compare(_T("*"))==0)
+		this->ServerAddress = _T("*");
+	hostent *he = gethostbyname(serverAddress);
+	this->ServerIp = he!=NULL ?  ((in_addr *)he->h_addr)->S_un.S_addr : 0;
 
 	//fail if not enabled
-	this->Enabled = GetPrivateProfileInt(sectionName, "Enabled", 1, file)!=0;
+	this->Enabled = GetPrivateProfileInt(_T("General"), _T("Enabled"), 1, file)!=0;
 	if (!this->Enabled)
 		return false;
 
 	//mode
 	TCHAR modeString[100];
-	int res = GetPrivateProfileString(sectionName, _T("Mode"), _T(""), modeString, _countof(modeString), file);
+	int res = GetPrivateProfileString(_T("General"), _T("Mode"), _T(""), modeString, _countof(modeString), file);
 	if (res==0)
 		return false; //could not find item
 
@@ -57,12 +63,12 @@ bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 
 	//Key
 	TCHAR hexKey[2000];
-	GetPrivateProfileString(sectionName, _T("Key"), _T(""), hexKey, _countof(hexKey), file);
+	GetPrivateProfileString(_T("General"), _T("Key"), _T(""), hexKey, _countof(hexKey), file);
 	BarbaUtils::ConvertHexStringToBuffer(hexKey, &this->Key);
 
 	//TunnelPorts
 	TCHAR tunnelPorts[2000];
-	GetPrivateProfileString(sectionName, _T("TunnelPorts"), _T(""), tunnelPorts, _countof(tunnelPorts), file);
+	GetPrivateProfileString(_T("General"), _T("TunnelPorts"), _T(""), tunnelPorts, _countof(tunnelPorts), file);
 	BarbaUtils::ParsePortRanges(tunnelPorts, &this->TunnelPorts);
 	if (this->GetTotalTunnelPortsCount()==0)
 	{
@@ -71,27 +77,27 @@ bool BarbaConfigItem::Load(LPCTSTR sectionName, LPCTSTR file)
 	}
 
 	//MaxUserConnections
-	this->MaxUserConnections = (u_short)GetPrivateProfileInt(sectionName, _T("MaxUserConnections"), this->MaxUserConnections, file);
+	this->MaxUserConnections = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxUserConnections"), this->MaxUserConnections, file);
 	CheckMaxUserConnections();
 
 	//FakeFileMaxSize
-	this->FakeFileMaxSize = (u_short)GetPrivateProfileInt(sectionName, _T("FakeFileMaxSize"), this->FakeFileMaxSize/1000, file) * 1000;
+	this->FakeFileMaxSize = (u_short)GetPrivateProfileInt(_T("General"), _T("FakeFileMaxSize"), this->FakeFileMaxSize/1000, file) * 1000;
 	if (this->FakeFileMaxSize==0) this->FakeFileMaxSize = BARBA_HttpFakeFileMaxSize;
 
 	TCHAR keyName[BARBA_MaxKeyName];
 	keyName[0] = 0;
-	GetPrivateProfileString(sectionName, _T("RequestDataKeyName"), _T(""), keyName, _countof(keyName), file);
+	GetPrivateProfileString(_T("General"), _T("RequestDataKeyName"), _T(""), keyName, _countof(keyName), file);
 	this->RequestDataKeyName = keyName;
 	if (this->RequestDataKeyName.empty())
 		this->RequestDataKeyName = CreateRequestDataKeyName(&this->Key);
 
 	//FakeFileTypes
 	TCHAR fakeFileTypes[1000] = {0};
-	GetPrivateProfileString(sectionName, _T("FakeFileTypes"), _T(""), fakeFileTypes, _countof(fakeFileTypes), file);
+	GetPrivateProfileString(_T("General"), _T("FakeFileTypes"), _T(""), fakeFileTypes, _countof(fakeFileTypes), file);
 	StringUtils::Tokenize(fakeFileTypes, _T(","), &this->FakeFileTypes);
 
 	//RealPort
-	this->RealPort = (u_short)GetPrivateProfileInt(sectionName, _T("RealPort"), 0, file);
+	this->RealPort = (u_short)GetPrivateProfileInt(_T("General"), _T("RealPort"), 0, file);
 	return true;
 }
 
@@ -122,7 +128,7 @@ void BarbaConfigItem::Log(LPCTSTR format, ...)
 	va_end(argp);
 
 	TCHAR msg2[1000];
-	_stprintf_s(msg2, _T("ConfigLoader: %s [%s]: %s"), this->FileName.data(), this->SectionName.data(), msg);
+	_stprintf_s(msg2, _T("ConfigLoader: %s: %s"), this->FileName.data(), msg);
 	BarbaLog2(msg2);
 }
 

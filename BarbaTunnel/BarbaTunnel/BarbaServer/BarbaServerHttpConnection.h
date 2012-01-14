@@ -6,7 +6,7 @@ class BarbaServerHttpConnection :
 	public BarbaServerConnection
 {
 public:
-	explicit BarbaServerHttpConnection(BarbaServerConfigItem* configItem, 
+	explicit BarbaServerHttpConnection(BarbaServerConfig* config, 
 		u_long clientVirtualIp, u_long clientIp, u_short tunnelPort, u_long sessionId);
 	virtual ~BarbaServerHttpConnection(void);
 	virtual bool ShouldProcessPacket(PacketHelper* packet);

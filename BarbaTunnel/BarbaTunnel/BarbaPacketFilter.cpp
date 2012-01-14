@@ -100,42 +100,42 @@ void BarbaPacketFilter::AddFilter(std::vector<STATIC_FILTER>* filters, bool send
 	filters->push_back(staticFilter);
 }
 
-void BarbaPacketFilter::GetClientFilters(std::vector<STATIC_FILTER>* filters, BarbaClientConfig* config)
+void BarbaPacketFilter::GetClientFilters(std::vector<STATIC_FILTER>* filters, std::vector<BarbaClientConfig>* configs)
 {
-	for (size_t i=0; i<config->Items.size(); i++)
+	for (size_t i=0; i<configs->size(); i++)
 	{
-		BarbaClientConfigItem* item = &config->Items[i];
-		if (!item->Enabled)
+		BarbaClientConfig* config = &configs->at(i);
+		if (!config->Enabled)
 			continue;
 
 		//filter only required packet going to server
-		for (size_t i=0; i<item->GrabProtocols.size(); i++)
-			AddFilter(filters, true, config->ServerIp, 0, item->GrabProtocols[i].Protocol, 0, 0, item->GrabProtocols[i].Port, 0);
+		for (size_t i=0; i<config->GrabProtocols.size(); i++)
+			AddFilter(filters, true, config->ServerIp, 0, config->GrabProtocols[i].Protocol, 0, 0, config->GrabProtocols[i].Port, 0);
 
 		//redirect port
-		if (item->RealPort!=0)
-			AddFilter(filters, true, config->ServerIp, 0, item->GetTunnelProtocol(), 0, 0, item->RealPort, 0);
+		if (config->RealPort!=0)
+			AddFilter(filters, true, config->ServerIp, 0, config->GetTunnelProtocol(), 0, 0, config->RealPort, 0);
 
 		//filter only tunnel packet that come from server except http-tunnel that use socket
-		if (item->Mode!=BarbaModeHttpTunnel) 
-			for (size_t i=0; i<item->TunnelPorts.size(); i++)
-				AddFilter(filters, false, config->ServerIp, 0, item->GetTunnelProtocol(), item->TunnelPorts[i].StartPort, item->TunnelPorts[i].EndPort, 0, 0);
+		if (config->Mode!=BarbaModeHttpTunnel) 
+			for (size_t i=0; i<config->TunnelPorts.size(); i++)
+				AddFilter(filters, false, config->ServerIp, 0, config->GetTunnelProtocol(), config->TunnelPorts[i].StartPort, config->TunnelPorts[i].EndPort, 0, 0);
 	}
 }
 
-void BarbaPacketFilter::GetServerFilters(std::vector<STATIC_FILTER>* filters, BarbaServerConfig* config)
+void BarbaPacketFilter::GetServerFilters(std::vector<STATIC_FILTER>* filters, std::vector<BarbaServerConfig>* configs)
 {
 	//filter incoming tunnel
-	for (size_t i=0; i<config->Items.size(); i++)
+	for (size_t i=0; i<configs->size(); i++)
 	{
-		BarbaServerConfigItem* item = &config->Items[i];
-		if (!item->Enabled)
+		BarbaServerConfig* config = &configs->at(i);
+		if (!config->Enabled)
 			continue;
 
 		//filter only tunnel packet that come from server except http-tunnel that use socket
-		if (item->Mode!=BarbaModeHttpTunnel) 
-			for (size_t i=0; i<item->TunnelPorts.size(); i++)
-				AddFilter(filters, false, 0, 0, item->GetTunnelProtocol(), 0, 0, item->TunnelPorts[i].StartPort, item->TunnelPorts[i].EndPort);
+		if (config->Mode!=BarbaModeHttpTunnel) 
+			for (size_t i=0; i<config->TunnelPorts.size(); i++)
+				AddFilter(filters, false, 0, 0, config->GetTunnelProtocol(), 0, 0, config->TunnelPorts[i].StartPort, config->TunnelPorts[i].EndPort);
 	}
 
 	//filter outgoing virtual IP
@@ -150,11 +150,7 @@ void BarbaPacketFilter::GetServerFilters(std::vector<STATIC_FILTER>* filters, Ba
 void BarbaPacketFilter::ApplyClientPacketFilter()
 {
 	std::vector<STATIC_FILTER> filters;
-	for (size_t i=0; i<theClientApp->ConfigManager.Configs.size(); i++)
-	{
-		BarbaClientConfig* config = &theClientApp->ConfigManager.Configs[i];
-		GetClientFilters(&filters, config);
-	}
+	GetClientFilters(&filters, &theClientApp->Configs);
 	
 	//bypass all other packet
 	GetBypassPacketFilter(&filters);
@@ -167,7 +163,7 @@ void BarbaPacketFilter::ApplyClientPacketFilter()
 void BarbaPacketFilter::ApplyServerPacketFilter()
 {
 	std::vector<STATIC_FILTER> filters;
-	GetServerFilters(&filters, &theServerApp->Config);
+	GetServerFilters(&filters, &theServerApp->Configs);
 
 	//bypass all other packet
 	GetBypassPacketFilter(&filters);

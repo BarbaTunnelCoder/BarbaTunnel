@@ -164,10 +164,11 @@ BarbaSocketClient::BarbaSocketClient(u_long serverIp, u_short port)
 	Init();
 }
 
-BarbaSocketServer::BarbaSocketServer(u_short port) 
+BarbaSocketServer::BarbaSocketServer(u_short port, DWORD ipAddress) 
 {
 	this->ListenPort = port;
 	sockaddr_in sa = {0};
+	sa.sin_addr.S_un.S_addr = ipAddress;
 
 	sa.sin_family = PF_INET;             
 	sa.sin_port = htons(port);          

@@ -14,18 +14,18 @@ public:
 	virtual bool ProcessPacket(PacketHelper* packet, bool send);
 	virtual void Dispose();
 	virtual bool IsServerMode() {return true;}
+	static bool ShouldGrabPacket(PacketHelper* packet, BarbaServerConfig* config);
 
 	BarbaServerHttpHost HttpHost;
-	BarbaServerConfig Config;
+	std::vector<BarbaServerConfig> Configs;
 	BarbaServerConnectionManager ConnectionManager;
 	std::tstring FakeHttpGetReplyTemplate;
 	std::tstring FakeHttpPostReplyTemplate;
-	std::tstring ConfigFileName;
 	u_int AutoStartDelay;
 	IpRange VirtualIpRange;
 
 private:
-	BarbaServerConfigItem* ShouldGrabPacket(PacketHelper* packet);
+	BarbaServerConfig* ShouldGrabPacket(PacketHelper* packet);
 };
 
 extern BarbaServerApp* theServerApp;

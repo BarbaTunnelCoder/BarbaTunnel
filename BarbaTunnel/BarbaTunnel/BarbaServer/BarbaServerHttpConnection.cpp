@@ -2,23 +2,23 @@
 #include "BarbaServerHttpConnection.h"
 #include "BarbaServerApp.h"
 
-BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfigItem* configItem, u_long clientVirtualIp, u_long clientIp, u_short tunnelPort, u_long sessionId)
-	: BarbaServerConnection(configItem, clientVirtualIp, clientIp)
+BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfig* config, u_long clientVirtualIp, u_long clientIp, u_short tunnelPort, u_long sessionId)
+	: BarbaServerConnection(config, clientVirtualIp, clientIp)
 {
 	this->ClientLocalIp = 0;
 	this->SessionId = sessionId;
 	this->TunnelPort = tunnelPort;
 
 	BarbaCourierCreateStrcut cs = {0};
-	cs.FakeFileMaxSize = configItem->FakeFileMaxSize;
-	cs.RequestDataKeyName = configItem->RequestDataKeyName.data();
+	cs.HostName = config->ServerAddress;
+	cs.FakeFileMaxSize = config->FakeFileMaxSize;
+	cs.RequestDataKeyName = config->RequestDataKeyName.data();
 	cs.FakeHttpGetTemplate = theServerApp->FakeHttpGetReplyTemplate.data();
 	cs.FakeHttpPostTemplate = theServerApp->FakeHttpPostReplyTemplate.data();
-	cs.MaxConnection = configItem->MaxUserConnections;
+	cs.MaxConnection = config->MaxUserConnections;
 	cs.ConnectionTimeout = theApp->ConnectionTimeout;
 	cs.SessionId = sessionId;
 	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;
-	cs.HostName = theServerApp->Config.ServerName;
 	this->Courier = new BarbaServerHttpCourier(&cs , this);
 }
 

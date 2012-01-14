@@ -3,8 +3,8 @@
 #include "BarbaClientApp.h"
 
 
-BarbaClientUdpConnection::BarbaClientUdpConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short clientPort, u_short tunnelPort)
-	: BarbaClientConnection(config, configItem)
+BarbaClientUdpConnection::BarbaClientUdpConnection(BarbaClientConfig* config, u_short clientPort, u_short tunnelPort)
+	: BarbaClientConnection(config)
 {
 	this->ClientPort = clientPort;
 	this->TunnelPort = tunnelPort;
@@ -24,12 +24,12 @@ bool BarbaClientUdpConnection::ShouldProcessPacket(PacketHelper* packet)
 	//check outgoing packets
 	if (packet->GetDesIp()==GetServerIp())
 	{
-		return ConfigItem->ShouldGrabPacket(packet);
+		return BarbaClientApp::ShouldGrabPacket(packet, Config);
 	}
 	//check incoming packets
 	else if (packet->GetSrcIp()==GetServerIp())
 	{
-		return packet->ipHeader->ip_p==this->ConfigItem->GetTunnelProtocol()
+		return packet->ipHeader->ip_p==this->Config->GetTunnelProtocol()
 			&& packet->GetSrcPort()==this->TunnelPort;
 	}
 	else

@@ -3,25 +3,25 @@
 #include "BarbaClientApp.h"
 
 
-BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, BarbaClientConfigItem* configItem, u_short tunnelPort)
-	: BarbaClientConnection(config, configItem)
+BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, u_short tunnelPort)
+	: BarbaClientConnection(config)
 	, Courier()
 {
 	this->SessionId = BarbaUtils::GetRandom(100000, UINT_MAX-1);
 	this->TunnelPort = tunnelPort;
 
 	BarbaCourierCreateStrcut cs = {0};
-	cs.RequestDataKeyName = configItem->RequestDataKeyName;
-	cs.FakeFileMaxSize = configItem->FakeFileMaxSize;
+	cs.HostName = config->ServerAddress;
+	cs.RequestDataKeyName = config->RequestDataKeyName;
+	cs.FakeFileMaxSize = config->FakeFileMaxSize;
 	cs.FakeHttpGetTemplate = theClientApp->FakeHttpGetTemplate;
 	cs.FakeHttpPostTemplate = theClientApp->FakeHttpPostTemplate;
-	cs.MaxConnection = configItem->MaxUserConnections;
+	cs.MaxConnection = config->MaxUserConnections;
 	cs.SessionId = this->SessionId;
 	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;
-	cs.HostName = BarbaUtils::ConvertIpToString(config->ServerIp);
 	cs.ConnectionTimeout = theApp->ConnectionTimeout;
-	cs.FakePacketMinSize = configItem->FakePacketMinSize;
-	cs.KeepAliveInterval = configItem->KeepAliveInterval;
+	cs.FakePacketMinSize = config->FakePacketMinSize;
+	cs.KeepAliveInterval = config->KeepAliveInterval;
 	this->Courier = new BarbaClientHttpCourier(&cs, config->ServerIp, tunnelPort, this);
 }
 
@@ -33,7 +33,7 @@ BarbaClientHttpConnection::~BarbaClientHttpConnection(void)
 bool BarbaClientHttpConnection::ShouldProcessPacket(PacketHelper* packet)
 {
 	//just process outgoing packets
-	return packet->GetDesIp()==GetServerIp() && ConfigItem->ShouldGrabPacket(packet);
+	return packet->GetDesIp()==GetServerIp() && BarbaClientApp::ShouldGrabPacket(packet, Config);
 }
 
 bool BarbaClientHttpConnection::ProcessPacket(PacketHelper* packet, bool send)
