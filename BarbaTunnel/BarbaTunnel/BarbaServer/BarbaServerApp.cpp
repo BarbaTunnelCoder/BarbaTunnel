@@ -26,21 +26,20 @@ void BarbaServerApp::Initialize()
 	TCHAR file[MAX_PATH];
 
 	//Load Configs
-	_stprintf_s(file, _countof(file), _T("%s\\%s"), GetModuleFolder(), BARBA_ConfigFolderName);
-	BarbaServerConfig::LoadFolder(file, &this->Configs);
+	BarbaServerConfig::LoadFolder(GetConfigFolder(), &this->Configs);
 	
 	//load fake files
-	_stprintf_s(file, _T("%s\\templates\\HTTP-GetReplyTemplate.txt"), GetModuleFolder());
+	_stprintf_s(file, _T("%s\\templates\\HTTP-GetReplyTemplate.txt"), GetAppFolder());
 	this->FakeHttpGetReplyTemplate = BarbaUtils::LoadFileToString(file);
-	_stprintf_s(file, _T("%s\\templates\\HTTP-PostReplyTemplate.txt"), GetModuleFolder());
+	_stprintf_s(file, _T("%s\\templates\\HTTP-PostReplyTemplate.txt"), GetAppFolder());
 	this->FakeHttpPostReplyTemplate = BarbaUtils::LoadFileToString(file);
 
 	//AutoStartDelay
-	this->AutoStartDelay = GetPrivateProfileInt(_T("Server"), _T("AutoStartDelay"), 0, GetConfigFile());
+	this->AutoStartDelay = GetPrivateProfileInt(_T("Server"), _T("AutoStartDelay"), 0, GetSettingsFile());
 
 	//VirtualIpRange
 	TCHAR virtualIpRange[100] = {0};
-	GetPrivateProfileString(_T("Server"), _T("VirtualIpRange"), _T("") , virtualIpRange, _countof(virtualIpRange), GetConfigFile());
+	GetPrivateProfileString(_T("Server"), _T("VirtualIpRange"), _T("") , virtualIpRange, _countof(virtualIpRange), GetSettingsFile());
 	if (_tcslen(virtualIpRange)==0) _tcscpy_s(virtualIpRange, _T("10.207.0.1"));
 	TCHAR* dash = _tcschr(virtualIpRange, '-');
 	TCHAR ipBuffer[100];

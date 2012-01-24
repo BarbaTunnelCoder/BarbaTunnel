@@ -9,19 +9,19 @@ BarbaApp::BarbaApp(void)
 	_AdapterHandle = 0;
 	_IsDisposed = false;
 	srand((UINT)time(0));
-	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetModuleFolder());
+	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetAppFolder());
 
-	this->_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetConfigFile());
-	this->VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetConfigFile())!=0;
-	this->_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetConfigFile())!=0;
-	this->ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), 0, GetConfigFile())*60*1000;
-	this->MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), -1, GetConfigFile());
+	this->_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetSettingsFile());
+	this->VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetSettingsFile())!=0;
+	this->_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetSettingsFile())!=0;
+	this->ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), 0, GetSettingsFile())*60*1000;
+	this->MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), -1, GetSettingsFile());
 	
 	//ConnectionTimeout
 	if (this->ConnectionTimeout==0) this->ConnectionTimeout = BARBA_ConnectionTimeout;
 	
 	//MaxLogFilesize
-	this->Comm.MaxLogFilesize = GetPrivateProfileInt(_T("General"), _T("MaxLogFileSize"), BARBA_MaxLogFileSize/1000, GetConfigFile())*1000;
+	this->Comm.MaxLogFilesize = GetPrivateProfileInt(_T("General"), _T("MaxLogFileSize"), BARBA_MaxLogFileSize/1000, GetSettingsFile())*1000;
 	if (this->Comm.MaxLogFilesize==0) this->Comm.MaxLogFilesize = BARBA_MaxLogFileSize;
 
 	//FakeFileHeaders
@@ -38,7 +38,7 @@ void BarbaApp::SetAdapterHandle(HANDLE adapterHandle)
 void BarbaApp::InitFakeFileHeaders()
 {
 	TCHAR folder[MAX_PATH];
-	_stprintf_s(folder, _T("%s\\templates"), GetModuleFolder());
+	_stprintf_s(folder, _T("%s\\templates"), GetAppFolder());
 
 	std::vector<std::tstring> files;
 	BarbaUtils::FindFiles(folder, _T("*.header"), &files);
@@ -104,25 +104,49 @@ void BarbaApp::CloseSocketsList(SimpleSafeList<BarbaSocket*>* list)
 	}
 }
 
-LPCTSTR BarbaApp::GetConfigItemFolder()
+LPCTSTR BarbaApp::GetConfigFolder()
 {
 	static TCHAR configItemFolder[MAX_PATH] = {0};
 	if (configItemFolder[0]==0)
 	{
-		_stprintf_s(configItemFolder, _T("%s\\config"), GetModuleFolder());
+		_stprintf_s(configItemFolder, _T("%s\\config"), GetAppFolder(), BARBA_ConfigFolderName);
 	}
 	return configItemFolder;
 }
 
-
-LPCTSTR BarbaApp::GetConfigFile()
+LPCTSTR BarbaApp::GetAppFolder()
 {
-	static TCHAR configFile[MAX_PATH] = {0};
-	if (configFile[0]==0)
+	static TCHAR file[MAX_PATH] = {0};
+	if (file[0]==0)
 	{
-		_stprintf_s(configFile, _T("%s\\BarbaTunnel.ini"), GetModuleFolder());
+		std::tstring folder = BarbaUtils::GetFileFolderFromUrl(GetSettingsFile());
+		_tcscpy_s(file, folder.data());
 	}
-	return configFile;
+	return file;
+}
+
+LPCTSTR BarbaApp::GetSettingsFile()
+{
+	static TCHAR file[MAX_PATH] = {0};
+	if (file[0]!=0)
+		return file;
+
+	std::tstring exeFolder = BarbaUtils::GetModuleFolder();
+	std::tstring binFolder = BarbaUtils::GetFileFolderFromUrl(exeFolder.data());
+
+	std::tstring appFolder = BarbaUtils::GetFileFolderFromUrl(binFolder.data());
+	_stprintf_s(file, _T("%s\\BarbaTunnel.ini"), appFolder.data()); 
+	if (BarbaUtils::IsFileExists(file))
+		return file;
+
+	//maybe we are in configuration folder in development environment
+	appFolder = BarbaUtils::GetFileFolderFromUrl(appFolder.data());
+	_stprintf_s(file, _T("%s\\BarbaTunnel.ini"), appFolder.data());
+	if (BarbaUtils::IsFileExists(file))
+		return file;
+
+	file[0] = 0;
+	return file;
 }
 
 LPCTSTR BarbaApp::GetModuleFile()
@@ -137,12 +161,14 @@ LPCTSTR BarbaApp::GetModuleFile()
 
 LPCTSTR BarbaApp::GetModuleFolder()
 {
-	static TCHAR moduleFolder[MAX_PATH] = {0};
-	if (moduleFolder[0]==0)
+	static TCHAR file[MAX_PATH] = {0};
+	if (file[0]==0)
 	{
-		BarbaUtils::GetModuleFolder(moduleFolder);
+		std::tstring folder = BarbaUtils::GetModuleFolder();
+		_tcscpy_s(file, folder.data());
+
 	}
-	return moduleFolder;
+	return file;
 }
 
 
@@ -276,5 +302,5 @@ bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, size_t fakeFile
 
 void BarbaApp::UpdateSettings()
 {
-	this->VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetConfigFile())!=0;
+	this->VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetSettingsFile())!=0;
 }

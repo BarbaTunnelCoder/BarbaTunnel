@@ -60,7 +60,7 @@ bool CheckAdapterIndex()
 	_tcscat_s(msg, _T("\nDo you want to open config.ini file now?"));
 	if (MessageBox(NULL, msg, _T("BarbaTunnel"), MB_ICONWARNING|MB_YESNO)==IDYES)
 	{
-		BarbaUtils::SimpleShellExecute(theApp->GetConfigFile(), NULL, SW_SHOW, NULL, _T("edit"));
+		BarbaUtils::SimpleShellExecute(theApp->GetSettingsFile(), NULL, SW_SHOW, NULL, _T("edit"));
 	}
 	return false;
 }
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 	try
 	{
 		//find IsBarbaServer
-		bool isBarbaServer = GetPrivateProfileInt(_T("General"), _T("ServerMode"), 0, BarbaApp::GetConfigFile())!=0;
+		bool isBarbaServer = GetPrivateProfileInt(_T("General"), _T("ServerMode"), 0, BarbaApp::GetSettingsFile())!=0;
 
 		//create App
 		theApp = isBarbaServer ? (BarbaApp*)&barbaServerApp : (BarbaApp*)&barbaClientApp ;
