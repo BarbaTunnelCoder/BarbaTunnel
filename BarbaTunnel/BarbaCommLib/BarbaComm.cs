@@ -27,12 +27,39 @@ namespace BarbaTunnel.CommLib
         private static extern int GetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName);
 
         public String WorkinFolderPath { get { return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Barbatunnel"); } }
-        public String ConfigFilePath { get { return System.IO.Path.Combine(ModuleFolderPath, "BarbaTunnel.ini"); } }
         public String CommFilePath { get { return System.IO.Path.Combine(WorkinFolderPath, "comm.txt"); } }
         public String LogFilePath { get { return System.IO.Path.Combine(WorkinFolderPath, "report.txt"); } }
         public String NotifyFilePath { get { return System.IO.Path.Combine(WorkinFolderPath, "notify.txt"); } }
         public String ModuleFolderPath { get { return System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName); } }
-        public String BarbaTunnelFilePath { get { return System.IO.Path.Combine(ModuleFolderPath, "barbatunnel.exe"); } }
+        public String BarbaTunnelFilePath { get { return System.IO.Path.Combine(ModuleFolderPath, IntPtr.Size == 4 ? "x86\\barbatunnel.exe" : "x64\\barbatunnel.exe"); } }
+        public String AppFolderPath { get { return System.IO.Path.GetDirectoryName(SettingsFilePath); } }
+        private String _SettingsFilePath;
+        public String SettingsFilePath
+        {
+            get
+            {
+                if (_SettingsFilePath!=null)
+                    return _SettingsFilePath;
+
+                String binFolder = ModuleFolderPath;
+                String appFolder = System.IO.Path.GetDirectoryName(binFolder);
+                String settingFile = System.IO.Path.Combine(appFolder, "BarbaTunnel.ini");
+                if (System.IO.File.Exists(settingFile)) 
+                {
+                    _SettingsFilePath = settingFile;
+                    return _SettingsFilePath;
+                }
+
+            	//maybe we are in configuration folder in development environment
+                appFolder = System.IO.Path.GetDirectoryName(appFolder);
+                settingFile = System.IO.Path.Combine(appFolder, "BarbaTunnel.ini");
+                if (System.IO.File.Exists(settingFile))
+                    _SettingsFilePath = settingFile;
+
+                return _SettingsFilePath;
+            }
+        }
+
         public event EventHandler NotifyChanged;
         public event EventHandler LogChanged;
         public event EventHandler StatusChanged;
@@ -162,13 +189,13 @@ namespace BarbaTunnel.CommLib
         {
             get
             {
-                return GetPrivateProfileInt("General", "VerboseMode", 0, ConfigFilePath) != 0;
+                return GetPrivateProfileInt("General", "VerboseMode", 0, SettingsFilePath) != 0;
             }
             set
             {
                 try
                 {
-                    WritePrivateProfileString("General", "VerboseMode", value ? "1" : "0", ConfigFilePath);
+                    WritePrivateProfileString("General", "VerboseMode", value ? "1" : "0", SettingsFilePath);
                     var res = OpenCommandEvent();
                     if (res != null)
                     {

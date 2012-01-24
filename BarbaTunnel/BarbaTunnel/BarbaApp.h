@@ -24,8 +24,9 @@ public:
 	bool IsDisposed() {return this->_IsDisposed;}
 	int GetMTUDecrement() { return this->MTUDecrement; }
 	bool CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMTUDecrement);
-	static LPCTSTR GetConfigItemFolder();
-	static LPCTSTR GetConfigFile();
+	static LPCTSTR GetConfigFolder();
+	static LPCTSTR GetSettingsFile();
+	static LPCTSTR GetAppFolder();
 	static LPCTSTR GetModuleFolder();
 	static LPCTSTR GetModuleFile();
 	int GetAdapterIndex() {return _AdapterIndex;}

@@ -29,13 +29,12 @@ void BarbaClientApp::Initialize()
 	TCHAR file[MAX_PATH];
 
 	//Load Configs
-	_stprintf_s(file, _countof(file), _T("%s\\%s"), GetModuleFolder(), BARBA_ConfigFolderName);
-	BarbaClientConfig::LoadFolder(file, &this->Configs);
+	BarbaClientConfig::LoadFolder(GetConfigFolder(), &this->Configs);
 
 	//load fake files
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-GetTemplate.txt"), GetModuleFolder());
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-GetTemplate.txt"), GetAppFolder());
 	this->FakeHttpGetTemplate = BarbaUtils::LoadFileToString(file);
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-PostTemplate.txt"), GetModuleFolder());
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-PostTemplate.txt"), GetAppFolder());
 	this->FakeHttpPostTemplate = BarbaUtils::LoadFileToString(file);
 
 }

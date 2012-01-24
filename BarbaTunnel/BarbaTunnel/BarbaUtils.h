@@ -5,7 +5,7 @@ class BarbaUtils
 {
 public:
 	//@param folder buffer with MAX_PATH length
-	static void GetModuleFolder(TCHAR* folder);
+	static std::tstring GetModuleFolder();
 	static bool GetPortRange(LPCTSTR value, u_short* startPort, u_short* endPort);
 	static bool GetProtocolAndPort(LPCTSTR value, BYTE* protocol, u_short* port);
 	static void GetProtocolAndPortArray(LPCTSTR value, std::vector<ProtocolPort>* result);

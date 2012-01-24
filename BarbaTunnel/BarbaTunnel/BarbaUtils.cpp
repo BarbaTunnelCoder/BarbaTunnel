@@ -2,18 +2,11 @@
 #include "General.h"
 #include "BarbaUtils.h"
 
-void BarbaUtils::GetModuleFolder(TCHAR* folder)
+std::tstring BarbaUtils::GetModuleFolder()
 {
-	::GetModuleFileName(NULL, folder, MAX_PATH);
-	for (size_t i=_tcsclen(folder); i>=0; i--)
-	{
-		if (folder[i]=='\\' || folder[i]=='/')
-		{
-			folder[i] = 0;
-			break;
-		}
-		folder[i] = 0;
-	}
+	TCHAR file[MAX_PATH];
+	::GetModuleFileName(NULL, file, MAX_PATH);
+	return GetFileFolderFromUrl(file);
 }
 
 bool BarbaUtils::GetPortRange(LPCTSTR value, u_short* startPort, u_short* endPort)
