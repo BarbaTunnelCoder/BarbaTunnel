@@ -42,7 +42,7 @@ void BarbaApp::InitFakeFileHeaders()
 
 	std::vector<std::tstring> files;
 	BarbaUtils::FindFiles(folder, _T("*.header"), &files);
-	for (int i=0; i<(int)files.size(); i++)
+	for (size_t i=0; i<files.size(); i++)
 	{
 		TCHAR contentTypeFile[MAX_PATH];
 		_stprintf_s(contentTypeFile, _T("%s\\ContentType.txt"), folder);
@@ -154,8 +154,8 @@ bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool send)
 	if (packet->ipHeader->ip_p!=1)
 		return false;
 
-	int nlen = packet->GetIpLen();
-	int code = nlen - 28;
+	size_t nlen = packet->GetIpLen();
+	size_t code = nlen - 28;
 	if (code==1350)
 			return true;
 
@@ -193,7 +193,7 @@ bool BarbaApp::SendPacketToMstcp(PacketHelper* packet)
 {
 	INTERMEDIATE_BUFFER intBuf = {0};
 	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_RECEIVE;
-	intBuf.m_Length = min(MAX_ETHER_FRAME, packet->GetPacketLen());
+	intBuf.m_Length = min(MAX_ETHER_FRAME, (ULONG)packet->GetPacketLen());
 	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
 
 	ETH_REQUEST req;
@@ -206,7 +206,7 @@ bool BarbaApp::SendPacketToAdapter(PacketHelper* packet)
 {
 	INTERMEDIATE_BUFFER intBuf = {0};
 	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_SEND;
-	intBuf.m_Length = min(MAX_ETHER_FRAME, packet->GetPacketLen());
+	intBuf.m_Length = min(MAX_ETHER_FRAME, (ULONG)packet->GetPacketLen());
 	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
 
 	ETH_REQUEST req;
@@ -237,9 +237,9 @@ bool BarbaApp::CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMT
 	return ret;
 }
 
-bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, u_int fakeFileMaxSize, TCHAR* filename, std::tstring* contentType, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew)
+bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, size_t fakeFileMaxSize, TCHAR* filename, std::tstring* contentType, size_t* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew)
 {
-	*fileSize = BarbaUtils::GetRandom(fakeFileMaxSize/2, fakeFileMaxSize); 
+	*fileSize = BarbaUtils::GetRandom((u_int)fakeFileMaxSize/2, (u_int)fakeFileMaxSize); 
 
 	//generate new filename in createNew
 	if (createNew)
@@ -251,7 +251,7 @@ bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, u_int fakeFileM
 		
 		if (!fakeTypes->empty())
 		{
-			int index = BarbaUtils::GetRandom(0, fakeTypes->size()-1);
+			int index = BarbaUtils::GetRandom(0, (u_int)fakeTypes->size()-1);
 			_stprintf_s(filename, MAX_PATH, _T("%s.%s"), fileNameIdStr, fakeTypes->at(index).data());
 		}
 	}

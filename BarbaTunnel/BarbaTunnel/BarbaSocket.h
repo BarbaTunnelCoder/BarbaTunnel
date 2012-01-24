@@ -23,8 +23,8 @@ public:
 	explicit BarbaSocket(SOCKET s, u_long remoteIp);
 	virtual ~BarbaSocket();
 	//@return 0 if connection closed
-	int Receive(BYTE* buf, size_t bufCount, bool waitAll);
-	int Send(BYTE* buf, size_t bufCount);
+	size_t Receive(BYTE* buf, size_t bufCount, bool waitAll);
+	size_t Send(BYTE* buf, size_t bufCount);
 	void Close();
 	bool IsWritable();
 	//@return empty string if not found

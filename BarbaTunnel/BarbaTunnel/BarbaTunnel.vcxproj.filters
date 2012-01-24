@@ -16,6 +16,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
+    <None Include="WinpkFilter\amd64\ndisapi.dll" />
+    <None Include="WinpkFilter\i386\ndisapi.dll" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -261,6 +263,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="WinpkFilter\ndisapi.lib" />
+    <Library Include="WinpkFilter\amd64\ndisapi.lib" />
+    <Library Include="WinpkFilter\i386\ndisapi.lib" />
   </ItemGroup>
 </Project>

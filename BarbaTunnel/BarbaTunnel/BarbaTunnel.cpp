@@ -24,8 +24,8 @@ bool CheckAdapterIndex()
 	TCHAR msg[ADAPTER_NAME_SIZE*ADAPTER_LIST_SIZE + 255] = {0};
 	_tcscat_s(msg, _T("Could not find main network adapter!\nPlease set your main network adapter index in AdapterIndex of config.ini file.\n\n"));
 
-	int findCount = 0;
-	int findIndex = 0;
+	size_t findCount = 0;
+	size_t findIndex = 0;
 	for (size_t i=0; i<AdList.m_nAdapterCount; i++)
 	{
 		TCHAR adapterName[ADAPTER_NAME_SIZE];
@@ -53,7 +53,7 @@ bool CheckAdapterIndex()
 	//use the only found adapter
 	if (findCount==1)
 	{
-		CurrentAdapterIndex = findIndex;
+		CurrentAdapterIndex = (int)findIndex;
 		return true;
 	}
 
@@ -324,11 +324,11 @@ bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barb
 		{
 			while(api.ReadPacket(&CurrentRequest))
 			{
-				__try
+				try
 				{
 					PINTERMEDIATE_BUFFER buffer = CurrentRequest.EthPacket.Buffer;
 					bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
-					PacketHelper packet(buffer->m_IBuffer);
+					PacketHelper packet((ether_header_ptr)buffer->m_IBuffer);
 
 					//check commands
 					if (theApp->IsDebugMode() && theApp->CheckTerminateCommands(&packet, send))
@@ -348,7 +348,7 @@ bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barb
 							api.SendPacketToMstcp(&CurrentRequest);
 					}
 				}
-				__except ( 0, EXCEPTION_EXECUTE_HANDLER) //catch all exception including system exception
+				catch(...)
 				{
 					BarbaLog(_T("Application throw unhandled exception! packet dropped.\n"));
 				}

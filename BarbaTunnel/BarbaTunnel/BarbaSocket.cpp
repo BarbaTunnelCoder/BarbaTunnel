@@ -104,12 +104,12 @@ void BarbaSocket::UninitializeLib()
 }
 
 
-int BarbaSocket::Receive(BYTE* buf, size_t bufCount, bool waitAll)
+size_t BarbaSocket::Receive(BYTE* buf, size_t bufCount, bool waitAll)
 {
 	int flags = 0;
 	if (waitAll) flags |= MSG_WAITALL;
 	_IsReceiving = true;
-	int ret = ::recv(_Socket, (char*)buf, bufCount, flags);
+	int ret = ::recv(_Socket, (char*)buf, (int)bufCount, flags);
 	_IsReceiving = false;
 	if (ret==SOCKET_ERROR)
 		ThrowSocketError();
@@ -118,9 +118,9 @@ int BarbaSocket::Receive(BYTE* buf, size_t bufCount, bool waitAll)
 	return ret;
 }
 
-int BarbaSocket::Send(BYTE* buf, size_t bufCount)
+size_t BarbaSocket::Send(BYTE* buf, size_t bufCount)
 {
-	int ret = send(_Socket, (char*)buf, bufCount, 0);
+	int ret = send(_Socket, (char*)buf, (int)bufCount, 0);
 	if (ret==SOCKET_ERROR)
 		ThrowSocketError();
 	this->SentBytesCount += ret;

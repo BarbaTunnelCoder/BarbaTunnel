@@ -36,7 +36,7 @@ public:
 	{
 		std::string s;
 		
-		int bufferLen = _tcslen(text)+2;
+		size_t bufferLen = _tcslen(text)+2;
 		TCHAR* buffer = new TCHAR[bufferLen];
 		_tcscpy_s(buffer, bufferLen, text);
 		TCHAR* currentPos = NULL;

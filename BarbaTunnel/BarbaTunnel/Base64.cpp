@@ -34,7 +34,7 @@
 
 
 static const std::tstring base64_chars = _T("ABCDEFGHIJKLMNOPQRSTUVWXYZ" "abcdefghijklmnopqrstuvwxyz" "0123456789+/");
-std::tstring Base64::encode(BYTE* bytes_to_encode, unsigned int in_len) 
+std::tstring Base64::encode(BYTE* bytes_to_encode, size_t in_len) 
 {
   std::tstring ret;
   int i = 0;
@@ -80,7 +80,7 @@ std::tstring Base64::encode(BYTE* bytes_to_encode, unsigned int in_len)
 
 void Base64::decode(std::string const& encoded_string, std::vector<BYTE>& ret) 
 {
-  int in_len = encoded_string.size();
+  size_t in_len = encoded_string.size();
   int i = 0;
   int j = 0;
   int in_ = 0;

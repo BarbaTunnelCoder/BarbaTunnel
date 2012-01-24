@@ -42,13 +42,14 @@ bool BarbaClientUdpConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, 
 {
 	DecryptPacket(barbaPacket);
 	orgPacket->SetEthHeader(barbaPacket->ethHeader);
-	return orgPacket->SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload()) && orgPacket->IsValidChecksum();
+	orgPacket->SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload());
+	return orgPacket->IsValidChecksum();
 }
 
 bool BarbaClientUdpConnection::CreateUdpBarbaPacket(PacketHelper* packet, PacketHelper*  barbaPacket)
 {
 	packet->RecalculateChecksum();
-	barbaPacket->Reset(IPPROTO_UDP);
+	barbaPacket->Reset(IPPROTO_UDP, sizeof iphdr + sizeof udphdr + packet->GetIpLen());
 	barbaPacket->SetEthHeader(packet->ethHeader);
 	barbaPacket->ipHeader->ip_ttl = packet->ipHeader->ip_ttl;
 	barbaPacket->ipHeader->ip_v = packet->ipHeader->ip_v;

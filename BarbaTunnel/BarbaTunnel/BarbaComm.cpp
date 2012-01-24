@@ -54,7 +54,7 @@ void BarbaComm::InitializeEvents()
 	if (CommandEventHandle==NULL) BarbaLog(_T("Could not create Global\\BarbaTunnel_CommandEvent!\n"));
 }
 
-void BarbaComm::SetWorkingState(ULONG /*length*/, bool /*send*/)
+void BarbaComm::SetWorkingState(size_t /*length*/, bool /*send*/)
 {
 	if (GetTickCount()-LastWorkingTick>BARBA_WorkingStateRefreshTime)
 	{
@@ -99,7 +99,7 @@ void BarbaComm::Log(LPCTSTR msg, bool notify)
 	if (notify)
 	{
 		SetFilePointer(NotifyFileHandle, 0, 0, FILE_BEGIN);
-		WriteFile(NotifyFileHandle, msgUtf8, strlen(msgUtf8), &writeLen, NULL);
+		WriteFile(NotifyFileHandle, msgUtf8, (DWORD)strlen(msgUtf8), &writeLen, NULL);
 		SetEndOfFile(NotifyFileHandle);
 	}
 	else
@@ -109,7 +109,7 @@ void BarbaComm::Log(LPCTSTR msg, bool notify)
 
 		_tprintf_s(msg);
 		_tprintf_s(_T("\r\n"));
-		WriteFile(LogFileHandle, msgUtf8, strlen(msgUtf8), &writeLen, NULL);
+		WriteFile(LogFileHandle, msgUtf8, (DWORD)strlen(msgUtf8), &writeLen, NULL);
 		WriteFile(LogFileHandle, _T("\r\n"), 2, &writeLen, NULL);
 		SetEndOfFile(LogFileHandle);
 	}

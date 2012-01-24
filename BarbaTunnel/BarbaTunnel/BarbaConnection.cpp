@@ -16,7 +16,7 @@ BarbaConnection::~BarbaConnection(void)
 {
 }
 
-u_int BarbaConnection::GetLasNegotiationTime() 
+size_t BarbaConnection::GetLasNegotiationTime() 
 {
 	return this->LasNegotiationTime;
 }
@@ -41,7 +41,7 @@ void BarbaConnection::DecryptPacket(PacketHelper* packet)
 	BarbaCrypt::CryptPacket(packet, GetKey()->data(), GetKey()->size(), false);
 }
 
-void BarbaConnection::SetWorkingState(ULONG length, bool send)
+void BarbaConnection::SetWorkingState(size_t length, bool send)
 {
 	this->LasNegotiationTime = GetTickCount();
 	theApp->Comm.SetWorkingState(length, send);

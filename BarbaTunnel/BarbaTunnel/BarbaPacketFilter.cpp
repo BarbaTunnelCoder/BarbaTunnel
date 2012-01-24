@@ -16,7 +16,7 @@ bool BarbaPacketFilter::ApplyFilters(std::vector<STATIC_FILTER>* filters)
 	size_t filtersBufSize = sizeof (STATIC_FILTER)*filters->size();
 	std::vector<BYTE> filterTableBuf( sizeof STATIC_FILTER_TABLE +  filtersBufSize );
 	STATIC_FILTER_TABLE* filterTable = (STATIC_FILTER_TABLE*)&filterTableBuf.front();
-	filterTable->m_TableSize = filters->size();
+	filterTable->m_TableSize = (u_long)filters->size();
 	memcpy_s(filterTable->m_StaticFilters, filtersBufSize, filters->data(), filtersBufSize);
 	return api.SetPacketFilterTable(filterTable)!=FALSE;
 }

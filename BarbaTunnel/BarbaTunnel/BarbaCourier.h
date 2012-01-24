@@ -18,7 +18,7 @@ struct BarbaCourierCreateStrcut
 	std::tstring HostName;
 	u_int FakeFileMaxSize;
 	u_short FakePacketMinSize;
-	size_t ThreadsStackSize;
+	u_int ThreadsStackSize;
 	u_int ConnectionTimeout;
 	u_int KeepAliveInterval;
 };
@@ -44,7 +44,7 @@ public:
 	explicit BarbaCourier(BarbaCourierCreateStrcut* cs);
 	virtual void Send(BYTE* buffer, size_t bufferCount);
 	virtual void Receive(BYTE* buffer, size_t bufferCount);
-	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, u_int* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
+	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
 	virtual void Crypt(BYTE* data, size_t dataLen, bool encrypt);
 	virtual bool IsServer()=0;
 	std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest);
@@ -79,7 +79,7 @@ protected:
 	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	void SendFakeFileHeader(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader);
 	void WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRequest);
-	void InitFakeRequestVars(std::tstring& src, LPCTSTR filename, LPCTSTR contentType, u_int fileSize, u_int fileHeaderSize);
+	void InitFakeRequestVars(std::tstring& src, LPCTSTR filename, LPCTSTR contentType, size_t fileSize, size_t fileHeaderSize);
 	volatile DWORD LastReceivedTime;
 	volatile DWORD LastSentTime;
 

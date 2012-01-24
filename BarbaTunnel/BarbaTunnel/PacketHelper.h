@@ -21,12 +21,13 @@ public:
 	//void SetTcpPacket(tcphdr_ptr tcpHeader);
 	//void SetUdpPacket(udphdr_ptr udpHeader);
 
-	PacketHelper(void* packet, bool copy=true);
-	
-	//Create new packet
-	PacketHelper();
-	PacketHelper(u_char ipProtocol);
-	void Reset(u_char ipProtocol);
+	explicit PacketHelper();
+	explicit PacketHelper(ether_header_ptr packet);
+	explicit PacketHelper(iphdr_ptr ipHeader);
+	explicit PacketHelper(size_t ipLen);
+	explicit PacketHelper(u_char ipProtocol, size_t ipLen);
+	~PacketHelper();
+	void Reset(u_char ipProtocol, size_t ipLen);
 	void Reinit();
 
 	bool IsIp() { return ipHeader!=NULL;}
@@ -39,7 +40,7 @@ public:
 	u_short GetSrcPort();
 	void SetDesPort(u_short port);
 	void SetSrcPort(u_short port);
-	bool SetIpPacket(iphdr_ptr ipHeader);
+	void SetIpPacket(iphdr_ptr ipHeader);
 	BYTE* GetIpExtraHeader(); 
 	size_t GetIpExtraHeaderLen(); 
 	void RecalculateChecksum();
@@ -76,6 +77,8 @@ public:
 	static LPCTSTR ConvertProtocolToString(BYTE protocol);
 
 private:
-	BYTE PacketBuffer[MAX_ETHER_FRAME];
+	void AllocIpBuffer(size_t ipLen);
+	BYTE* PacketBuffer;
+	size_t PacketSize;
 };
 
