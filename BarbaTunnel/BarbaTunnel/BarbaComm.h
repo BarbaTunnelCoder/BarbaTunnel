@@ -32,7 +32,7 @@ public:
 	LPCTSTR GetCommFilePath() {return _CommFilePath;}
 	LPCTSTR GetWorkFolderPath() {return _WorkFolderPath;}
 	CommandEnum GetCommand();
-	void SetWorkingState(ULONG length, bool send);
+	void SetWorkingState(size_t length, bool send);
 	void SetStatus(LPCTSTR status);
 	void Log(LPCTSTR msg, bool notify);
 	bool CreateFiles();

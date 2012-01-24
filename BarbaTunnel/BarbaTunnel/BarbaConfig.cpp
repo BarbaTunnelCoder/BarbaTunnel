@@ -155,7 +155,7 @@ std::tstring BarbaConfig::CreateRequestDataKeyName(std::vector<BYTE>* key)
 {
 	std::string keyName = "BData";
 	//add some 'A' to change they KeyName size depending to key len
-	for (int i=0; i<(int)key->size()/2; i++)
+	for (size_t i=0; i<key->size()/2; i++)
 		keyName.push_back( 'A' );
 
 	std::vector<BYTE> keyBuffer(keyName.size());

@@ -1,74 +1,89 @@
 #include "StdAfx.h"
 #include "PacketHelper.h"
 
-//u_short ntohs( u_short netshort )
-//{
-//	PUCHAR	pBuffer;
-//	u_short	nResult;
-//
-//	nResult = 0;
-//	pBuffer = (PUCHAR )&netshort;
-//
-//	nResult = ( (pBuffer[ 0 ] << 8) & 0xFF00 )
-//		| ( pBuffer[ 1 ] & 0x00FF );
-//
-//	return( nResult );
-//}
-//
-//u_short htons( u_short netshort )
-//{
-//	return ntohs(netshort);
-//}
-//
-//DWORD htonl( DWORD hostlong )
-//{
-//	ULONG nResult = hostlong >> 16;
-//	USHORT upper = (USHORT) nResult & 0x0000FFFF;
-//	USHORT lower = (USHORT) hostlong & 0x0000FFFF;
-//
-//	upper = htons( upper );
-//	lower = htons( lower );
-//
-//    nResult = 0x10000 * lower + upper;
-//	return( nResult );
-//}
-//
-//DWORD ntohl( DWORD netshort )
-//{
-//	return htonl(netshort);
-//}
-
-PacketHelper::PacketHelper(void* packet, bool copy)
+void PacketHelper::AllocIpBuffer(size_t ipLen)
 {
-	memset(this->PacketBuffer, 0, MAX_ETHER_FRAME);
-	if (copy)
+	if (ipLen>0xFFFF)
+		throw _T("Invalid IP size!");
+
+	size_t size = ipLen + sizeof ether_header;
+
+	//allocate new buffer
+	if (this->PacketBuffer==NULL)
 	{
-		memcpy_s(this->PacketBuffer, sizeof this->PacketBuffer, packet, MAX_ETHER_FRAME);
-		packet = this->PacketBuffer;
+		this->PacketSize = size;
+		this->PacketBuffer = new BYTE[size];
+		memset(this->PacketBuffer, 0, size);
 	}
-	ethHeader = (ether_header_ptr)packet;
+
+	//reallocate buffer
+	else if (this->PacketSize<size)
+	{
+		BYTE* buffer = new BYTE[size];
+		memcpy_s(buffer, size, this->PacketBuffer, this->PacketSize);
+		delete this->PacketBuffer;
+		this->PacketSize = size;
+		this->PacketBuffer = buffer;
+	}
+	else
+	{
+		//buffer have enough size
+	}
+
+	this->ethHeader = (ether_header_ptr)this->PacketBuffer;
 	Reinit();
+}
+
+PacketHelper::~PacketHelper()
+{
+	if (this->PacketBuffer!=NULL)
+		delete this->PacketBuffer;
+}
+
+PacketHelper::PacketHelper(ether_header_ptr packet)
+{
+	this->PacketBuffer = NULL;
+	this->PacketSize = 0;
+	SetEthPacket((ether_header_ptr)packet);
+}
+
+PacketHelper::PacketHelper(iphdr_ptr ipHeader)
+{
+	this->PacketBuffer = NULL;
+	this->PacketSize = 0;
+	SetIpPacket(ipHeader);
 }
 
 PacketHelper::PacketHelper()
 {
-	this->ethHeader = (ether_header_ptr)this->PacketBuffer;
-	this->Reset(IPPROTO_IP);
+	this->PacketBuffer = NULL;
+	this->PacketSize = 0;
+	this->Reset(IPPROTO_IP, 0xFFFF);
 }
 
-PacketHelper::PacketHelper(u_char ipProtocol)
+PacketHelper::PacketHelper(size_t ipLen)
 {
-	this->ethHeader = (ether_header_ptr)this->PacketBuffer;
-	this->Reset(ipProtocol);
+	this->PacketBuffer = NULL;
+	this->PacketSize = 0;
+	this->Reset(IPPROTO_IP, ipLen);
 }
 
-void PacketHelper::Reset(u_char ipProtocol)
+PacketHelper::PacketHelper(u_char ipProtocol, size_t ipLen)
 {
-	memset(ethHeader, 0, MAX_ETHER_FRAME);
-	ethHeader->h_proto = htons(ETH_P_IP);
-	ipHeader = (iphdr*)(ethHeader + 1);
-	ipHeader->ip_hl = 5;
-	ipHeader->ip_p = ipProtocol;
+	this->PacketBuffer = NULL;
+	this->PacketSize = 0;
+	this->Reset(ipProtocol, ipLen);
+}
+
+void PacketHelper::Reset(u_char ipProtocol, size_t ipLen)
+{
+	AllocIpBuffer(ipLen);
+	this->ethHeader->h_proto = htons(ETH_P_IP);
+	Reinit();
+	this->ipHeader = (iphdr*)(ethHeader + 1);
+	this->ipHeader->ip_hl = 5;
+	this->ipHeader->ip_p = ipProtocol;
+	this->ipHeader->ip_len = htons((u_short)ipLen);
 	Reinit();
 
 	if (ipProtocol==IPPROTO_TCP) SetTcpPayload(NULL, 0);
@@ -109,19 +124,29 @@ void PacketHelper::SetSrcPort(u_short port)
 
 void PacketHelper::SetTcpPayload(BYTE* payload, size_t len)
 {
+	size_t ipLen = ipHeader->ip_hl*4 + tcpHeader->th_off*4 + len;
+	if (ipLen>0xFFFF)
+		throw _T("Invalid IP size!");
+	AllocIpBuffer(ipLen);
+
 	BYTE* tcpPayload = GetTcpPayload();
-	int remain = MAX_ETHER_FRAME - (tcpPayload-(BYTE*)ethHeader);
+	size_t remain = this->PacketSize - (tcpPayload-(BYTE*)ethHeader);
 	memcpy_s(tcpPayload, remain, payload, len);
-	ipHeader->ip_len = htons( (u_short)(ipHeader->ip_hl*4 + tcpHeader->th_off*4 + len) );
+	ipHeader->ip_len = htons( (u_short)ipLen );
 }
 
 void PacketHelper::SetUdpPayload(BYTE* payload, size_t len)
 {
+	size_t ipLen = ipHeader->ip_hl*4 + sizeof(udphdr) + len;
+	if (ipLen>0xFFFF)
+		throw _T("Invalid IP size!");
+	AllocIpBuffer(ipLen);
+
 	BYTE* udpPayload = GetUdpPayload();
-	int remain = MAX_ETHER_FRAME - (udpPayload-(BYTE*)ethHeader);
+	size_t remain = this->PacketSize - (udpPayload-(BYTE*)ethHeader);
 	memcpy_s(udpPayload, remain, payload, len);
 	udpHeader->length = htons( (u_short)(sizeof(udphdr) + len) );
-	ipHeader->ip_len = htons( (u_short)(ipHeader->ip_hl*4 + sizeof(udphdr) + len) );
+	ipHeader->ip_len = htons( (u_short)ipLen );
 }
 
 void PacketHelper::RecalculateChecksum()
@@ -154,20 +179,22 @@ void PacketHelper::SetEthPacket(ether_header_ptr ethHeader)
 	size_t len = MAX_ETHER_FRAME;
 	if ( ethHeader->h_proto==ntohs(ETH_P_IP))
 		len = sizeof (ether_header) + ntohs(((iphdr*)(ethHeader + 1))->ip_len);
+	
+	if (len>MAX_ETHER_FRAME)
+		throw _T("Invalid Ethernet packet size!");
+	AllocIpBuffer(MAX_ETHER_FRAME);
 	memcpy_s(this->ethHeader, MAX_ETHER_FRAME, ethHeader, len);
 	Reinit();
 }
 
-bool PacketHelper::SetIpPacket(iphdr_ptr ipHeader)
+void PacketHelper::SetIpPacket(iphdr_ptr ipHeader)
 {
-	if (ntohs(ipHeader->ip_len)>MAX_ETHER_FRAME-sizeof ether_header)
-		return false; //big IP!
-
+	size_t ipLen = ntohs(ipHeader->ip_len);
+	AllocIpBuffer(ipLen);
 	this->ethHeader->h_proto = htons(ETH_P_IP);
-	this->ipHeader = (iphdr*)(ethHeader + 1);
-	memcpy_s(this->ipHeader, MAX_ETHER_FRAME-sizeof ether_header, ipHeader, ntohs(ipHeader->ip_len));
 	Reinit();
-	return true;
+	memcpy_s(this->ipHeader, this->PacketSize-sizeof ether_header, ipHeader, ipLen);
+	Reinit();
 }
 
 void PacketHelper::SetSrcEthAddress(BYTE* address)
@@ -207,23 +234,14 @@ bool PacketHelper::IsValidChecksum()
 
 bool PacketHelper::IsValidIPChecksum(iphdr_ptr ipHeader)
 {
-	if (ntohs(ipHeader->ip_len)>MAX_ETHER_FRAME-sizeof ether_header)
-		return false; //big IP!
-
-	BYTE buffer[MAX_ETHER_FRAME];
-	iphdr_ptr ipPacket = (iphdr_ptr)buffer;
-	memcpy(ipPacket, ipHeader, ntohs(ipHeader->ip_len));
-	PacketHelper::RecalculateIPChecksum((iphdr_ptr)ipPacket, false);
-	return ipPacket->ip_sum==ipPacket->ip_sum;
+	PacketHelper packet(ipHeader);
+	PacketHelper::RecalculateIPChecksum(packet.ipHeader, false);
+	return packet.ipHeader->ip_sum==ipHeader->ip_sum;
 }
 
 
 void PacketHelper::RecalculateIPChecksum(iphdr_ptr pIpHeader, bool calculateProtoCheckSum)
 {
-	if (ntohs(pIpHeader->ip_len)>MAX_ETHER_FRAME-sizeof ether_header)
-		return ; //big IP!
-
-
 	if (calculateProtoCheckSum)
 	{
 		if (pIpHeader->ip_p==IPPROTO_TCP) RecalculateTCPChecksum(pIpHeader);
@@ -256,7 +274,7 @@ void PacketHelper::RecalculateIPChecksum(iphdr_ptr pIpHeader, bool calculateProt
 	// Take the one's complement of sum
 	sum = ~sum;
 
-	pIpHeader->ip_sum = htons((unsigned short) sum);
+	pIpHeader->ip_sum = htons((u_short) sum);
 }
 
 
@@ -307,7 +325,7 @@ void PacketHelper::RecalculateTCPChecksum(iphdr_ptr pIpHeader)
 	// calculate the sum of all 16 vit words
 	for (i=0; i< dwTcpLen+padd; i=i+2){
 		word16 =((buff[i]<<8)&0xFF00)+(buff[i+1]&0xFF);
-		sum = sum + (unsigned long)word16;
+		sum = sum + (u_int)word16;
 	}
 	
 	// add the TCP pseudo header which contains:
@@ -317,7 +335,7 @@ void PacketHelper::RecalculateTCPChecksum(iphdr_ptr pIpHeader)
 	sum = sum + ntohs(pIpHeader->ip_dst.S_un.S_un_w.s_w1) + ntohs(pIpHeader->ip_dst.S_un.S_un_w.s_w2);
 	
 	// the protocol number and the length of the TCP packet
-	sum = sum + IPPROTO_TCP + (unsigned short)dwTcpLen;
+	sum = sum + IPPROTO_TCP + (u_short)dwTcpLen;
 
 	// keep only the last 16 bits of the 32 bit calculated sum and add the carries
     while (sum>>16)
@@ -326,13 +344,13 @@ void PacketHelper::RecalculateTCPChecksum(iphdr_ptr pIpHeader)
 	// Take the one's complement of sum
 	sum = ~sum;
 
-	pTcpHeader->th_sum = htons((unsigned short)sum);
+	pTcpHeader->th_sum = htons((u_short)sum);
 }
 
 void PacketHelper::RecalculateICMPChecksum(iphdr_ptr pIpHeader)
 {
-	unsigned short word16, padd = 0;
-	unsigned int i, sum = 0;
+	u_short word16, padd = 0;
+	u_int i, sum = 0;
 	PUCHAR buff;
 	DWORD dwIcmpLen;
 	icmphdr_ptr pIcmpHeader = NULL;
@@ -360,7 +378,7 @@ void PacketHelper::RecalculateICMPChecksum(iphdr_ptr pIpHeader)
 	// calculate the sum of all 16 bit words
 	for (i=0; i< dwIcmpLen+padd; i=i+2){
 		word16 =((buff[i]<<8)&0xFF00)+(buff[i+1]&0xFF);
-		sum = sum + (unsigned long)word16;
+		sum = sum + (u_int)word16;
 	}
 	
 	// keep only the last 16 bits of the 32 bit calculated sum and add the carries
@@ -370,7 +388,7 @@ void PacketHelper::RecalculateICMPChecksum(iphdr_ptr pIpHeader)
 	// Take the one's complement of sum
 	sum = ~sum;
 
-	pIcmpHeader->checksum = ntohs((unsigned short)sum);
+	pIcmpHeader->checksum = ntohs((u_short)sum);
 }
 
 void PacketHelper::RecalculateUDPChecksum(iphdr_ptr pIpHeader)
@@ -404,7 +422,7 @@ void PacketHelper::RecalculateUDPChecksum(iphdr_ptr pIpHeader)
 	// calculate the sum of all 16 vit words
 	for (i=0; i< dwUdpLen+padd; i=i+2){
 		word16 =((buff[i]<<8)&0xFF00)+(buff[i+1]&0xFF);
-		sum = sum + (unsigned long)word16;
+		sum = sum + (u_int)word16;
 	}
 	
 	// add the UDP pseudo header which contains:
@@ -414,7 +432,7 @@ void PacketHelper::RecalculateUDPChecksum(iphdr_ptr pIpHeader)
 	sum = sum + ntohs(pIpHeader->ip_dst.S_un.S_un_w.s_w1) + ntohs(pIpHeader->ip_dst.S_un.S_un_w.s_w2);
 	
 	// the protocol number and the length of the UDP packet
-	sum = sum + IPPROTO_UDP + (unsigned short)dwUdpLen;
+	sum = sum + IPPROTO_UDP + (u_short)dwUdpLen;
 
 	// keep only the last 16 bits of the 32 bit calculated sum and add the carries
     while (sum>>16)
@@ -423,7 +441,7 @@ void PacketHelper::RecalculateUDPChecksum(iphdr_ptr pIpHeader)
 	// Take the one's complement of sum
 	sum = ~sum;
 
-	pUdpHeader->th_sum = ntohs((unsigned short)sum);
+	pUdpHeader->th_sum = ntohs((u_short)sum);
 }
 
 DWORD PacketHelper::ConvertStringIp(LPCTSTR pszIp)

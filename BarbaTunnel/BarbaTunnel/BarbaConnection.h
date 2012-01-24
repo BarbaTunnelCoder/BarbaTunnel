@@ -14,20 +14,20 @@ public:
 	virtual void ReportNewConnection()=0;
 	virtual std::vector<BYTE>* GetKey()=0;
 	virtual LPCTSTR GetName()=0;
-	virtual u_int GetId() {return this->ConnectionId;}
+	virtual size_t GetId() {return this->ConnectionId;}
 	void EncryptData(BYTE* data, size_t dataLen);
 	void DecryptData(BYTE* data, size_t dataLen);
-	u_int GetLasNegotiationTime();
+	size_t GetLasNegotiationTime();
 
 protected:
 	void EncryptPacket(PacketHelper* packet);
 	void DecryptPacket(PacketHelper* packet);
 	bool SendPacketToAdapter(PacketHelper* packet);
 	bool SendPacketToMstcp(PacketHelper* packet);
-	void SetWorkingState(ULONG length, bool send);
+	void SetWorkingState(size_t length, bool send);
 
 private:
-	u_int LasNegotiationTime;
-	u_int ConnectionId;
+	size_t LasNegotiationTime;
+	size_t ConnectionId;
 };
 

@@ -200,7 +200,7 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 
 				}
 
-				int sentCount = barbaSocket->Send(sendPacket, sendPacketSize);
+				size_t sentCount = barbaSocket->Send(sendPacket, sendPacketSize);
 				this->SentBytesCount += sentCount; //courier bytes
 				sentBytes += sentCount; //current socket bytes
 				this->LastSentTime = GetTickCount();
@@ -264,7 +264,7 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 		if (messageLen!=0)
 		{
 			BYTE messageBuf[BarbaCourier_MaxMessageLength];
-			int receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
+			size_t receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
 			if (receiveCount!=messageLen)
 				throw new BarbaException( _T("Out of sync while reading message!") );
 			messageRecievedBytes+= receiveCount; //current socket bytes
@@ -289,7 +289,7 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 			if (messageLen!=0)
 			{
 				BYTE messageBuf[BarbaCourier_MaxMessageLength];
-				int receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
+				size_t receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
 				if (receiveCount!=messageLen)
 					throw new BarbaException( _T("Out of sync while reading fake packet data!") );
 				messageRecievedBytes += receiveCount; //current socket bytes
@@ -368,7 +368,7 @@ void BarbaCourier::WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRe
 	}
 }
 
-void BarbaCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, u_int* fileSize, std::vector<BYTE>* /*fakeFileHeader*/, bool createNew)
+void BarbaCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, std::vector<BYTE>* /*fakeFileHeader*/, bool createNew)
 {
 	*fileSize = BarbaUtils::GetRandom(this->CreateStruct.FakeFileMaxSize/2, this->CreateStruct.FakeFileMaxSize); 
 	if (createNew)
@@ -385,7 +385,7 @@ void BarbaCourier::Crypt(BYTE* /*data*/, size_t /*size*/, bool /*encrypt*/)
 }
 
 
-void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR fileName, LPCTSTR contentType, u_int fileSize, u_int fileHeaderSize)
+void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR fileName, LPCTSTR contentType, size_t fileSize, size_t fileHeaderSize)
 {
 	if (fileName==NULL) fileName = _T("");
 	if (contentType==NULL) contentType = _T("");
@@ -407,7 +407,7 @@ void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR fileName, LPCT
 
 	//fileSize
 	TCHAR fileSizeStr[20];
-	_ltot_s(fileSize, fileSizeStr, 10);
+	_ltot_s((long)fileSize, fileSizeStr, 10);
 	BarbaUtils::UpdateHttpRequest(&src, _T("Content-Length"), fileSizeStr);
 
 	//time

@@ -28,14 +28,14 @@ BarbaCourierClient::~BarbaCourierClient()
 {
 }
 
-u_int BarbaCourierClient::SendFakeRequest(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader)
+size_t BarbaCourierClient::SendFakeRequest(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader)
 {
 	bool outgoing = fakeFileHeader!=NULL;
-	u_int fileSize;
+	size_t fileSize;
 	TCHAR filename[MAX_PATH];
 	std::tstring contentType;
 	GetFakeFile(filename, &contentType, &fileSize, fakeFileHeader, true);
-	u_int fakeFileHeaderSize = fakeFileHeader!=NULL ? fakeFileHeader->size() : 0;
+	size_t fakeFileHeaderSize = fakeFileHeader!=NULL ? fakeFileHeader->size() : 0;
 	//LPCTSTR requestMode = outgoing ? _T("POST") : _T("GET");
 
 	//set serverip
@@ -113,7 +113,7 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 			if (isOutgoing)
 			{
 				std::vector<BYTE> fakeFileHeader;
-				u_int fakeFileSize = _this->SendFakeRequest(socket, &fakeFileHeader);
+				size_t fakeFileSize = _this->SendFakeRequest(socket, &fakeFileHeader);
 
 				//sending fake file header
 				_this->SendFakeFileHeader(socket, &fakeFileHeader);

@@ -5,7 +5,7 @@
 void BarbaUtils::GetModuleFolder(TCHAR* folder)
 {
 	::GetModuleFileName(NULL, folder, MAX_PATH);
-	for (int i=_tcsclen(folder); i>=0; i--)
+	for (size_t i=_tcsclen(folder); i>=0; i--)
 	{
 		if (folder[i]=='\\' || folder[i]=='/')
 		{
@@ -80,10 +80,10 @@ void BarbaUtils::GetProtocolAndPortArray(LPCTSTR value, std::vector<ProtocolPort
 
 void BarbaUtils::ConvertHexStringToBuffer(LPCTSTR hexString, std::vector<BYTE>* buffer)
 {
-	int len = _tcslen(hexString);
+	size_t len = _tcslen(hexString);
 	buffer->resize(len/2);
 
-	for(int i=0; i<(int)buffer->size(); i++)
+	for(size_t i=0; i<buffer->size(); i++)
 	{
 		char b[3];
 		b[0] = hexString[i*2];
@@ -245,10 +245,10 @@ void BarbaUtils::FindFiles(LPCTSTR folder, LPCTSTR search, bool recursive, std::
 
 std::tstring BarbaUtils::FindFileTitle(LPCTSTR filePath)
 {
-	int len = _tcslen(filePath);
-	int start = 0;
-	int end = 0;
-	for (int i=len-1; i>=0; i--)
+	size_t len = _tcslen(filePath);
+	size_t start = 0;
+	size_t end = 0;
+	for (size_t i=len-1; i>=0; i--)
 	{
 		if (filePath[i]=='\\' || filePath[i]=='/')
 		{
@@ -282,14 +282,14 @@ std::tstring BarbaUtils::GetFileUrlFromHttpRequest(LPCTSTR httpRequest)
 
 std::tstring BarbaUtils::GetFileNameFromUrl(LPCTSTR url)
 {
-	int urlLen = _tcslen(url);
+	size_t urlLen = _tcslen(url);
 	LPCTSTR endP = _tcsrchr(url, '?');
 	ptrdiff_t end = endP!=NULL ? endP-url : urlLen ;
 	
 	//remove query string
 	TCHAR path[MAX_PATH];
 	_tcsncpy_s(path, url, min(end,MAX_PATH-1));
-	int pathLen = _tcslen(path);
+	size_t pathLen = _tcslen(path);
 
 	//find last last
 	LPCTSTR startP = _tcsrchr(path, '/');
