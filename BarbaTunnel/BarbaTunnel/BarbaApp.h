@@ -2,8 +2,9 @@
 #include "General.h"
 #include "BarbaSocket.h"
 #include "BarbaUtils.h"
-#include "BarbaComm.h"
 #include "SimpleSafeList.h"
+#include "BarbaComm.h"
+#include "BarbaPacketFilter.h"
 
 class BarbaApp
 {
@@ -16,8 +17,8 @@ public:
 	virtual void Dispose();
 	virtual bool IsServerMode()=0;
 	bool GetFakeFile(std::vector<std::tstring>* fakeTypes, size_t fakeFileMaxSize, TCHAR* filename, std::tstring* contentType, size_t* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
-	bool SendPacketToAdapter(PacketHelper* packet);
-	bool SendPacketToMstcp(PacketHelper* packet);
+	bool SendPacketToOutbound(PacketHelper* packet);
+	bool SendPacketToInbound(PacketHelper* packet);
 	//@return false to terminate process
 	bool CheckTerminateCommands(PacketHelper* packet, bool send);
 	bool IsDebugMode() {return _DebugMode;}
@@ -29,11 +30,10 @@ public:
 	static LPCTSTR GetAppFolder();
 	static LPCTSTR GetModuleFolder();
 	static LPCTSTR GetModuleFile();
-	int GetAdapterIndex() {return _AdapterIndex;}
+	BarbaPacketFilter* GetPacketFilter() { return this->PacketFilter; }
+	size_t GetAdapterIndex() {return _AdapterIndex;}
 	bool VerboseMode;
 	BarbaComm Comm;
-	void SetAdapterHandle(HANDLE adapterHandle);
-	HANDLE GetAdapterHandle() {return _AdapterHandle;}
 	u_int ConnectionTimeout;
 	std::vector<FakeFileHeader> FakeFileHeaders;
 
@@ -43,18 +43,17 @@ public:
 	static void CloseFinishedThreadHandle(SimpleSafeList<HANDLE>* list);
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
 
-
 private:
-	HANDLE _AdapterHandle;
 	int MTUDecrement;
 	bool _IsDisposed;
 	void InitFakeFileHeaders();
 	SimpleSafeList<HANDLE> Threads;
-	int _AdapterIndex;
+	size_t _AdapterIndex;
 	bool _DebugMode;
 	TCHAR _ConfigFile[MAX_PATH];
 	TCHAR _ModuleFolder[MAX_PATH];
 	TCHAR _ModuleFileName[MAX_PATH];
+	BarbaPacketFilter* PacketFilter;
 };
 
 extern BarbaApp* theApp;

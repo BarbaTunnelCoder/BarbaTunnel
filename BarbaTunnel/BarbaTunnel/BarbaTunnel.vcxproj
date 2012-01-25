@@ -187,6 +187,7 @@
     <ClInclude Include="BarbaCrypt.h" />
     <ClInclude Include="BarbaException.h" />
     <ClInclude Include="BarbaPacketFilter.h" />
+    <ClInclude Include="WinpkPacketFilter.h" />
     <ClInclude Include="BarbaServer\BarbaServerConnectionManager.h" />
     <ClInclude Include="BarbaServer\BarbaServerHttpHost.h" />
     <ClInclude Include="BarbaServer\BarbaServerRedirectConnection.h" />
@@ -232,6 +233,7 @@
     <ClCompile Include="BarbaCourierServer.cpp" />
     <ClCompile Include="BarbaCrypt.cpp" />
     <ClCompile Include="BarbaPacketFilter.cpp" />
+    <ClCompile Include="WinpkPacketFilter.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerConnectionManager.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerRedirectConnection.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerUdpConnection.cpp" />

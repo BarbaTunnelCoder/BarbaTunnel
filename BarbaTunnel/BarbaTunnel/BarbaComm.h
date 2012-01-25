@@ -36,7 +36,6 @@ public:
 	void SetStatus(LPCTSTR status);
 	void Log(LPCTSTR msg, bool notify);
 	bool CreateFiles();
-	bool CreateFilesWithAdminPrompt();
 	bool IsAlreadyRunning() {return _IsAlreadyRunning;}
 	u_int MaxLogFilesize;
 };

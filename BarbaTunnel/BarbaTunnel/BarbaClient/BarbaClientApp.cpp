@@ -4,6 +4,17 @@
 BarbaClientApp* theClientApp = NULL;
 BarbaClientApp::BarbaClientApp()
 {
+	theClientApp = this;
+	TCHAR file[MAX_PATH];
+	
+	//Load Configs
+	BarbaClientConfig::LoadFolder(GetConfigFolder(), &this->Configs);
+
+	//load fake files
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-GetTemplate.txt"), GetAppFolder());
+	this->FakeHttpGetTemplate = BarbaUtils::LoadFileToString(file);
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-PostTemplate.txt"), GetAppFolder());
+	this->FakeHttpPostTemplate = BarbaUtils::LoadFileToString(file);
 }
 
 BarbaClientApp::~BarbaClientApp()
@@ -20,24 +31,9 @@ void BarbaClientApp::Dispose()
 
 void BarbaClientApp::Initialize()
 {
-	if (theClientApp!=NULL)
-	{
-		throw new BarbaException(_T("BarbaClientApp Already Initialized!"));
-	}
-	theClientApp = this;
 	BarbaApp::Initialize();
-	TCHAR file[MAX_PATH];
-
-	//Load Configs
-	BarbaClientConfig::LoadFolder(GetConfigFolder(), &this->Configs);
-
-	//load fake files
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-GetTemplate.txt"), GetAppFolder());
-	this->FakeHttpGetTemplate = BarbaUtils::LoadFileToString(file);
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-PostTemplate.txt"), GetAppFolder());
-	this->FakeHttpPostTemplate = BarbaUtils::LoadFileToString(file);
-
 }
+
 
 bool BarbaClientApp::ShouldGrabPacket(PacketHelper* packet, BarbaClientConfig* config)
 {

@@ -1,70 +1,17 @@
 #include "stdafx.h"
 #include "BarbaClient\BarbaClientApp.h"
 #include "BarbaServer\BarbaServerApp.h"
-#include "BarbaPacketFilter.h"
+#include "WinpkPacketFilter.h"
 
-TCP_AdapterList		AdList;
-DWORD				CurrentAdapterIndex;
-CNdisApi			api;
-HANDLE				hEvent;
-
-BarbaClientApp barbaClientApp;
-BarbaServerApp barbaServerApp;
-bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barbaCommandOut);
-
-bool CheckAdapterIndex()
+BarbaPacketFilter* CreatePacketFilterByName(LPCTSTR name)
 {
-	if (theApp->GetAdapterIndex()-1>=0 && theApp->GetAdapterIndex()-1<(int)AdList.m_nAdapterCount)
-	{
-		CurrentAdapterIndex = theApp->GetAdapterIndex()-1;
-		return true;
-	}
+	if (_tcsicmp(name, _T("WinpkFilter"))==0)
+		return new WinpkPacketFilter();
 
-	//find best adapter
-	TCHAR msg[ADAPTER_NAME_SIZE*ADAPTER_LIST_SIZE + 255] = {0};
-	_tcscat_s(msg, _T("Could not find main network adapter!\nPlease set your main network adapter index in AdapterIndex of config.ini file.\n\n"));
-
-	size_t findCount = 0;
-	size_t findIndex = 0;
-	for (size_t i=0; i<AdList.m_nAdapterCount; i++)
-	{
-		TCHAR adapterName[ADAPTER_NAME_SIZE];
-		CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[i], adapterName, _countof(adapterName));
-
-		TCHAR adapterNameLower[ADAPTER_NAME_SIZE] = {0};
-		for(size_t j = 0; adapterName[j] != '\0' && i<ADAPTER_NAME_SIZE; j++)
-			adapterNameLower[j] = (TCHAR)_totlower(adapterName[j]);
-
-		bool isWan = _tcsstr(adapterNameLower, _T("wan network"))!=NULL;
-		if (isWan)
-			continue;
-
-		//save last find
-		findCount++;
-		findIndex = i;
-
-		//add adapter name
-		TCHAR adapterLine[ADAPTER_NAME_SIZE + 10];
-		_stprintf_s(adapterLine, _T("%d) %s"), i+1, adapterName);
-		_tcscat_s(msg, adapterLine);
-		_tcscat_s(msg, _T("\n"));
-	}
-
-	//use the only found adapter
-	if (findCount==1)
-	{
-		CurrentAdapterIndex = (int)findIndex;
-		return true;
-	}
-
-	_tcscat_s(msg, _T("\nDo you want to open config.ini file now?"));
-	if (MessageBox(NULL, msg, _T("BarbaTunnel"), MB_ICONWARNING|MB_YESNO)==IDYES)
-	{
-		BarbaUtils::SimpleShellExecute(theApp->GetSettingsFile(), NULL, SW_SHOW, NULL, _T("edit"));
-	}
-	return false;
+	throw new BarbaException(_T("Invalid PacketFilter: %s", name));
 }
 
+bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barbaCommandOut);
 bool SetMTU()
 {
 	if (theApp->GetMTUDecrement()==-1)
@@ -90,28 +37,6 @@ bool SetMTU()
 }
 
 
-void ReleaseInterface()
-{
-	// This function releases packets in the adapter queue and stops listening the interface
-	ADAPTER_MODE Mode;
-
-	Mode.dwFlags = 0;
-	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
-
-	// Set NULL event to release previously set event object
-	api.SetPacketEvent(AdList.m_nAdapterHandle[CurrentAdapterIndex], NULL);
-
-	// Close Event
-	if (hEvent)
-		CloseHandle ( hEvent );
-
-	// Set default adapter mode
-	api.SetAdapterMode(&Mode);
-
-	// Empty adapter packets queue
-	api.FlushAdapterPacketQueue (AdList.m_nAdapterHandle[CurrentAdapterIndex]);
-}
-
 void InitMemoryLeackReport()
 {
 	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
@@ -134,53 +59,36 @@ int test()
 int main(int argc, char* argv[])
 {
 	//test(); return 0; //just for debug
+	//TODO: check msgbox in service //mad
 
 	// memory leak detection
 	InitMemoryLeackReport();
-
 	try
 	{
 		//find IsBarbaServer
 		bool isBarbaServer = GetPrivateProfileInt(_T("General"), _T("ServerMode"), 0, BarbaApp::GetSettingsFile())!=0;
 
-		//create App
-		theApp = isBarbaServer ? (BarbaApp*)&barbaServerApp : (BarbaApp*)&barbaClientApp ;
-		theApp->Initialize();
-
-		//check is already running
-		if (theApp->Comm.IsAlreadyRunning())
+		//find command line parameter
+		bool delayStart = false;
+		for (int i=0; i<argc; i++)
 		{
-			if (theApp!=NULL) theApp->Dispose();
-			BarbaLog(_T("BarbaTunnel already running!"));
-			return 0;
+			if (_tcsicmp(argv[i], _T("/delaystart"))==0)
+				delayStart = true;
 		}
 
-		//try prepare Comm Files
-		if (!theApp->Comm.CreateFiles() && !theApp->Comm.CreateFilesWithAdminPrompt())
-			BarbaLog(_T("Could not prepare BarbaComm files!"));
+		//create App
+		theApp = isBarbaServer ? (BarbaApp*)new BarbaServerApp() : (BarbaApp*)new BarbaClientApp() ;
+		theApp->Initialize();
 	}
 	catch(BarbaException* er)
 	{
-		BarbaLog(er->ToString());
+		BarbaLog(_T("Error: %s"), er->ToString());
+		theApp->Dispose();
 		delete er;
+		delete theApp;
 		return 0;
 	}
 
-	//process other command line
-	bool delayStart = false;
-	for (int i=0; i<argc; i++)
-	{
-		if (_tcsicmp(argv[i], _T("/setmtu"))==0)
-		{
-			SetMTU();
-			theApp->Comm.CreateFilesWithAdminPrompt();
-			return 0;
-		}
-		else if (_tcsicmp(argv[i], _T("/delaystart"))==0 && theApp->IsServerMode())
-		{
-			delayStart = true;
-		}
-	}
 
 	//try to set MTU as administrator
 	if (theApp->GetMTUDecrement()!=-1 && theApp->GetMTUDecrement() != (int)api.GetMTUDecrement()  )
@@ -220,19 +128,6 @@ int main(int argc, char* argv[])
 		Sleep(delayMin * 60* 1000);
 	}
 
-	//check is driver loaded (let after Comm Files created)
-	if(!api.IsDriverLoaded())
-	{
-		BarbaLog(_T("Error: Driver not installed on this system or failed to load!\r\nPlease go to http://www.ntndis.com/w&p.php?id=7 and install WinpkFilter driver."));
-		BarbaNotify(_T("Error: Driver not installed!\r\nDriver not installed on this system or failed to load!"));
-		return 0;
-	}
-
-	//get adapter list
-	api.GetTcpipBoundAdaptersInfo ( &AdList );
-	if (!CheckAdapterIndex())
-		return 0;
-
 	//report info
 	TCHAR adapterName[ADAPTER_NAME_SIZE];
 	CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[CurrentAdapterIndex], adapterName, _countof(adapterName));
@@ -242,10 +137,9 @@ int main(int argc, char* argv[])
 	theApp->Comm.SetStatus(_T("Started"));
 	theApp->Start();
 
-		//start process packets
+	//start process packets
 	BarbaComm::CommandEnum barbaCommand = BarbaComm::CommandNone;
-	if (!StartProcessPackets(commandEventHandle, barbaCommand))
-		return 0;
+	StartProcessPackets(commandEventHandle, barbaCommand);
 
 	//report finish
 	BarbaLog(_T("BarbaTunnel Stopped."));
@@ -289,9 +183,9 @@ bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barb
 
 	ADAPTER_MODE Mode;
 	Mode.dwFlags = MSTCP_FLAG_SENT_TUNNEL | MSTCP_FLAG_RECV_TUNNEL;
-	Mode.hAdapterHandle = (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex];
-	theApp->SetAdapterHandle( (HANDLE)AdList.m_nAdapterHandle[CurrentAdapterIndex] );
-	if (!BarbaPacketFilter::ApplyPacketFilter())
+	Mode.hAdapterHandle = AdList.m_nAdapterHandle[CurrentAdapterIndex];
+	theApp->SetAdapterHandle( AdList.m_nAdapterHandle[CurrentAdapterIndex] );
+	if (!WinpkPacketFilter::ApplyPacketFilter())
 		return false;
 	api.SetAdapterMode(&Mode);
 
@@ -303,7 +197,6 @@ bool StartProcessPackets(HANDLE commandEventHandle, BarbaComm::CommandEnum& barb
 		BarbaLog(_T("Failed to create notification event or set it for driver."));
 		return false;
 	}
-	atexit (ReleaseInterface);
 
 	// Initialize Request
 	ETH_REQUEST CurrentRequest = {0};

@@ -6,23 +6,7 @@ BarbaServerApp* theServerApp = NULL;
 
 BarbaServerApp::BarbaServerApp(void)
 {
-}
-
-
-BarbaServerApp::~BarbaServerApp(void)
-{
-	if (!this->IsDisposed())
-		Dispose();
-}
-
-void BarbaServerApp::Initialize()
-{
-	if (theServerApp!=NULL)
-	{
-		throw new BarbaException(_T("BarbaServerApp Already Initialized!"));
-	}
 	theServerApp = this;
-	BarbaApp::Initialize();
 	TCHAR file[MAX_PATH];
 
 	//Load Configs
@@ -51,8 +35,17 @@ void BarbaServerApp::Initialize()
 		_tcscpy_s(ipBuffer, _countof(ipBuffer), dash+1);
 		this->VirtualIpRange.EndIp = PacketHelper::ConvertStringIp(ipBuffer);
 	}
+}
 
-	//Initialize Connection Manager
+BarbaServerApp::~BarbaServerApp(void)
+{
+	if (!this->IsDisposed())
+		Dispose();
+}
+
+void BarbaServerApp::Initialize()
+{
+	BarbaApp::Initialize();
 	ConnectionManager.Initialize(&this->VirtualIpRange);
 }
 
