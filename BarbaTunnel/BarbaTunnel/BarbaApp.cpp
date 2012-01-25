@@ -1,23 +1,20 @@
 #include "StdAfx.h"
 #include "BarbaApp.h"
 
+BarbaPacketFilter* CreatePacketFilterByName(LPCTSTR name);
 BarbaApp* theApp = NULL;
-extern CNdisApi	api;
 
 BarbaApp::BarbaApp(void)
 {
-	_AdapterHandle = 0;
 	_IsDisposed = false;
 	srand((UINT)time(0));
-	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetAppFolder());
 
+	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetAppFolder());
 	this->_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetSettingsFile());
 	this->VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetSettingsFile())!=0;
 	this->_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetSettingsFile())!=0;
 	this->ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), 0, GetSettingsFile())*60*1000;
 	this->MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), -1, GetSettingsFile());
-	
-	//ConnectionTimeout
 	if (this->ConnectionTimeout==0) this->ConnectionTimeout = BARBA_ConnectionTimeout;
 	
 	//MaxLogFilesize
@@ -26,13 +23,28 @@ BarbaApp::BarbaApp(void)
 
 	//FakeFileHeaders
 	InitFakeFileHeaders();
+
+	//PacketFilter
+	TCHAR packetFilterName[200] = {0};
+	GetPrivateProfileString(_T("General"), _T("PacketFilter"), _T("WinDivert"), packetFilterName, _countof(packetFilterName), GetSettingsFile());
+	this->PacketFilter = CreatePacketFilterByName(packetFilterName);
 	
 	BarbaSocket::InitializeLib();
 }
 
-void BarbaApp::SetAdapterHandle(HANDLE adapterHandle)
+BarbaApp::~BarbaApp(void)
 {
-	this->_AdapterHandle = adapterHandle;
+	BarbaSocket::UninitializeLib();
+}
+
+
+void BarbaApp::Initialize()
+{
+	this->Comm.Initialize();
+}
+
+void BarbaApp::Start()
+{
 }
 
 void BarbaApp::InitFakeFileHeaders()
@@ -58,11 +70,6 @@ void BarbaApp::InitFakeFileHeaders()
 		if ( BarbaUtils::LoadFileToBuffer(files[i].data(), &ffh.Data) )
 			this->FakeFileHeaders.push_back(ffh);
 	}
-}
-
-BarbaApp::~BarbaApp(void)
-{
-	BarbaSocket::UninitializeLib();
 }
 
 void BarbaApp::AddThread(HANDLE threadHandle)
@@ -205,40 +212,14 @@ void BarbaApp::Dispose()
 	Comm.Dispose();
 }
 
-void BarbaApp::Initialize()
+bool BarbaApp::SendPacketToOutbound(PacketHelper* packet)
 {
-	//Comm
-	Comm.Initialize();
+	this->PacketFilter->SendPacketToOutbound(packet);
 }
 
-void BarbaApp::Start()
+bool BarbaApp::SendPacketToInbound(PacketHelper* packet)
 {
-}
-
-bool BarbaApp::SendPacketToMstcp(PacketHelper* packet)
-{
-	INTERMEDIATE_BUFFER intBuf = {0};
-	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_RECEIVE;
-	intBuf.m_Length = min(MAX_ETHER_FRAME, (ULONG)packet->GetPacketLen());
-	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
-
-	ETH_REQUEST req;
-	req.hAdapterHandle = _AdapterHandle;
-	req.EthPacket.Buffer = &intBuf;
-	return api.SendPacketToMstcp(&req)!=FALSE;
-}
-
-bool BarbaApp::SendPacketToAdapter(PacketHelper* packet)
-{
-	INTERMEDIATE_BUFFER intBuf = {0};
-	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_SEND;
-	intBuf.m_Length = min(MAX_ETHER_FRAME, (ULONG)packet->GetPacketLen());
-	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
-
-	ETH_REQUEST req;
-	req.hAdapterHandle = this->_AdapterHandle;
-	req.EthPacket.Buffer = &intBuf;
-	return api.SendPacketToAdapter(&req)!=FALSE;
+	this->PacketFilter->SendPacketToInbound(packet);
 }
 
 bool BarbaApp::CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMTUDecrement)

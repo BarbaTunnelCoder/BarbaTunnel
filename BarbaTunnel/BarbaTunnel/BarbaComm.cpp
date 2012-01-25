@@ -25,6 +25,11 @@ BarbaComm::BarbaComm(void)
 void BarbaComm::Initialize()
 {
 	InitializeEvents();
+	if (IsAlreadyRunning())
+		throw new BarbaException("BarbaTunnel already running!");
+
+	if (!CreateFiles())
+		throw new BarbaException("Could not prepare BarbaComm files!");
 }
 
 
@@ -51,7 +56,8 @@ void BarbaComm::InitializeEvents()
 
 	CommandEventHandle = CreateEvent(&sa, TRUE, FALSE, _T("Global\\BarbaTunnel_CommandEvent"));
 	_IsAlreadyRunning = GetLastError()==ERROR_ALREADY_EXISTS;
-	if (CommandEventHandle==NULL) BarbaLog(_T("Could not create Global\\BarbaTunnel_CommandEvent!\n"));
+	if (CommandEventHandle==NULL) 
+		BarbaLog(_T("Could not create Global\\BarbaTunnel_CommandEvent!\n"));
 }
 
 void BarbaComm::SetWorkingState(size_t /*length*/, bool /*send*/)
@@ -115,18 +121,16 @@ void BarbaComm::Log(LPCTSTR msg, bool notify)
 	}
 }
 
-bool BarbaComm::CreateFilesWithAdminPrompt()
-{
-	CreateDirectory(GetWorkFolderPath(), NULL);
-	TCHAR cmd[MAX_PATH*2];
-	_stprintf_s(cmd, _T("\"%s\" /e /g everyone:c /t"), GetWorkFolderPath());
-	BarbaUtils::SimpleShellExecuteAndWait(_T("cacls.exe"), cmd, NULL, SW_HIDE, _T("runas"));
-	return CreateFiles();
-}
-
 bool BarbaComm::CreateFiles()
 {
 	CreateDirectory(GetWorkFolderPath(), NULL);
+
+	//make sure anyone have access to allow barba monitor send message
+	TCHAR cmd[MAX_PATH*2];
+	_stprintf_s(cmd, _T("\"%s\" /e /g everyone:c /t"), GetWorkFolderPath());
+	BarbaUtils::SimpleShellExecuteAndWait(_T("cacls.exe"), cmd, NULL, SW_HIDE);
+
+	//Create files
 	LogFileHandle = CreateFile(GetLogFilePath(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	NotifyFileHandle = CreateFile(GetNotifyFilePath(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	HANDLE commFileHandle = CreateFile(GetCommFilePath(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);

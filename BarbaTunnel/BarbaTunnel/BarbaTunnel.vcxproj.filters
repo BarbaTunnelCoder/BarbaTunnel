@@ -146,10 +146,13 @@
     <ClInclude Include="Base64.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaPacketFilter.h">
+    <ClInclude Include="BarbaConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaConfig.h">
+    <ClInclude Include="WinpkPacketFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaPacketFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -250,10 +253,13 @@
     <ClCompile Include="Base64.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarbaPacketFilter.cpp">
+    <ClCompile Include="BarbaConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarbaConfig.cpp">
+    <ClCompile Include="WinpkPacketFilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaPacketFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

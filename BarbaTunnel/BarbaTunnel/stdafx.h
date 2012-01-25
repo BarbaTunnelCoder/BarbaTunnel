@@ -25,7 +25,6 @@
 #include <fstream>
 #include <vector>
 #include "WinpkFilter\Common.h"
-#include "WinpkFilter\ndisapi.h"
 #include "WinpkFilter\iphlp.h"
 
 //UNICODE support
