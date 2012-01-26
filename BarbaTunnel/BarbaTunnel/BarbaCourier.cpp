@@ -63,11 +63,6 @@ BarbaCourier::~BarbaCourier(void)
 {
 }
 
-bool BarbaCourier::IsDisposing()
-{
-	return DisposeEvent.Wait(0)==WAIT_OBJECT_0;
-}
-
 HANDLE BarbaCourier::Delete()
 {
 	Log(_T("BarbaCourier disposing."));

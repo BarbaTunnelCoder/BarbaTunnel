@@ -7,7 +7,7 @@
 class BarbaServerApp : public BarbaApp
 {
 public:
-	BarbaServerApp(void);
+	explicit BarbaServerApp(bool delayStart);
 	virtual ~BarbaServerApp(void);
 	virtual void Initialize();
 	virtual void Start();
@@ -26,6 +26,7 @@ public:
 
 private:
 	BarbaServerConfig* ShouldGrabPacket(PacketHelper* packet);
+	bool DelayStart;
 };
 
 extern BarbaServerApp* theServerApp;

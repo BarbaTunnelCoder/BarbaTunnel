@@ -58,12 +58,6 @@ void BarbaServerHttpHost::Dispose()
 	}
 }
 
-
-bool BarbaServerHttpHost::IsDisposing()
-{
-	return DisposeEvent.Wait(0)==WAIT_OBJECT_0;
-}
-
 std::tstring BarbaServerHttpHost::GetRequestDataFromHttpRequest(LPCTSTR httpRequest, LPCTSTR keyName, std::vector<BYTE>* key)
 {
 	try
@@ -189,7 +183,7 @@ void BarbaServerHttpHost::AddListenerPort(BarbaServerConfig* config, u_short por
 	ListenerThreads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, ListenerThread, threadData, 0, NULL));
 }
 
-void BarbaServerHttpHost::Initialize()
+void BarbaServerHttpHost::Start()
 {
 	//Initialize listeners
 	int createdSocket = 0;

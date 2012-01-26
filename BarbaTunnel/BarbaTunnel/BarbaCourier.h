@@ -70,7 +70,7 @@ private:
 protected:
 	void Log(LPCTSTR format, ...);
 	virtual void Dispose();
-	bool IsDisposing();
+	bool IsDisposing() { return this->DisposeEvent.IsSet(); }
 	virtual ~BarbaCourier(void);
 	virtual void Send(Message* message, bool highPriority=false);
 	void Sockets_Add(BarbaSocket* socket, bool isOutgoing);

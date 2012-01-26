@@ -78,9 +78,6 @@ bool TestPacket(PacketHelper* packet, bool send)
 
 bool BarbaClientApp::ProcessPacket(PacketHelper* packet, bool send)
 {
-	if (!packet->IsIp())
-		return false;
-
 	//just for debug
 	if (TestPacket(packet, send))
 		return true;

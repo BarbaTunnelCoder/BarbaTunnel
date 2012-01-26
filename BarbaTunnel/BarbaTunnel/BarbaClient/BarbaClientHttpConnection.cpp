@@ -45,7 +45,7 @@ bool BarbaClientHttpConnection::ProcessPacket(PacketHelper* packet, bool send)
 	}
 	else
 	{
-		this->SendPacketToMstcp(packet);
+		SendPacketToInbound(packet);
 	}
 	return true;
 }

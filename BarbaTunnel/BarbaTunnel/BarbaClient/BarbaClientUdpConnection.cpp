@@ -75,7 +75,7 @@ bool BarbaClientUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 		PacketHelper barbaPacket;
 		if (!CreateUdpBarbaPacket(packet, &barbaPacket))
 			return false;
-		this->SendPacketToAdapter(&barbaPacket);
+		SendPacketToOutbound(&barbaPacket);
 		return true;
 	}
 	else
@@ -83,7 +83,7 @@ bool BarbaClientUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 		//extract Barba packet
 		PacketHelper orgPacket;
 		ExtractUdpBarbaPacket(packet, &orgPacket);
-		this->SendPacketToMstcp(&orgPacket);
+		SendPacketToInbound(&orgPacket);
 		return true;
 	}
 }

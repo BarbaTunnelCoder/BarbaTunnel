@@ -4,15 +4,47 @@ class SimpleEvent
 {
 private:
 	HANDLE EventHandle;
+
 public:
 	explicit SimpleEvent(bool manualReset, bool initState)
 	{
 		this->EventHandle = CreateEvent(NULL, manualReset, initState, NULL);
 	}
 
+	explicit SimpleEvent(HANDLE eventHandle)
+	{
+		this->EventHandle = NULL;
+		Attach(eventHandle);
+	}
+
+	explicit SimpleEvent()
+	{
+		this->EventHandle = NULL;
+	}
+
+	void Attach(HANDLE eventHandle)
+	{
+		if (this->EventHandle!=NULL)
+			throw _T("SimpleEvent could not Attach when already contain handle!");
+		this->EventHandle = eventHandle;
+	}
+
+	HANDLE Detach()
+	{
+		HANDLE ret = this->EventHandle;
+		this->EventHandle = NULL;
+		return ret;
+	}
+
 	~SimpleEvent()
 	{
-		CloseHandle(this->EventHandle);
+		if (this->EventHandle!=NULL)
+			CloseHandle(this->EventHandle);
+	}
+
+	bool IsSet()
+	{
+		return Wait(0)==WAIT_OBJECT_0;
 	}
 
 	void Set()
@@ -28,5 +60,10 @@ public:
 	DWORD Wait(DWORD milliseconds)
 	{
 		return WaitForSingleObject(this->EventHandle, milliseconds);
+	}
+
+	HANDLE GetHandle() 
+	{
+		return this->EventHandle;
 	}
 };

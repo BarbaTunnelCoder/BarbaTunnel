@@ -74,9 +74,17 @@ namespace BarbaTunnel.Monitor
             InitializeComponent();
             BarbaComm.Initialize();
             this.verboseCheckBox.IsChecked = BarbaComm.VerboseMode;
-            if (BarbaComm.Status == BarbaStatus.Stopped)
-                DoStart();
 
+            //StartTunnel when monitor start
+            if (BarbaComm.Status == BarbaStatus.Stopped)
+            {
+                reportTextBox.Text = "Barbatunnel is not started!";
+                DoStart();
+            }
+            else
+            {
+                reportTextBox.Text = BarbaComm.ReadLog();
+            }
         }
 
         void UpdateStatus()
@@ -143,15 +151,7 @@ namespace BarbaTunnel.Monitor
         void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateStatus();
-            if (BarbaComm.Status == BarbaStatus.Stopped)
-            {
-                reportTextBox.Text = "Barbatunnel is not started!";
-            }
-            else
-            {
-                reportTextBox.Text = BarbaComm.ReadLog();
-                reportTextBox.ScrollToEnd();
-            }
+            reportTextBox.ScrollToEnd();
         }
 
         void BarbaComm_Notified(object sender, EventArgs e)

@@ -73,7 +73,7 @@ bool BarbaServerUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 		//Create Barba packet
 		PacketHelper barbaPacket;
 		CreateUdpBarbaPacket(packet, &barbaPacket);
-		this->SendPacketToAdapter(&barbaPacket);
+		SendPacketToOutbound(&barbaPacket);
 		return true;
 	}
 	else
@@ -89,7 +89,7 @@ bool BarbaServerUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 			
 		//prepare for NAT
 		orgPacket.SetSrcIp(this->ClientVirtualIp);
-		this->SendPacketToMstcp(&orgPacket);
+		SendPacketToInbound(&orgPacket);
 		return true;
 	}
 }

@@ -51,7 +51,7 @@ bool BarbaClientRedirectConnection::ProcessPacket(PacketHelper* packet, bool sen
 	{
 		packet->SetDesPort(this->GetTunnelPort());
 		EncryptPacket(packet);
-		this->SendPacketToAdapter(packet);
+		SendPacketToOutbound(packet);
 		return true;
 	}
 	else
@@ -60,7 +60,7 @@ bool BarbaClientRedirectConnection::ProcessPacket(PacketHelper* packet, bool sen
 		if (!packet->IsValidChecksum())
 			return true;
 		packet->SetSrcPort(this->GetRealPort());
-		this->SendPacketToMstcp(packet);
+		SendPacketToInbound(packet);
 	}
 
 	return true;
