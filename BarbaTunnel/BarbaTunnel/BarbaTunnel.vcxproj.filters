@@ -149,10 +149,10 @@
     <ClInclude Include="BarbaConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WinpkPacketFilter.h">
+    <ClInclude Include="BarbaFilterDriver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaPacketFilter.h">
+    <ClInclude Include="WinpkFilterDriver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -256,10 +256,10 @@
     <ClCompile Include="BarbaConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WinpkPacketFilter.cpp">
+    <ClCompile Include="BarbaFilterDriver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarbaPacketFilter.cpp">
+    <ClCompile Include="WinpkFilterDriver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -4,8 +4,9 @@
 
 BarbaServerApp* theServerApp = NULL;
 
-BarbaServerApp::BarbaServerApp(void)
+BarbaServerApp::BarbaServerApp(bool delayStart)
 {
+	this->DelayStart = delayStart;
 	theServerApp = this;
 	TCHAR file[MAX_PATH];
 
@@ -51,8 +52,18 @@ void BarbaServerApp::Initialize()
 
 void BarbaServerApp::Start()
 {
+	//wait for server
+	if (this->DelayStart && theApp->IsServerMode())
+	{
+		DWORD delayMin = theServerApp->AutoStartDelay;
+		theApp->Comm.SetStatus(_T("Waiting"));
+		BarbaLog(_T("Barba Server is waiting for AutoStartDelay (%d minutes)."), delayMin);
+		BarbaNotify(_T("Barba Server is waiting\r\nBarba Server is waiting for %d minutes."), delayMin);
+		Sleep(delayMin * 60* 1000);
+	}
+
 	//Initialize HttpHost
-	HttpHost.Initialize();
+	HttpHost.Start();
 }
 
 bool BarbaServerApp::ShouldGrabPacket(PacketHelper* packet, BarbaServerConfig* config)
@@ -95,9 +106,6 @@ void BarbaServerApp::Dispose()
 
 bool BarbaServerApp::ProcessPacket(PacketHelper* packet, bool send)
 {
-	if (!packet->IsIp())
-		return false;
-
 	//find an open connection to process packet
 	BarbaServerConnection* connection = (BarbaServerConnection*)ConnectionManager.FindByPacketToProcess(packet);
 	

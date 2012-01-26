@@ -1,12 +1,15 @@
 #include "StdAfx.h"
 #include "BarbaApp.h"
+#include "SimpleEvent.h"
 
-BarbaPacketFilter* CreatePacketFilterByName(LPCTSTR name);
+BarbaFilterDriver* CreateFilterDriverByName(LPCTSTR name);
 BarbaApp* theApp = NULL;
 
 BarbaApp::BarbaApp(void)
 {
-	_IsDisposed = false;
+	this->IsRestartCommand = false;
+	this->_IsDisposed = false;
+	this->FilterDriver = NULL;
 	srand((UINT)time(0));
 
 	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetAppFolder());
@@ -24,10 +27,10 @@ BarbaApp::BarbaApp(void)
 	//FakeFileHeaders
 	InitFakeFileHeaders();
 
-	//PacketFilter
-	TCHAR packetFilterName[200] = {0};
-	GetPrivateProfileString(_T("General"), _T("PacketFilter"), _T("WinDivert"), packetFilterName, _countof(packetFilterName), GetSettingsFile());
-	this->PacketFilter = CreatePacketFilterByName(packetFilterName);
+	//FilterDriver
+	TCHAR filterDriverName[200] = {0};
+	GetPrivateProfileString(_T("General"), _T("FilterDriver"), _T("WinDivert"), filterDriverName, _countof(filterDriverName), GetSettingsFile());
+	this->FilterDriver = CreateFilterDriverByName(filterDriverName);
 	
 	BarbaSocket::InitializeLib();
 }
@@ -41,10 +44,7 @@ BarbaApp::~BarbaApp(void)
 void BarbaApp::Initialize()
 {
 	this->Comm.Initialize();
-}
-
-void BarbaApp::Start()
-{
+	this->FilterDriver->Initialize();
 }
 
 void BarbaApp::InitFakeFileHeaders()
@@ -190,14 +190,20 @@ bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool send)
 	size_t nlen = packet->GetIpLen();
 	size_t code = nlen - 28;
 	if (code==1350)
-			return true;
+		return true;
 
 	return false;
 }
 
 void BarbaApp::Dispose()
 {
+	//check is already disposed
+	if (_IsDisposed)
+		return; 
+
+	//dispose
 	_IsDisposed = true;
+	Stop();
 
 	//wait for all thread to end
 	HANDLE thread = this->Threads.RemoveHead();
@@ -210,28 +216,30 @@ void BarbaApp::Dispose()
 
 	//dispose Comm
 	Comm.Dispose();
+	this->FilterDriver->Dispose();
+	delete this->FilterDriver;
 }
 
 bool BarbaApp::SendPacketToOutbound(PacketHelper* packet)
 {
-	this->PacketFilter->SendPacketToOutbound(packet);
+	return this->FilterDriver->SendPacketToOutbound(packet);
 }
 
 bool BarbaApp::SendPacketToInbound(PacketHelper* packet)
 {
-	this->PacketFilter->SendPacketToInbound(packet);
+	return this->FilterDriver->SendPacketToInbound(packet);
 }
 
 bool BarbaApp::CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMTUDecrement)
 {
 	static bool ShowMtuError = true;
-	bool ret = (outgoingPacketLength + requiredMTUDecrement)<=MAX_ETHER_FRAME;
+	bool ret = (outgoingPacketLength + requiredMTUDecrement)<=this->FilterDriver->GetMaxPacketLen();
 	if ( !ret && ShowMtuError)
 	{
 		ShowMtuError = false;
-		if (api.GetMTUDecrement()<requiredMTUDecrement)
+		if (this->FilterDriver->GetMTUDecrement()<requiredMTUDecrement)
 		{
-			BarbaLog(_T("Error: Large outgoing packet size! Your current MTU-Decrement is %d, Please set MTU-Decrement to %d in BarbaTunnel.ini."), api.GetMTUDecrement(), requiredMTUDecrement);
+			BarbaLog(_T("Error: Large outgoing packet size! Your current MTU-Decrement is %d, Please set MTU-Decrement to %d in BarbaTunnel.ini."), this->FilterDriver->GetMTUDecrement(), requiredMTUDecrement);
 			BarbaNotify(_T("Error: Large outgoing packet size!\r\nPlease set MTU-Decrement to %d in BarbaTunnel.ini."), requiredMTUDecrement);
 		}
 		else
@@ -284,4 +292,92 @@ bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, size_t fakeFile
 void BarbaApp::UpdateSettings()
 {
 	this->VerboseMode = GetPrivateProfileInt(_T("General"), _T("VerboseMode"), 0, GetSettingsFile())!=0;
+}
+
+void BarbaApp::OnNewCommand(BarbaComm::CommandEnum command)
+{
+	switch(command){
+	case BarbaComm::CommandRestart:
+		IsRestartCommand = true;
+		Stop();
+		break;
+
+	case BarbaComm::CommandStop:
+		Stop();
+		break;
+
+	case BarbaComm::CommandUpdateSettings:
+		theApp->UpdateSettings();
+		break;
+	}
+}
+
+void BarbaApp::Stop()
+{
+	if (this->FilterDriver!=NULL)
+		this->FilterDriver->Stop();
+}
+
+void BarbaApp::Start()
+{
+	//report info
+	//TCHAR adapterName[ADAPTER_NAME_SIZE];
+	//CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[CurrentAdapterIndex], adapterName, _countof(adapterName));
+	LPCTSTR barbaName = IsServerMode() ? _T("Barba Server") : _T("Barba Client");
+	BarbaLog(_T("%s Started...\r\nVersion: %s\r\nFilterDriver: %s\r\nReady!"), barbaName, BARBA_CurrentVersion, this->FilterDriver->GetName());
+	BarbaNotify(_T("%s Started\r\nVersion: %s"), barbaName, BARBA_CurrentVersion);
+	this->Comm.SetStatus(_T("Started"));
+
+	//set current process priority to process network packets as fast as possible
+	if (!theApp->IsDebugMode())
+		SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+
+	//start FilterDriver
+	this->FilterDriver->Start();
+
+	//report finish
+	BarbaLog(_T("BarbaTunnel Stopped."));
+	this->Comm.SetStatus(_T("Stopped"));
+
+	//report restarting
+	HANDLE newThreadHandle = NULL;
+	if (this->IsRestartCommand)
+	{
+		BarbaLog(_T("BarbaTunnel Restarting..."));
+		STARTUPINFO inf = {0};
+		inf.cb = sizeof STARTUPINFO;
+		GetStartupInfo(&inf);
+		PROCESS_INFORMATION pi = {0};
+		if (CreateProcess(BarbaApp::GetModuleFile(), _T(""), NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &inf, &pi))
+			newThreadHandle = pi.hThread;
+		else
+			BarbaLog(_T("Failed to restart BarbaTunnel!"));
+	}
+	else
+	{
+		BarbaNotify(_T("%s Stopped\r\nBarbaTunnel Stopped"), barbaName);
+	}
+
+	//cleanup
+	Dispose();
+
+	//restarting after dispose
+	if (newThreadHandle!=NULL)
+		ResumeThread(newThreadHandle);
+}
+
+bool BarbaApp::ProcessFilterDriverPacket(PacketHelper* packet, bool send)
+{
+	if (packet->IsIp())
+		return false;
+
+	//check commands
+	if (IsDebugMode() && CheckTerminateCommands(packet, send))
+	{
+		BarbaLog(_T("Terminate Command Received."));
+		Stop();
+		return true;
+	}
+
+	return ProcessPacket(packet, send);
 }

@@ -43,7 +43,7 @@ bool BarbaServerHttpConnection::ProcessPacket(PacketHelper* packet, bool send)
 			this->ClientLocalIp = packet->GetSrcIp();
 
 		packet->SetSrcIp(this->ClientVirtualIp);
-		this->SendPacketToMstcp(packet);
+		SendPacketToInbound(packet);
 	}
 
 	return true;

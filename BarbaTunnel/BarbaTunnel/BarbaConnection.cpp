@@ -47,16 +47,16 @@ void BarbaConnection::SetWorkingState(size_t length, bool send)
 	theApp->Comm.SetWorkingState(length, send);
 }
 
-bool BarbaConnection::SendPacketToAdapter(PacketHelper* packet)
+bool BarbaConnection::SendPacketToOutbound(PacketHelper* packet)
 {
 	SetWorkingState(packet->GetIpLen(), true);
 	packet->RecalculateChecksum();
-	return theApp->SendPacketToAdapter(packet);
+	return theApp->SendPacketToOutbound(packet);
 }
 
-bool BarbaConnection::SendPacketToMstcp(PacketHelper* packet)
+bool BarbaConnection::SendPacketToInbound(PacketHelper* packet)
 {
 	SetWorkingState(packet->GetIpLen(), false);
 	packet->RecalculateChecksum();
-	return theApp->SendPacketToMstcp(packet);
+	return theApp->SendPacketToInbound(packet);
 }

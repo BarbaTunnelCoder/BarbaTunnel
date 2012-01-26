@@ -22,8 +22,8 @@ public:
 protected:
 	void EncryptPacket(PacketHelper* packet);
 	void DecryptPacket(PacketHelper* packet);
-	bool SendPacketToAdapter(PacketHelper* packet);
-	bool SendPacketToMstcp(PacketHelper* packet);
+	bool SendPacketToOutbound(PacketHelper* packet);
+	bool SendPacketToInbound(PacketHelper* packet);
 	void SetWorkingState(size_t length, bool send);
 
 private:

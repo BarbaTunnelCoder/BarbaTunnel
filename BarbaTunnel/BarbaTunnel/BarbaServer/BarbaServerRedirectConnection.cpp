@@ -39,7 +39,7 @@ bool BarbaServerRedirectConnection::ProcessPacket(PacketHelper* packet, bool sen
 		packet->SetSrcPort(this->TunnelPort);
 		packet->SetDesIp(this->ClientIp);
 		EncryptPacket(packet);
-		this->SendPacketToAdapter(packet);
+		this->SendPacketToOutbound(packet);
 	}
 	else
 	{
@@ -48,7 +48,7 @@ bool BarbaServerRedirectConnection::ProcessPacket(PacketHelper* packet, bool sen
 			return true; //don't process packet
 		packet->SetSrcIp(this->ClientVirtualIp);
 		packet->SetDesPort(this->GetRealPort());
-		this->SendPacketToMstcp(packet);
+		SendPacketToInbound(packet);
 	}
 
 	return true;

@@ -69,26 +69,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\$(PlatformName)\</OutDir>
-    <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\$(PlatformName)\</IntDir>
+    <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\x86\</OutDir>
+    <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\x86\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\$(PlatformName)\</OutDir>
-    <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\$(PlatformName)\</IntDir>
+    <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\x64\</OutDir>
+    <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\x64\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\$(PlatformName)\</OutDir>
-    <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\$(PlatformName)\</IntDir>
+    <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\x86\</OutDir>
+    <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\x86\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\$(PlatformName)\</OutDir>
-    <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\$(PlatformName)\</IntDir>
+    <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\x64\</OutDir>
+    <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\x64\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -102,6 +102,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>WinpkFilter\i386\ndisapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -186,8 +187,8 @@
     <ClInclude Include="BarbaCourierServer.h" />
     <ClInclude Include="BarbaCrypt.h" />
     <ClInclude Include="BarbaException.h" />
-    <ClInclude Include="BarbaPacketFilter.h" />
-    <ClInclude Include="WinpkPacketFilter.h" />
+    <ClInclude Include="BarbaFilterDriver.h" />
+    <ClInclude Include="WinpkFilterDriver.h" />
     <ClInclude Include="BarbaServer\BarbaServerConnectionManager.h" />
     <ClInclude Include="BarbaServer\BarbaServerHttpHost.h" />
     <ClInclude Include="BarbaServer\BarbaServerRedirectConnection.h" />
@@ -232,8 +233,8 @@
     <ClCompile Include="BarbaCourierClient.cpp" />
     <ClCompile Include="BarbaCourierServer.cpp" />
     <ClCompile Include="BarbaCrypt.cpp" />
-    <ClCompile Include="BarbaPacketFilter.cpp" />
-    <ClCompile Include="WinpkPacketFilter.cpp" />
+    <ClCompile Include="BarbaFilterDriver.cpp" />
+    <ClCompile Include="WinpkFilterDriver.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerConnectionManager.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerRedirectConnection.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerUdpConnection.cpp" />

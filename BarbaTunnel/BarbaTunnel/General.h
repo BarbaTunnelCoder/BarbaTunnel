@@ -3,13 +3,14 @@
 #include "StringUtils.h"
 #include "PacketHelper.h"
 #include "SimpleSafeList.h"
+#include "SimpleEvent.h"
 #include "BarbaException.h"
 
 #define BARBA_MaxConfigName 100
 #define BARBA_ServerMaxVirtualIps 0xFFFF
 #define BARBA_ServerMaxListenSockets 50
 #define BARBA_MaxLogFileSize (1 * 1000000) //(1MB)
-#define BARBA_CurrentVersion _T("4.0")
+#define BARBA_CurrentVersion _T("5.0")
 #define BARBA_WorkingStateRefreshTime (1*60*1000) //1 Min
 #define BARBA_SocketThreadStackSize (32*1000)
 #define BARBA_MaxKeyName 1000

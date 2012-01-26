@@ -34,14 +34,14 @@ public:
 	explicit BarbaServerHttpHost();
 	virtual ~BarbaServerHttpHost(void);
 	virtual void Dispose();
-	void Initialize();
+	void Start();
 
 private:
 	static std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest, LPCTSTR keyName, std::vector<BYTE>* key);
 	void AddListenerPort(BarbaServerConfig* config, u_short port);
 	void Log(LPCTSTR format, ...);
 	SimpleCriticalSection CreateConnectionCriticalSection;
-	bool IsDisposing();
+	bool IsDisposing() { return this->DisposeEvent.IsSet(); }
 	SimpleEvent DisposeEvent;
 
 	static unsigned int __stdcall AnswerThread(void* answerThreadData);
@@ -50,7 +50,6 @@ private:
 	SimpleSafeList<BarbaSocket*> AnswerSockets;
 	SimpleSafeList<HANDLE> ListenerThreads;
 	SimpleSafeList<HANDLE> AnswerThreads;
-
 
 };
 

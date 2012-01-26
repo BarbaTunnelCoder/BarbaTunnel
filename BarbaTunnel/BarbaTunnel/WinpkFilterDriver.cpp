@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "WinpkPacketFilter.h"
+#include "WinpkFilterDriver.h"
 #include "WinpkFilter\ndisapi.h"
 #include "BarbaServer\BarbaServerApp.h"
 #include "BarbaClient\BarbaClientApp.h"
@@ -7,43 +7,21 @@
 TCP_AdapterList		AdList;
 CNdisApi			api;
 
-WinpkPacketFilter::WinpkPacketFilter()
+WinpkFilterDriver::WinpkFilterDriver()
+	: StopEvent(true, false)
 {
 	this->AdapterHandle = NULL;
 	this->AdapterIndex = 0;
-	this->EventHandle = NULL;
 }
 
-void WinpkPacketFilter::Dispose()
-{
-	// This function releases packets in the adapter queue and stops listening the interface
-
-	// Set NULL event to release previously set event object
-	api.SetPacketEvent(this->AdapterHandle, NULL);
-
-	// Close Event
-	if (this->EventHandle)
-		CloseHandle ( this->EventHandle );
-
-	// Set default adapter mode
-	ADAPTER_MODE Mode;
-	Mode.dwFlags = 0;
-	Mode.hAdapterHandle = this->AdapterHandle;
-	api.SetAdapterMode(&Mode);
-
-	// Empty adapter packets queue
-	api.FlushAdapterPacketQueue(this->AdapterHandle);
-}
-
-
-ULARGE_INTEGER WinpkPacketFilter::GetAdapterHandleLarge()
+ULARGE_INTEGER WinpkFilterDriver::GetAdapterHandleLarge()
 {
 	ULARGE_INTEGER ret = {0};
 	ret.QuadPart = (ULONGLONG)this->AdapterHandle;
 	return ret;
 }
 
-bool WinpkPacketFilter::ApplyFilters(std::vector<STATIC_FILTER>* filters)
+bool WinpkFilterDriver::ApplyFilters(std::vector<STATIC_FILTER>* filters)
 {
 	size_t filtersBufSize = sizeof (STATIC_FILTER)*filters->size();
 	std::vector<BYTE> filterTableBuf( sizeof STATIC_FILTER_TABLE +  filtersBufSize );
@@ -53,7 +31,7 @@ bool WinpkPacketFilter::ApplyFilters(std::vector<STATIC_FILTER>* filters)
 	return api.SetPacketFilterTable(filterTable)!=FALSE;
 }
 
-void WinpkPacketFilter::GetBypassPacketFilter(std::vector<STATIC_FILTER>* filters)
+void WinpkFilterDriver::GetBypassPacketFilter(std::vector<STATIC_FILTER>* filters)
 {
 	//pass all other packets
 	STATIC_FILTER staticFilter = {0};
@@ -65,7 +43,7 @@ void WinpkPacketFilter::GetBypassPacketFilter(std::vector<STATIC_FILTER>* filter
 	filters->push_back(staticFilter);
 }
 
-void WinpkPacketFilter::GetFilter(STATIC_FILTER* staticFilter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
+void WinpkFilterDriver::GetFilter(STATIC_FILTER* staticFilter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
 {
 	if (ipEnd==0) ipEnd = ipStart;
 	if (srcPortEnd==0) srcPortEnd = srcPortStart;
@@ -125,14 +103,14 @@ void WinpkPacketFilter::GetFilter(STATIC_FILTER* staticFilter, bool send, u_long
 	}
 }
 
-void WinpkPacketFilter::AddFilter(std::vector<STATIC_FILTER>* filters, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
+void WinpkFilterDriver::AddFilter(std::vector<STATIC_FILTER>* filters, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
 {
 	STATIC_FILTER staticFilter = {0};
 	GetFilter(&staticFilter, send, ipStart, ipEnd, protocol, srcPortStart, srcPortEnd, desPortStart, desPortEnd);
 	filters->push_back(staticFilter);
 }
 
-void WinpkPacketFilter::GetClientFilters(std::vector<STATIC_FILTER>* filters, std::vector<BarbaClientConfig>* configs)
+void WinpkFilterDriver::GetClientFilters(std::vector<STATIC_FILTER>* filters, std::vector<BarbaClientConfig>* configs)
 {
 	for (size_t i=0; i<configs->size(); i++)
 	{
@@ -155,7 +133,7 @@ void WinpkPacketFilter::GetClientFilters(std::vector<STATIC_FILTER>* filters, st
 	}
 }
 
-void WinpkPacketFilter::GetServerFilters(std::vector<STATIC_FILTER>* filters, std::vector<BarbaServerConfig>* configs)
+void WinpkFilterDriver::GetServerFilters(std::vector<STATIC_FILTER>* filters, std::vector<BarbaServerConfig>* configs)
 {
 	//filter incoming tunnel
 	for (size_t i=0; i<configs->size(); i++)
@@ -179,7 +157,7 @@ void WinpkPacketFilter::GetServerFilters(std::vector<STATIC_FILTER>* filters, st
 }
 
 
-void WinpkPacketFilter::ApplyClientPacketFilter()
+void WinpkFilterDriver::ApplyClientPacketFilter()
 {
 	std::vector<STATIC_FILTER> filters;
 	GetClientFilters(&filters, &theClientApp->Configs);
@@ -192,7 +170,7 @@ void WinpkPacketFilter::ApplyClientPacketFilter()
 		throw new BarbaException(_T("Could not set packet filtering!"));
 }
 
-void WinpkPacketFilter::ApplyServerPacketFilter()
+void WinpkFilterDriver::ApplyServerPacketFilter()
 {
 	std::vector<STATIC_FILTER> filters;
 	GetServerFilters(&filters, &theServerApp->Configs);
@@ -205,40 +183,53 @@ void WinpkPacketFilter::ApplyServerPacketFilter()
 		throw new BarbaException(_T("Could not set packet filtering!"));
 }
 
-bool WinpkPacketFilter::ApplyPacketFilter()
+void WinpkFilterDriver::ApplyPacketFilter()
 {
-	try
-	{
-		if (theApp->IsServerMode())
-			ApplyServerPacketFilter();
-		else
-			ApplyClientPacketFilter();
-		return true;
-	}
-	catch(BarbaException* e)
-	{
-		BarbaLog(_T("Error: %s"), e->ToString());
-		BarbaNotify(_T("Error: %s"), e->ToString());
-		delete e;
-		return false;
-	}
+	if (theApp->IsServerMode())
+		ApplyServerPacketFilter();
+	else
+		ApplyClientPacketFilter();
 }
 
-void WinpkPacketFilter::Start()
+void WinpkFilterDriver::UpdateMTU()
+{
+	if (theApp->GetMTUDecrement()==-1 || theApp->GetMTUDecrement() == (int)api.GetMTUDecrement()  )
+		return;
+
+	BarbaLog(_T("Trying to set new MTU decrement to %d."), theApp->GetMTUDecrement());
+	api.SetMTUDecrement( theApp->GetMTUDecrement() ) ;
+	if ((int)api.GetMTUDecrement()!=theApp->GetMTUDecrement())
+		throw new BarbaException(_T("Could not set new MTU decrement!"));
+
+	LPCTSTR msg = 
+		_T("BarbaTunnel set new MTU decrement to have enough space for adding Barba header to your packet.\n\n")
+		_T("You must restart Windows so the new MTU decrement can effect.");
+	BarbaNotify(_T("Error: Restart Windows Required!\r\nYou should restart your Windows to set new MTU decrement!"));
+	throw new BarbaException(msg);
+
+	//	BarbaUtils::SimpleShellExecute(_T("shutdown.exe"), _T("/r /t 0 /d p:4:2"), SW_HIDE);
+}
+
+
+void WinpkFilterDriver::Initialize()
 {
 	//check is driver loaded (let after Comm Files created)
 	if(!api.IsDriverLoaded())
 	{
-		LPCTSTR err = _T("Error: Driver not installed on this system or failed to load!\r\nPlease go to http://www.ntndis.com/w&p.php?id=7 and install WinpkFilter driver.");
+		LPCTSTR err = _T("Driver not installed on this system or failed to load!\r\nPlease go to http://www.ntndis.com/w&p.php?id=7 and install WinpkFilter driver.");
 		BarbaNotify(_T("Error: Driver not installed!\r\nDriver not installed on this system or failed to load!"));
 		throw new BarbaException(err);
 	}
 
-	//
+	//FindAdapterIndex
 	this->AdapterIndex = FindAdapterIndex();
+	this->AdapterHandle = AdList.m_nAdapterHandle[this->AdapterIndex];
+
+	//try to set MTU
+	UpdateMTU();
 }
 
-size_t WinpkPacketFilter::FindAdapterIndex()
+size_t WinpkFilterDriver::FindAdapterIndex()
 {
 	//get adapter list
 	if (!api.GetTcpipBoundAdaptersInfo ( &AdList ) )
@@ -254,7 +245,7 @@ size_t WinpkPacketFilter::FindAdapterIndex()
 
 	//find best adapter
 	TCHAR msg[ADAPTER_NAME_SIZE*ADAPTER_LIST_SIZE + 255] = {0};
-	_tcscat_s(msg, _T("Could not find main network adapter!\r\nPlease set your main network adapter index in AdapterIndex of config.ini file.\r\n\r\n"));
+	_tcscat_s(msg, _T("Could not find main network adapter!\r\nPlease set your main network adapter index in AdapterIndex of BarbaTunnel.ini file.\r\n\r\n"));
 
 	size_t findCount = 0;
 	size_t findIndex = 0;
@@ -286,17 +277,11 @@ size_t WinpkPacketFilter::FindAdapterIndex()
 	if (findCount==1)
 		return findIndex;
 
-	_tcscat_s(msg, _T("\r\nDo you want to open config.ini file now?"));
-	if (MessageBox(NULL, msg, _T("BarbaTunnel"), MB_ICONWARNING|MB_YESNO)==IDYES)
-	{
-		BarbaUtils::SimpleShellExecute(theApp->GetSettingsFile(), NULL, SW_SHOW, NULL, _T("edit"));
-	}
-
 	BarbaNotify(_T("Error: Could not find main network adapter!"));
 	throw new BarbaException(msg);
 }
 
-bool WinpkPacketFilter::SendPacketToInbound(PacketHelper* packet)
+bool WinpkFilterDriver::SendPacketToInbound(PacketHelper* packet)
 {
 	INTERMEDIATE_BUFFER intBuf = {0};
 	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_RECEIVE;
@@ -309,7 +294,7 @@ bool WinpkPacketFilter::SendPacketToInbound(PacketHelper* packet)
 	return api.SendPacketToMstcp(&req)!=FALSE;
 }
 
-bool WinpkPacketFilter::SendPacketToOutbound(PacketHelper* packet)
+bool WinpkFilterDriver::SendPacketToOutbound(PacketHelper* packet)
 {
 	INTERMEDIATE_BUFFER intBuf = {0};
 	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_SEND;
@@ -320,4 +305,89 @@ bool WinpkPacketFilter::SendPacketToOutbound(PacketHelper* packet)
 	req.hAdapterHandle = this->AdapterHandle;
 	req.EthPacket.Buffer = &intBuf;
 	return api.SendPacketToAdapter(&req)!=FALSE;
+}
+
+void WinpkFilterDriver::Dispose()
+{
+	// This function releases packets in the adapter queue and stops listening the interface
+
+	// Set NULL event to release previously set event object
+	api.SetPacketEvent(this->AdapterHandle, NULL);
+
+	// Set default adapter mode
+	ADAPTER_MODE Mode;
+	Mode.dwFlags = 0;
+	Mode.hAdapterHandle = this->AdapterHandle;
+	api.SetAdapterMode(&Mode);
+
+	// Empty adapter packets queue
+	api.FlushAdapterPacketQueue(this->AdapterHandle);
+}
+
+void WinpkFilterDriver::Stop()
+{
+	StopEvent.Set();
+}
+
+void WinpkFilterDriver::Start()
+{
+	ADAPTER_MODE adapterMode;
+	adapterMode.dwFlags = MSTCP_FLAG_SENT_TUNNEL | MSTCP_FLAG_RECV_TUNNEL;
+	adapterMode.hAdapterHandle = this->AdapterHandle;
+	api.SetAdapterMode(&adapterMode);
+	ApplyPacketFilter();
+
+	// Create notification event
+	this->PacketEvent.Attach( CreateEvent(NULL, TRUE, FALSE, NULL) );
+	
+	// Set event for helper driver
+	if (!api.SetPacketEvent(adapterMode.hAdapterHandle, this->PacketEvent.GetHandle()))
+		throw new BarbaException(_T("Failed to create notification event or set it for driver."));
+
+	// Initialize Request
+	ETH_REQUEST request = {0};
+	INTERMEDIATE_BUFFER CurrentPacketBuffer = {0};
+	request.hAdapterHandle = this->AdapterHandle;
+	request.EthPacket.Buffer = &CurrentPacketBuffer;
+
+	//Handle
+	HANDLE events[2];
+	events[0] = this->PacketEvent.GetHandle();
+	events[1] = this->StopEvent.GetHandle();
+
+	while (!this->StopEvent.IsSet())
+	{
+		DWORD res = WaitForMultipleObjects(_countof(events), events, FALSE, INFINITE);
+		if (res==WAIT_OBJECT_0-0)
+		{
+			while(api.ReadPacket(&request))
+			{
+				PINTERMEDIATE_BUFFER buffer = request.EthPacket.Buffer;
+				bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
+				PacketHelper packet((ether_header_ptr)buffer->m_IBuffer);
+
+				//process packet
+				if (!theApp->ProcessPacket(&packet, send))
+				{
+					//send packet
+					if (send)
+						api.SendPacketToAdapter(&request);
+					else
+						api.SendPacketToMstcp(&request);
+				}
+			}
+			PacketEvent.Reset();
+		}
+	}
+}
+
+DWORD WinpkFilterDriver::GetMTUDecrement()
+{
+	return api.GetMTUDecrement();
+}
+
+void WinpkFilterDriver::SetMTUDecrement(DWORD value)
+{
+	if (!api.SetMTUDecrement(value))
+		throw new BarbaException(_T("WinpkFilter could not set MTUDecrement to %d!"), value);
 }

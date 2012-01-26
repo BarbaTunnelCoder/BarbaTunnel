@@ -4,13 +4,13 @@
 
 
 BarbaComm::BarbaComm(void)
+	: DisposeEvent(true, false)
 {
 	this->MaxLogFilesize = 1000000; //1MB
 	this->_IsAlreadyRunning = false;
 	this->LogFileHandle = NULL;
 	this->NotifyFileHandle = NULL;
 	this->LastWorkingTick = 0;
-	this->CommandEventHandle = NULL;
 	TCHAR programData[MAX_PATH];
 	BOOL res = SHGetSpecialFolderPath(NULL, programData, CSIDL_COMMON_APPDATA, TRUE);
 	if (res)
@@ -39,9 +39,31 @@ BarbaComm::~BarbaComm(void)
 
 void BarbaComm::Dispose()
 {
-	CloseHandle(LogFileHandle); LogFileHandle = NULL;
-	CloseHandle(NotifyFileHandle); NotifyFileHandle = NULL;
-	CloseHandle(CommandEventHandle); CommandEventHandle = NULL;
+	DisposeEvent.Set();
+	WaitForSingleObject(this->CommandMonitorThreadHandle, INFINITE);
+	CloseHandle(this->CommandMonitorThreadHandle); this->CommandMonitorThreadHandle = NULL;
+	CloseHandle(this->LogFileHandle); this->LogFileHandle = NULL;
+	CloseHandle(this->NotifyFileHandle); this->NotifyFileHandle = NULL;
+}
+
+unsigned int BarbaComm::CommandMonitorThread(void* data)
+{
+	BarbaComm* _this = (BarbaComm*)data;
+	HANDLE events[2];
+	events[0] = _this->CommandEvent.GetHandle();
+	events[1] = _this->DisposeEvent.GetHandle();
+
+	while(!_this->IsDisposing())
+	{
+		DWORD res = WaitForMultipleObjects(_countof(events), events, FALSE, INFINITE);
+		if (res==WAIT_OBJECT_0-0)
+		{
+			theApp->OnNewCommand(_this->GetCommand());
+			_this->CommandEvent.Reset();
+		}
+	}
+
+	return 0;
 }
 
 void BarbaComm::InitializeEvents()
@@ -53,11 +75,14 @@ void BarbaComm::InitializeEvents()
 	SECURITY_ATTRIBUTES sa = { 0 };
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 	sa.lpSecurityDescriptor = &sd;
-
-	CommandEventHandle = CreateEvent(&sa, TRUE, FALSE, _T("Global\\BarbaTunnel_CommandEvent"));
+	HANDLE eventHandle = CreateEvent(&sa, TRUE, FALSE, _T("Global\\BarbaTunnel_CommandEvent"));
 	_IsAlreadyRunning = GetLastError()==ERROR_ALREADY_EXISTS;
-	if (CommandEventHandle==NULL) 
+	if (eventHandle==NULL) 
 		BarbaLog(_T("Could not create Global\\BarbaTunnel_CommandEvent!\n"));
+	CommandEvent.Attach(eventHandle);
+
+	//start command monitor
+	this->CommandMonitorThreadHandle = (HANDLE)_beginthreadex(NULL, 16000, CommandMonitorThread, (void*)this, 0, NULL);
 }
 
 void BarbaComm::SetWorkingState(size_t /*length*/, bool /*send*/)
