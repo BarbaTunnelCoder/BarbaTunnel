@@ -64,6 +64,9 @@ void BarbaServerApp::Start()
 
 	//Initialize HttpHost
 	HttpHost.Start();
+
+	//Start
+	BarbaApp::Start();
 }
 
 bool BarbaServerApp::ShouldGrabPacket(PacketHelper* packet, BarbaServerConfig* config)
