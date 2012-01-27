@@ -78,6 +78,7 @@ void WinpkFilterDriver::GetFilter(STATIC_FILTER* staticFilter, bool send, u_long
 	if (protocol!=0)
 	{
 		staticFilter->m_ValidFields |= NETWORK_LAYER_VALID;
+		staticFilter->m_NetworkFilter.m_dwUnionSelector = IPV4;
 		staticFilter->m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_PROTOCOL;
 		staticFilter->m_NetworkFilter.m_IPv4.m_Protocol = protocol;
 	}
@@ -153,7 +154,7 @@ void WinpkFilterDriver::GetServerFilters(std::vector<STATIC_FILTER>* filters, st
 
 	//filter ICMP for debug mode
 	if (theApp->IsDebugMode())
-		AddFilter(filters, true, 0, 0, IPPROTO_IGMP, 0, 0, 0, 0);
+		AddFilter(filters, true, 0, 0, IPPROTO_ICMP, 0, 0, 0, 0);
 }
 
 
