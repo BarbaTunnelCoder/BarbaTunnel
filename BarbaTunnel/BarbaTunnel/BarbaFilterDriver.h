@@ -53,6 +53,7 @@ protected:
 	void SendRouteFinderPacket();
 	PacketHelper* GetRouteFinderPacket();
 	bool IsRouteFinderPacket(PacketHelper* packet);
+	void UpdateMTUDecrement();
 	
 private:
 	size_t MaxCaptureMessageQueue;
