@@ -243,7 +243,7 @@ bool BarbaApp::CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMT
 		}
 		else
 		{
-			BarbaLog(_T("Error: Large outgoing packet size! More %d MTU-Decrement bytes required, Are you sure your system has been restarted?"), MAX_ETHER_FRAME-outgoingPacketLength);
+			BarbaLog(_T("Error: Large outgoing packet size! More %d MTU-Decrement bytes required, Are you sure your system has been restarted?"), this->FilterDriver->GetMaxPacketLen()-outgoingPacketLength);
 			BarbaNotify(_T("Error: Large outgoing packet size!\r\nAre you sure your system has been restarted?"));
 		}
 	}

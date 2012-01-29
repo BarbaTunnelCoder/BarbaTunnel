@@ -30,11 +30,12 @@ protected:
 	class Message
 	{
 	public:
-		Message(BYTE* buffer, size_t count)
+		explicit Message() { }
+		explicit Message(std::vector<BYTE>* data)
 		{
-			this->Buffer.assign(count, 0);
-			memcpy_s(&this->Buffer.front(), count, buffer, count); 
+			this->Buffer = *data;
 		}
+
 		BYTE* GetData() {return this->Buffer.data();}
 		size_t GetCount() {return this->Buffer.size();}
 	
@@ -45,10 +46,10 @@ protected:
 public:
 	//@maxConnenction number of simultaneous connection for each outgoing and incoming, eg: 2 mean 2 connection for send and 2 connection for receive so the total will be 4
 	explicit BarbaCourier(BarbaCourierCreateStrcut* cs);
-	virtual void Send(BYTE* buffer, size_t bufferCount);
-	virtual void Receive(BYTE* buffer, size_t bufferCount);
+	virtual void Send(std::vector<BYTE>* data);
+	virtual void Receive(std::vector<BYTE>* data);
 	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
-	virtual void Crypt(BYTE* data, size_t dataLen, bool encrypt);
+	virtual void Crypt(std::vector<BYTE>* data, bool encrypt);
 	virtual bool IsServer()=0;
 	std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}

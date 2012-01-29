@@ -161,7 +161,7 @@ std::tstring BarbaConfig::CreateRequestDataKeyName(std::vector<BYTE>* key)
 	std::vector<BYTE> keyBuffer(keyName.size());
 	memcpy_s(&keyBuffer.front(), keyBuffer.size(), keyName.data(), keyName.size());
 
-	BarbaCrypt::Crypt(&keyBuffer.front(), keyBuffer.size(), key->data(), key->size(), true);
+	BarbaCrypt::Crypt(&keyBuffer, key, true);
 	std::tstring ret = Base64::encode(&keyBuffer);
 	StringUtils::ReplaceAll(ret, "=", "");
 	StringUtils::ReplaceAll(ret, "/", "");

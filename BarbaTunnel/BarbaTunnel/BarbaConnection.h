@@ -15,8 +15,10 @@ public:
 	virtual std::vector<BYTE>* GetKey()=0;
 	virtual LPCTSTR GetName()=0;
 	virtual size_t GetId() {return this->ConnectionId;}
+	void EncryptData(std::vector<BYTE>* data);
 	void EncryptData(BYTE* data, size_t dataLen);
 	void DecryptData(BYTE* data, size_t dataLen);
+	void DecryptData(std::vector<BYTE>* data);
 	size_t GetLasNegotiationTime();
 
 protected:

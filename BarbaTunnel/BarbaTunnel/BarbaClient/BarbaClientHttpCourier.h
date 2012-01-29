@@ -7,8 +7,8 @@ class BarbaClientHttpCourier : public BarbaCourierClient
 {
 public:
 	explicit BarbaClientHttpCourier(BarbaCourierCreateStrcut* cs, DWORD remoteIp, u_short remotePort, BarbaClientHttpConnection* httpConnection);
-	virtual void Receive(BYTE* buffer, size_t bufferCount);
-	virtual void Crypt(BYTE* data, size_t dataLen, bool encrypt);
+	virtual void Receive(std::vector<BYTE>* data);
+	virtual void Crypt(std::vector<BYTE>* data, bool encrypt);
 	void SendPacket(PacketHelper* packet);
 
 protected:

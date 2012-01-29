@@ -2,6 +2,11 @@
 #include "BarbaCrypt.h"
 #include "BarbaUtils.h"
 
+void BarbaCrypt::Crypt(std::vector<BYTE>* buffer, std::vector<BYTE>* key, bool encrypt)
+{
+	Crypt(&buffer->front(), buffer->size(), &key->front(), key->size(), encrypt);
+}
+
 void BarbaCrypt::Crypt(BYTE* buffer, size_t bufferCount, BYTE* key, size_t keyCount, bool encrypt)
 {
 	if (keyCount==0)
