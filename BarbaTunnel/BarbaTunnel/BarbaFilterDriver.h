@@ -1,6 +1,8 @@
 #pragma once
 #include "General.h"
 #include "BarbaSocket.h"
+#include "BarbaClient\BarbaClientConfig.h"
+#include "BarbaServer\BarbaServerConfig.h"
 
 class BarbaFilterDriver
 {
@@ -51,9 +53,11 @@ protected:
 	SimpleEvent StopEvent;
 	void AddPacket(PacketHelper* packet, bool send);
 	void SendRouteFinderPacket();
-	PacketHelper* GetRouteFinderPacket();
 	bool IsRouteFinderPacket(PacketHelper* packet);
 	void UpdateMTUDecrement();
+	//@param filter object that should handle by subclass implementer
+	virtual void AddFilter(void* filter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)=0;
+	void AddPacketFilter(void* filter);
 	
 private:
 	size_t MaxCaptureMessageQueue;
@@ -66,5 +70,9 @@ private:
 	//RouteFinderSocket should not be shutdown or close after send packet, so we keep it in member
 	BarbaSocket RouteFinderSocket;
 	PacketHelper RouteFinderPacket; //send this packet to find route
+
+	//PacketFilter
+	void AddClientFilters(void* filter, std::vector<BarbaClientConfig>* configs);
+	void AddServerFilters(void* filter, std::vector<BarbaServerConfig>* configs);
 };
 

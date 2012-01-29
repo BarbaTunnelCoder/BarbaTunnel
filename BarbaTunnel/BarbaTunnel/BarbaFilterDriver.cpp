@@ -1,18 +1,24 @@
 #include "StdAfx.h"
+#include "BarbaServer\BarbaServerApp.h"
+#include "BarbaClient\BarbaClientApp.h"
 #include "BarbaFilterDriver.h"
-#include "BarbaApp.h"
 
 #define RouteFinderIp "173.194.34.48"
 
 BarbaFilterDriver::BarbaFilterDriver(size_t maxCaptureMessageQueue)
 	: StopEvent(true, false)
-	, RouteFinderSocket(AF_INET, SOCK_RAW, IPPROTO_NONE)
-	, RouteFinderPacket(IPPROTO_IP, sizeof iphdr)
+	, RouteFinderSocket(AF_INET, SOCK_RAW, IPPROTO_IP)
+	, RouteFinderPacket(IPPROTO_NONE, sizeof iphdr)
 	, CaptureEvent(true, true)
 {
 	this->MaxCaptureMessageQueue = maxCaptureMessageQueue;
 	this->_IsStarted = false;
 	this->CaptureThreadHandle = NULL;
+
+	//initialize RouteFinderPacket
+	this->RouteFinderPacket.SetSrcIp( inet_addr("127.0.0.1") );
+	this->RouteFinderPacket.SetDesIp( inet_addr(RouteFinderIp) );
+	this->RouteFinderPacket.RecalculateChecksum();
 }
 
 size_t BarbaFilterDriver::GetMaxPacketLen()
@@ -24,29 +30,17 @@ size_t BarbaFilterDriver::GetMaxPacketLen()
 
 void BarbaFilterDriver::SendRouteFinderPacket()
 {
-	RouteFinderSocket.SendTo( GetRouteFinderPacket()->GetDesIp(), (BYTE*)GetRouteFinderPacket()->ipHeader, GetRouteFinderPacket()->GetIpLen() );
-}
-
-PacketHelper* BarbaFilterDriver::GetRouteFinderPacket()
-{ 
-	//initialize RouteFinderPacket
-	if (this->RouteFinderPacket.GetDesPort() == 0)
-	{
-		this->RouteFinderPacket.SetSrcIp( inet_addr("127.0.0.1") );
-		this->RouteFinderPacket.SetDesIp( inet_addr(RouteFinderIp) );
-		this->RouteFinderPacket.RecalculateChecksum();
-	}
-	return &this->RouteFinderPacket; 
+	PacketHelper* routeFinderPacket = &this->RouteFinderPacket;
+	RouteFinderSocket.SendTo( routeFinderPacket->GetDesIp(), (BYTE*)routeFinderPacket->ipHeader, routeFinderPacket->GetIpLen() );
 }
 
 bool BarbaFilterDriver::IsRouteFinderPacket( PacketHelper* packet )
 {
+	PacketHelper* routeFinderPacket = &this->RouteFinderPacket;
 	return 
-		GetRouteFinderPacket()->ipHeader->ip_p == packet->ipHeader->ip_p &&
-		GetRouteFinderPacket()->GetSrcIp() == packet->GetSrcIp() &&
-		GetRouteFinderPacket()->GetDesIp() == packet->GetDesIp() &&
-		GetRouteFinderPacket()->GetSrcPort() == packet->GetSrcPort() &&
-		GetRouteFinderPacket()->GetDesPort() == packet->GetDesPort();
+		routeFinderPacket->ipHeader->ip_p == packet->ipHeader->ip_p &&
+		routeFinderPacket->GetDesIp() == packet->GetDesIp() &&
+		routeFinderPacket->GetDesPort() == packet->GetDesPort();
 }
 
 BarbaFilterDriver::~BarbaFilterDriver(void)
@@ -123,7 +117,24 @@ unsigned int __stdcall BarbaFilterDriver::CaptureThread(void* data)
 {
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 	BarbaFilterDriver* _this = (BarbaFilterDriver*)data;
-	_this->StartCaptureLoop();
+	try
+	{
+		_this->StartCaptureLoop();
+	}
+	catch (BarbaException* err)
+	{
+		BarbaLog(_T("%s FilterDriver: Error: %s"), _this->GetName(), err->ToString());
+		delete err;
+	}
+	catch (TCHAR* err)
+	{
+		BarbaLog(_T("%s FilterDriver: Error: %s"), _this->GetName(), err);
+	}
+	catch(...)
+	{
+		BarbaLog(_T("%s KernelFilterDriver: Unknown error while processing packet!"), _this->GetName());
+	}
+	_this->StopEvent.Set();
 	return 0;
 }
 
@@ -188,4 +199,60 @@ void BarbaFilterDriver::ProcessCapturedPackets()
 	}
 }
 
+void BarbaFilterDriver::AddClientFilters(void* filter, std::vector<BarbaClientConfig>* configs)
+{
+	for (size_t i=0; i<configs->size(); i++)
+	{
+		BarbaClientConfig* config = &configs->at(i);
+		if (!config->Enabled)
+			continue;
 
+		//filter only required packet going to server
+		for (size_t i=0; i<config->GrabProtocols.size(); i++)
+			AddFilter(filter, true, config->ServerIp, 0, config->GrabProtocols[i].Protocol, 0, 0, config->GrabProtocols[i].Port, 0);
+
+		//redirect port
+		if (config->RealPort!=0)
+			AddFilter(filter, true, config->ServerIp, 0, config->GetTunnelProtocol(), 0, 0, config->RealPort, 0);
+
+		//filter only tunnel packet that come from server except http-tunnel that use socket
+		if (config->Mode!=BarbaModeHttpTunnel) 
+			for (size_t i=0; i<config->TunnelPorts.size(); i++)
+				AddFilter(filter, false, config->ServerIp, 0, config->GetTunnelProtocol(), config->TunnelPorts[i].StartPort, config->TunnelPorts[i].EndPort, 0, 0);
+	}
+}
+
+void BarbaFilterDriver::AddServerFilters(void* filter, std::vector<BarbaServerConfig>* configs)
+{
+	//filter incoming tunnel
+	for (size_t i=0; i<configs->size(); i++)
+	{
+		BarbaServerConfig* config = &configs->at(i);
+		if (!config->Enabled)
+			continue;
+
+		//filter only tunnel packet that come from server except http-tunnel that use socket
+		if (config->Mode!=BarbaModeHttpTunnel) 
+			for (size_t i=0; i<config->TunnelPorts.size(); i++)
+				AddFilter(filter, false, config->ServerIp, 0, config->GetTunnelProtocol(), 0, 0, config->TunnelPorts[i].StartPort, config->TunnelPorts[i].EndPort);
+
+		//filter ICMP for debug mode
+		if (theApp->IsDebugMode())
+			AddFilter(filter, true, config->ServerIp, 0, IPPROTO_ICMP, 0, 0, 0, 0);
+	}
+
+	//filter outgoing virtual IP
+	AddFilter(filter, true, theServerApp->VirtualIpRange.StartIp, theServerApp->VirtualIpRange.EndIp, 0, 0, 0, 0, 0);
+}
+
+void BarbaFilterDriver::AddPacketFilter(void* filter)
+{
+	if (theApp->IsServerMode())
+		AddServerFilters(filter, &theServerApp->Configs);
+	else
+		AddClientFilters(filter, &theClientApp->Configs);
+
+	//add route finder filter
+	PacketHelper* routeFinderPacket = &this->RouteFinderPacket;
+	AddFilter(filter, true, routeFinderPacket->GetDesIp(), 0, routeFinderPacket->ipHeader->ip_p, routeFinderPacket->GetSrcPort(), 0, routeFinderPacket->GetDesPort(), 0);
+}

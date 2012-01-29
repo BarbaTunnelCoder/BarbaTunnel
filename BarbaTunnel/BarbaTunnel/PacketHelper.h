@@ -73,6 +73,7 @@ public:
 	static bool IsValidIPChecksum(iphdr_ptr pIpHeader);
 	static DWORD ConvertStringIp(LPCTSTR pszIp);
 	static void ConvertIpToString(DWORD ip, TCHAR* buffer, rsize_t bufferCount);
+	static char* ConvertStringToIp(DWORD ip);
 	static BYTE ConvertStringProtocol(LPCTSTR protocol);
 	static LPCTSTR ConvertProtocolToString(BYTE protocol);
 
