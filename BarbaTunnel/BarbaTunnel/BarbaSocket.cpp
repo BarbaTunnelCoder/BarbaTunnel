@@ -5,6 +5,8 @@ BarbaSocket::BarbaSocket(int af, int type, int protocol)
 {
 	Init();
 	this->_Socket = ::socket(af, type, protocol);
+	if (_Socket == INVALID_SOCKET)
+		ThrowSocketError();
 }
 
 BarbaSocket::BarbaSocket()
