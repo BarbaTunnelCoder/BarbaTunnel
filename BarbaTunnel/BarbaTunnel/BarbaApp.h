@@ -16,6 +16,7 @@ public:
 	virtual void Stop();
 	virtual bool ProcessPacket(PacketHelper* packet, bool send)=0;
 	virtual bool IsServerMode()=0;
+	virtual LPCTSTR GetName()=0;
 	bool GetFakeFile(std::vector<std::tstring>* fakeTypes, size_t fakeFileMaxSize, TCHAR* filename, std::tstring* contentType, size_t* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
 	bool SendPacketToOutbound(PacketHelper* packet);
 	bool SendPacketToInbound(PacketHelper* packet);

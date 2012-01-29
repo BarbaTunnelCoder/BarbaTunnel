@@ -14,6 +14,7 @@ public:
 	virtual bool ProcessPacket(PacketHelper* packet, bool send);
 	virtual void Dispose();
 	virtual bool IsServerMode() {return true;}
+	virtual LPCTSTR GetName() {return _T("Barba Server");}
 	static bool ShouldGrabPacket(PacketHelper* packet, BarbaServerConfig* config);
 
 	BarbaServerHttpHost HttpHost;

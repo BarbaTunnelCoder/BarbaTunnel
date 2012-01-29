@@ -15,7 +15,6 @@ WinDivertFilterDriver::WinDivertFilterDriver(void)
 	this->FilterIpOnly = false;
 }
 
-
 WinDivertFilterDriver::~WinDivertFilterDriver(void)
 {
 }
@@ -88,6 +87,10 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 
 void WinDivertFilterDriver::StartCaptureLoop()
 {
+	//Stop() will close handle so need to be re-open
+	if (this->DivertHandle==NULL)
+		this->DivertHandle = OpenDivertHandle();
+
 	//SendRouteFinderPacket
 	SendRouteFinderPacket();
 
@@ -152,7 +155,6 @@ void WinDivertFilterDriver::CreateRangeFormat(TCHAR* format, LPCSTR fieldName, D
 		sprintf_s(szStart, "%u", start);
 		sprintf_s(szEnd, "%u", end);
 	}
-
 
 	if (start==end)
 		sprintf_s(format, 1000, "%s==%s", fieldName, szStart);

@@ -197,11 +197,11 @@ bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool send)
 void BarbaApp::Dispose()
 {
 	//check is already disposed
-	if (_IsDisposed)
+	if (this->_IsDisposed)
 		return; 
 
 	//dispose
-	_IsDisposed = true;
+	this->_IsDisposed = true;
 	Stop();
 
 	//wait for all thread to end
@@ -214,7 +214,7 @@ void BarbaApp::Dispose()
 	}
 
 	//dispose Comm
-	Comm.Dispose();
+	this->Comm.Dispose();
 	this->FilterDriver->Dispose();
 	delete this->FilterDriver;
 }
@@ -319,19 +319,14 @@ void BarbaApp::Stop()
 
 void BarbaApp::Start()
 {
-	//report info
-	//TCHAR adapterName[ADAPTER_NAME_SIZE]; //mad
-	//CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[CurrentAdapterIndex], adapterName, _countof(adapterName));
-	LPCTSTR barbaName = IsServerMode() ? _T("Barba Server") : _T("Barba Client");
-	BarbaLog(_T("%s Started...\r\nVersion: %s\r\nFilterDriver: %s\r\nReady!"), barbaName, BARBA_CurrentVersion, this->FilterDriver->GetName());
-	BarbaNotify(_T("%s Started\r\nVersion: %s"), barbaName, BARBA_CurrentVersion);
-	this->Comm.SetStatus(_T("Started"));
-
 	//set current process priority to process network packets as fast as possible
 	if (!theApp->IsDebugMode())
 		SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 
 	//start FilterDriver
+	BarbaLog(_T("Ready!"));
+	BarbaNotify(_T("%s Started\r\nVersion: %s"), GetName(), BARBA_CurrentVersion);
+	this->Comm.SetStatus(_T("Started"));
 	this->FilterDriver->Start();
 
 	//report finish
@@ -354,7 +349,7 @@ void BarbaApp::Start()
 	}
 	else
 	{
-		BarbaNotify(_T("%s Stopped\r\nBarbaTunnel Stopped"), barbaName);
+		BarbaNotify(_T("%s Stopped\r\nBarbaTunnel Stopped"), GetName());
 	}
 
 	//cleanup
