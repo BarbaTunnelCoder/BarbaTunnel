@@ -53,6 +53,25 @@ BarbaFilterDriver::~BarbaFilterDriver(void)
 {
 }
 
+void BarbaFilterDriver::UpdateMTUDecrement()
+{
+	if (theApp->GetMTUDecrement()==-1 || theApp->GetMTUDecrement() == (int)GetMTUDecrement()  )
+		return;
+
+	BarbaLog(_T("Trying to set new MTU decrement to %d."), theApp->GetMTUDecrement());
+	SetMTUDecrement( theApp->GetMTUDecrement() ) ;
+	if ((int)GetMTUDecrement()!=theApp->GetMTUDecrement())
+		throw new BarbaException(_T("Could not set new MTU decrement!"));
+
+	LPCTSTR msg = 
+		_T("BarbaTunnel set new MTU decrement to have enough space for adding Barba header to your packet.\n\n")
+		_T("You must restart Windows so the new MTU decrement can effect.");
+	BarbaNotify(_T("Error: Restart Windows Required!\r\nYou should restart your Windows to set new MTU decrement!"));
+	throw new BarbaException(msg);
+
+	//	BarbaUtils::SimpleShellExecute(_T("shutdown.exe"), _T("/r /t 0 /d p:4:2"), SW_HIDE);
+}
+
 void BarbaFilterDriver::Start()
 {
 	this->_IsStarted = true;

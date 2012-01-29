@@ -29,8 +29,6 @@ private:
 	void GetBypassPacketFilter(std::vector<STATIC_FILTER>* filters);
 	void GetFilter(STATIC_FILTER* staticFilter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
 	void AddFilter(std::vector<STATIC_FILTER>* filters, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
-	void UpdateMTU();
-
 	
 	//Process Methods
 	ULARGE_INTEGER GetAdapterHandleLarge();
