@@ -8,7 +8,6 @@ TCP_AdapterList		AdList;
 CNdisApi			api;
 
 WinpkFilterDriver::WinpkFilterDriver()
-	: StopEvent(true, false)
 {
 	this->AdapterHandle = NULL;
 	this->AdapterIndex = 0;
@@ -311,6 +310,7 @@ bool WinpkFilterDriver::SendPacketToOutbound(PacketHelper* packet)
 void WinpkFilterDriver::Dispose()
 {
 	// This function releases packets in the adapter queue and stops listening the interface
+	BarbaFilterDriver::Dispose();
 
 	// Set NULL event to release previously set event object
 	api.SetPacketEvent(this->AdapterHandle, NULL);
@@ -323,14 +323,10 @@ void WinpkFilterDriver::Dispose()
 
 	// Empty adapter packets queue
 	api.FlushAdapterPacketQueue(this->AdapterHandle);
+	Mode.hAdapterHandle = NULL;
 }
 
-void WinpkFilterDriver::Stop()
-{
-	StopEvent.Set();
-}
-
-void WinpkFilterDriver::Start()
+void WinpkFilterDriver::StartCaptureLoop()
 {
 	ADAPTER_MODE adapterMode;
 	adapterMode.dwFlags = MSTCP_FLAG_SENT_TUNNEL | MSTCP_FLAG_RECV_TUNNEL;
@@ -339,10 +335,10 @@ void WinpkFilterDriver::Start()
 	ApplyPacketFilter();
 
 	// Create notification event
-	this->PacketEvent.Attach( CreateEvent(NULL, TRUE, FALSE, NULL) );
+	this->WinpkPacketEvent.Attach( CreateEvent(NULL, TRUE, FALSE, NULL) );
 	
 	// Set event for helper driver
-	if (!api.SetPacketEvent(adapterMode.hAdapterHandle, this->PacketEvent.GetHandle()))
+	if (!api.SetPacketEvent(adapterMode.hAdapterHandle, this->WinpkPacketEvent.GetHandle()))
 		throw new BarbaException(_T("Failed to create notification event or set it for driver."));
 
 	// Initialize Request
@@ -353,7 +349,7 @@ void WinpkFilterDriver::Start()
 
 	//Handle
 	HANDLE events[2];
-	events[0] = this->PacketEvent.GetHandle();
+	events[0] = this->WinpkPacketEvent.GetHandle();
 	events[1] = this->StopEvent.GetHandle();
 
 	while (!this->StopEvent.IsSet())
@@ -365,19 +361,10 @@ void WinpkFilterDriver::Start()
 			{
 				PINTERMEDIATE_BUFFER buffer = request.EthPacket.Buffer;
 				bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
-				PacketHelper packet((ether_header_ptr)buffer->m_IBuffer);
-
-				//process packet
-				if (!theApp->ProcessPacket(&packet, send))
-				{
-					//send packet
-					if (send)
-						api.SendPacketToAdapter(&request);
-					else
-						api.SendPacketToMstcp(&request);
-				}
+				PacketHelper* packet = new PacketHelper((ether_header_ptr)buffer->m_IBuffer);
+				AddPacket(packet, send);
 			}
-			PacketEvent.Reset();
+			WinpkPacketEvent.Reset();
 		}
 	}
 }

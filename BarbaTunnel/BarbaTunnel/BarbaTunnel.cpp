@@ -2,13 +2,17 @@
 #include "BarbaClient\BarbaClientApp.h"
 #include "BarbaServer\BarbaServerApp.h"
 #include "WinpkFilterDriver.h"
+#include "WinDivertFilterDriver.h"
 
 BarbaFilterDriver* CreateFilterDriverByName(LPCTSTR name)
 {
 	if (_tcsicmp(name, _T("WinpkFilter"))==0)
 		return new WinpkFilterDriver();
 
-	throw new BarbaException(_T("Invalid FilterDriver: %s"), name);
+	if (_tcsicmp(name, _T("WinDivert"))==0)
+		return new WinDivertFilterDriver();
+
+	throw new BarbaException(_T("Invalid FilterDriver (%s)!"), name);
 }
 
 void InitMemoryLeackReport()
@@ -24,9 +28,6 @@ void InitMemoryLeackReport()
 
 int test()
 {
-	std::tstring folder = BarbaUtils::GetFileFolderFromUrl("d:\\mmm\\sss\\bb.txt\\");
-	std::tstring folderName = BarbaUtils::GetFileNameFromUrl(folder.data());
-	printf("%s\n%s\n", folder.data(), folderName.data());
 	return 0;
 }
 

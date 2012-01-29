@@ -29,12 +29,12 @@ BarbaServerApp::BarbaServerApp(bool delayStart)
 	TCHAR* dash = _tcschr(virtualIpRange, '-');
 	TCHAR ipBuffer[100];
 	_tcsncpy_s(ipBuffer, _countof(ipBuffer), virtualIpRange, dash!=NULL ? dash-virtualIpRange : _tcslen(virtualIpRange));
-	this->VirtualIpRange.StartIp = PacketHelper::ConvertStringIp(ipBuffer);
+	this->VirtualIpRange.StartIp = inet_addr(ipBuffer);
 	this->VirtualIpRange.EndIp = htonl( ntohl(VirtualIpRange.StartIp) + 0xFFFE ); //default
 	if (dash!=NULL)
 	{
 		_tcscpy_s(ipBuffer, _countof(ipBuffer), dash+1);
-		this->VirtualIpRange.EndIp = PacketHelper::ConvertStringIp(ipBuffer);
+		this->VirtualIpRange.EndIp = inet_addr(ipBuffer);
 	}
 }
 

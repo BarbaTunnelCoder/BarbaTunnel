@@ -20,6 +20,7 @@ void PacketHelper::AllocIpBuffer(size_t ipLen)
 	else if (this->PacketSize<size)
 	{
 		BYTE* buffer = new BYTE[size];
+		memset(buffer, 0, size);
 		memcpy_s(buffer, size, this->PacketBuffer, this->PacketSize);
 		delete this->PacketBuffer;
 		this->PacketSize = size;
@@ -77,6 +78,11 @@ PacketHelper::PacketHelper(u_char ipProtocol, size_t ipLen)
 
 void PacketHelper::Reset(u_char ipProtocol, size_t ipLen)
 {
+	//set minimum IP size
+	if (ipProtocol==IPPROTO_TCP) ipLen = max(ipLen, sizeof iphdr + sizeof tcphdr);
+	if (ipProtocol==IPPROTO_UDP) ipLen = max(ipLen, sizeof iphdr + sizeof udphdr);
+
+	//allocate default buffer
 	AllocIpBuffer(ipLen);
 	this->ethHeader->h_proto = htons(ETH_P_IP);
 	Reinit();
@@ -86,8 +92,15 @@ void PacketHelper::Reset(u_char ipProtocol, size_t ipLen)
 	this->ipHeader->ip_len = htons((u_short)ipLen);
 	Reinit();
 
-	if (ipProtocol==IPPROTO_TCP) SetTcpPayload(NULL, 0);
-	else if (ipProtocol==IPPROTO_UDP) SetUdpPayload(NULL, 0);
+	if (ipProtocol==IPPROTO_TCP) 
+	{
+		this->tcpHeader->th_off = 5;
+		SetTcpPayload(NULL, 0);
+	}
+	else if (ipProtocol==IPPROTO_UDP)
+	{
+		SetUdpPayload(NULL, 0);
+	}
 }
 
 void PacketHelper::Reinit()
@@ -446,22 +459,7 @@ void PacketHelper::RecalculateUDPChecksum(iphdr_ptr pIpHeader)
 
 DWORD PacketHelper::ConvertStringIp(LPCTSTR pszIp)
 {
-	TCHAR ip[100];
-	_tcscpy_s(ip, pszIp);
-
-	BYTE ret[4] = {0};
-	TCHAR* currentPos = NULL;
-	LPCTSTR token = _tcstok_s(ip, _T("."), &currentPos);
-		
-	int index = 0;
-	while (token!=NULL && index<4)
-	{
-		ret[index] = (BYTE)_tcstoul(token, NULL, 0);
-		token = _tcstok_s(NULL, _T("."), &currentPos);
-		index++;
-	}
-		
-	return *(DWORD*)ret;
+	return inet_addr(pszIp);
 }
 
 void PacketHelper::ConvertIpToString(DWORD ip, TCHAR* buffer, rsize_t bufferCount)
