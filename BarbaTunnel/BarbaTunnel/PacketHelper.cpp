@@ -467,6 +467,13 @@ void PacketHelper::ConvertIpToString(DWORD ip, TCHAR* buffer, rsize_t bufferCoun
 	_stprintf_s(buffer, bufferCount, _T("%d.%d.%d.%d"), LOBYTE(LOWORD(ip)), HIBYTE(LOWORD(ip)), LOBYTE(HIWORD(ip)), HIBYTE(HIWORD(ip)));
 }
 
+char* PacketHelper::ConvertStringToIp(DWORD ip)
+{
+	in_addr in;
+	in.S_un.S_addr = ip;
+	return inet_ntoa(in);
+}
+
 //@param value eg: TCP:80; TCP:*; *
 BYTE PacketHelper::ConvertStringProtocol(LPCTSTR protocol)
 {

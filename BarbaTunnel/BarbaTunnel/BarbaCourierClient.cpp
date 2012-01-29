@@ -38,10 +38,6 @@ size_t BarbaCourierClient::SendFakeRequest(BarbaSocket* socket, std::vector<BYTE
 	size_t fakeFileHeaderSize = fakeFileHeader!=NULL ? fakeFileHeader->size() : 0;
 	//LPCTSTR requestMode = outgoing ? _T("POST") : _T("GET");
 
-	//set serverip
-	TCHAR serverIp[20];
-	PacketHelper::ConvertIpToString(socket->GetRemoteIp(), serverIp, _countof(serverIp));
-
 	std::tstring fakeRequest = outgoing ? this->CreateStruct.FakeHttpPostTemplate : this->CreateStruct.FakeHttpGetTemplate;
 	InitFakeRequestVars(fakeRequest, filename, contentType.data(), fileSize, fakeFileHeaderSize);
 
