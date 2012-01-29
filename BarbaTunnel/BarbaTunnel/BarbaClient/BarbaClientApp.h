@@ -12,6 +12,7 @@ public:
 	virtual void Dispose();
 	virtual bool IsServerMode() {return false;}
 	virtual bool ProcessPacket(PacketHelper* packet, bool send);
+	virtual LPCTSTR GetName() {return _T("Barba Client");}
 	static bool ShouldGrabPacket(PacketHelper* packet, BarbaClientConfig* config);
 	
 	std::vector<BarbaClientConfig> Configs;

@@ -237,6 +237,11 @@ void WinpkFilterDriver::Initialize()
 	this->AdapterIndex = FindAdapterIndex();
 	this->AdapterHandle = AdList.m_nAdapterHandle[this->AdapterIndex];
 
+	//report info
+	TCHAR adapterName[ADAPTER_NAME_SIZE];
+	CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[this->AdapterIndex], adapterName, _countof(adapterName));
+	BarbaLog(_T("Adapter: %s"), adapterName);
+
 	//try to set MTU
 	UpdateMTUDecrement();
 

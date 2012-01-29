@@ -52,6 +52,8 @@ int main(int argc, char* argv[])
 
 		//create App
 		theApp = isBarbaServer ? (BarbaApp*)new BarbaServerApp(delayStart) : (BarbaApp*)new BarbaClientApp() ;
+		BarbaLog(_T("%s Started...\r\nVersion: %s\r\nFilterDriver: %s\r\nReady!"), theApp->GetName(), BARBA_CurrentVersion, theApp->GetFilterDriver()->GetName());
+
 		theApp->Initialize();
 		theApp->Start();
 	}
