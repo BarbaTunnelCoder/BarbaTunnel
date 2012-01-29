@@ -26,19 +26,9 @@ void BarbaConnection::EncryptData(std::vector<BYTE>* data)
 	BarbaCrypt::Crypt(data, GetKey(), true);
 }
 
-void BarbaConnection::EncryptData(BYTE* data, size_t dataLen)
-{
-	BarbaCrypt::Crypt(data, dataLen, GetKey()->data(), GetKey()->size(), true);
-}
-
 void BarbaConnection::DecryptData(std::vector<BYTE>* data)
 {
 	BarbaCrypt::Crypt(data, GetKey(), false);
-}
-
-void BarbaConnection::DecryptData(BYTE* data, size_t dataLen)
-{
-	BarbaCrypt::Crypt(data, dataLen, GetKey()->data(), GetKey()->size(), false);
 }
 
 void BarbaConnection::EncryptPacket(PacketHelper* packet)
