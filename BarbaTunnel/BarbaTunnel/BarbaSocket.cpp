@@ -1,15 +1,15 @@
 #include "StdAfx.h"
 #include "BarbaSocket.h"
 
+BarbaSocket::BarbaSocket(int af, int type, int protocol)
+{
+	Init();
+	this->_Socket = ::socket(af, type, protocol);
+}
+
 BarbaSocket::BarbaSocket()
 {
-	this->RemoteIp = 0;
-	this->SentBytesCount = 0;
-	this->ReceivedBytesCount = 0;
-	this->LastReceivedTime = 0;
-	this->LastSentTime = 0;
-	this->_IsReceiving = false;
-	InitializeLib();
+	Init();
 	this->_Socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (_Socket == INVALID_SOCKET)
 		ThrowSocketError();
@@ -17,20 +17,31 @@ BarbaSocket::BarbaSocket()
 
 BarbaSocket::BarbaSocket(SOCKET s, u_long remoteIp)
 {
-	InitializeLib();
+	Init();
 	_Socket = s;
 	this->RemoteIp = remoteIp;
-	Init();
 }
 
 void BarbaSocket::Init()
 {
+	this->RemoteIp = 0;
+	this->SentBytesCount = 0;
+	this->ReceivedBytesCount = 0;
+	this->LastReceivedTime = 0;
 	this->LastSentTime = this->LastReceivedTime = GetTickCount();
+	this->_IsReceiving = false;
+	this->_Socket = NULL;
+	InitializeLib();
 }
 
 void BarbaSocket::ThrowSocketError()
 {
 	throw new BarbaSocketException(::WSAGetLastError());
+}
+
+void BarbaSocket::ThrowSocketError(int error)
+{
+	throw new BarbaSocketException(error);
 }
 
 bool BarbaSocket::IsWritable()
@@ -151,6 +162,15 @@ std::string BarbaSocket::ReadHttpRequest(int maxlen)
 	return empty;
 }
 
+void BarbaSocket::SendTo(DWORD ip, BYTE* buffer, size_t bufferLen)
+{
+	sockaddr_in in = {0};
+	in.sin_family = AF_INET;
+	in.sin_addr.S_un.S_addr = ip;
+	if (sendto(this->_Socket, (char*)buffer, (int)bufferLen, 0, (sockaddr*)&in, sizeof(in))==SOCKET_ERROR)
+		ThrowSocketError(); //throw error after close socket
+}
+
 
 BarbaSocketClient::BarbaSocketClient(u_long serverIp, u_short port)
 {
@@ -161,7 +181,6 @@ BarbaSocketClient::BarbaSocketClient(u_long serverIp, u_short port)
 	this->RemoteIp = serverIp;
 	if (::connect(_Socket, (sockaddr*)&addr, sizeof sockaddr)==SOCKET_ERROR)
 		ThrowSocketError();
-	Init();
 }
 
 BarbaSocketServer::BarbaSocketServer(u_short port, DWORD ipAddress) 
@@ -169,7 +188,6 @@ BarbaSocketServer::BarbaSocketServer(u_short port, DWORD ipAddress)
 	this->ListenPort = port;
 	sockaddr_in sa = {0};
 	sa.sin_addr.S_un.S_addr = ipAddress;
-
 	sa.sin_family = PF_INET;             
 	sa.sin_port = htons(port);          
 	_Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);

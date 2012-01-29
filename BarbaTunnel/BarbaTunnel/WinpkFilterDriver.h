@@ -9,12 +9,10 @@ class WinpkFilterDriver : public BarbaFilterDriver
 public:
 	explicit WinpkFilterDriver();
 	virtual void Initialize();
-	virtual void Start();
-	virtual void Stop();
+	virtual void StartCaptureLoop();
 	virtual void Dispose();
 	virtual bool SendPacketToOutbound(PacketHelper* packet);
 	virtual bool SendPacketToInbound(PacketHelper* packet);
-	virtual size_t GetMaxPacketLen() {return MAX_ETHER_FRAME;}
 	virtual NetworkLayerEnum GetNetworkLayer() {return NetworkLayerDateLink;}
 	virtual DWORD GetMTUDecrement();
 	virtual void SetMTUDecrement(DWORD value);
@@ -38,8 +36,7 @@ private:
 	ULARGE_INTEGER GetAdapterHandleLarge();
 	size_t FindAdapterIndex();
 	size_t AdapterIndex;
-	SimpleEvent PacketEvent;
+	SimpleEvent WinpkPacketEvent;
 	HANDLE AdapterHandle;
-	SimpleEvent StopEvent;
 };
 

@@ -20,6 +20,7 @@ private:
 class BarbaSocket
 {
 public:
+	explicit BarbaSocket(int af, int type, int protocol);
 	explicit BarbaSocket(SOCKET s, u_long remoteIp);
 	virtual ~BarbaSocket();
 	//@return 0 if connection closed
@@ -41,6 +42,8 @@ public:
 	bool IsReceiving() {return this->_IsReceiving;}
 	static bool InitializeLib(); 
 	static void UninitializeLib(); 
+	void SendTo(DWORD ip, BYTE* buffer, size_t bufferLen);
+	SOCKET GetSocket() {return this->_Socket;}
 
 protected:
 	volatile u_long LastReceivedTime;
@@ -50,7 +53,8 @@ protected:
 	u_long RemoteIp;
 	BarbaSocket();
 	SOCKET _Socket;
-	void ThrowSocketError();
+	static void ThrowSocketError();
+	static void ThrowSocketError(int error);
 	void Init();
 
 private:

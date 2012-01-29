@@ -18,6 +18,21 @@
     <None Include="ReadMe.txt" />
     <None Include="WinpkFilter\amd64\ndisapi.dll" />
     <None Include="WinpkFilter\i386\ndisapi.dll" />
+    <None Include="Certificate\BarbaTunnel.cer" />
+    <None Include="Certificate\BarbaTunnel.pfx" />
+    <None Include="Certificate\BarbaTunnel.pvk" />
+    <None Include="WinDivert\amd64\WdfCoInstaller01009.dll" />
+    <None Include="WinDivert\amd64\divert.dll" />
+    <None Include="WinDivert\amd64\divert.exp" />
+    <None Include="WinDivert\amd64\divert.inf" />
+    <None Include="WinDivert\amd64\divert.pdb" />
+    <None Include="WinDivert\amd64\divert.sys" />
+    <None Include="WinDivert\i386\divert.dll" />
+    <None Include="WinDivert\i386\WdfCoInstaller01009.dll" />
+    <None Include="WinDivert\i386\divert.exp" />
+    <None Include="WinDivert\i386\divert.inf" />
+    <None Include="WinDivert\i386\divert.pdb" />
+    <None Include="WinDivert\i386\divert.sys" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -155,6 +170,15 @@
     <ClInclude Include="WinpkFilterDriver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WinDivertFilterDriver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinDivert\divert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinDivert\divert_device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -262,6 +286,9 @@
     <ClCompile Include="WinpkFilterDriver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WinDivertFilterDriver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BarbaTunnel.rc">
@@ -271,5 +298,7 @@
   <ItemGroup>
     <Library Include="WinpkFilter\amd64\ndisapi.lib" />
     <Library Include="WinpkFilter\i386\ndisapi.lib" />
+    <Library Include="WinDivert\amd64\divert.lib" />
+    <Library Include="WinDivert\i386\divert.lib" />
   </ItemGroup>
 </Project>

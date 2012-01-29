@@ -7,6 +7,7 @@ BarbaApp* theApp = NULL;
 
 BarbaApp::BarbaApp(void)
 {
+	BarbaSocket::InitializeLib();
 	this->IsRestartCommand = false;
 	this->_IsDisposed = false;
 	this->FilterDriver = NULL;
@@ -31,8 +32,6 @@ BarbaApp::BarbaApp(void)
 	TCHAR filterDriverName[200] = {0};
 	GetPrivateProfileString(_T("General"), _T("FilterDriver"), _T("WinDivert"), filterDriverName, _countof(filterDriverName), GetSettingsFile());
 	this->FilterDriver = CreateFilterDriverByName(filterDriverName);
-	
-	BarbaSocket::InitializeLib();
 }
 
 BarbaApp::~BarbaApp(void)
@@ -321,7 +320,7 @@ void BarbaApp::Stop()
 void BarbaApp::Start()
 {
 	//report info
-	//TCHAR adapterName[ADAPTER_NAME_SIZE];
+	//TCHAR adapterName[ADAPTER_NAME_SIZE]; //mad
 	//CNdisApi::ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[CurrentAdapterIndex], adapterName, _countof(adapterName));
 	LPCTSTR barbaName = IsServerMode() ? _T("Barba Server") : _T("Barba Client");
 	BarbaLog(_T("%s Started...\r\nVersion: %s\r\nFilterDriver: %s\r\nReady!"), barbaName, BARBA_CurrentVersion, this->FilterDriver->GetName());
@@ -368,7 +367,7 @@ void BarbaApp::Start()
 
 bool BarbaApp::ProcessFilterDriverPacket(PacketHelper* packet, bool send)
 {
-	if (packet->IsIp())
+	if (!packet->IsIp())
 		return false;
 
 	//check commands
