@@ -102,10 +102,12 @@ void BarbaCourier::Dispose()
 void BarbaCourier::Send(BYTE* buffer, size_t bufferCount)
 {
 	if (bufferCount>BarbaCourier_MaxMessageLength)
-		throw new BarbaException( _T("Message is too big to send!") );
+		throw new BarbaException( _T("Message is too big to send! It should be greater than %u bytes."), BarbaCourier_MaxMessageLength);
 
 	if (!this->IsDisposing())
-		Send(new Message(buffer, bufferCount));
+	{
+		Send( new Message(buffer, bufferCount) );
+	}
 }
 
 void BarbaCourier::Send(Message* message, bool highPriority)
@@ -174,28 +176,35 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 		{
 			try
 			{
+				size_t messageSize = message->GetCount();
+				size_t packetSize = messageSize + 2;
+				
+				//calculate by adding fakesize
+				bool addFakeData = this->CreateStruct.FakePacketMinSize>0 && this->CreateStruct.FakePacketMinSize<BARBA_HttpFakePacketMaxSize;
+				size_t fakeSize = max(this->CreateStruct.FakePacketMinSize, 2)-2; //2 bytes always added for fakeSize
+				fakeSize = fakeSize > packetSize ? fakeSize-packetSize : 0;
+				if (addFakeData)
+					packetSize += fakeSize + 2;
+
 				//add message length to start of packet, then add message itself
 				size_t sendPacketSize = 0;
-				BYTE sendPacket[BarbaCourier_MaxMessageLength+2];
-				memcpy_s(sendPacket, sizeof (sendPacket)-sendPacketSize, &message->Count, 2);
+				std::vector<BYTE> sendPacket(packetSize);
+				memcpy_s(&sendPacket.front(), sendPacket.size()-sendPacketSize, &messageSize, 2);
 				sendPacketSize += 2;
-				memcpy_s(sendPacket+sendPacketSize, sizeof (sendPacket)-sendPacketSize, message->Buffer, message->Count);
-				sendPacketSize += message->Count;
+				memcpy_s(&sendPacket.front() + sendPacketSize, sendPacket.size()-sendPacketSize, message->GetData(), message->GetCount());
+				sendPacketSize += messageSize;
 
 				//add fake data
-				if (this->CreateStruct.FakePacketMinSize>0 && this->CreateStruct.FakePacketMinSize<BARBA_HttpFakePacketMaxSize)
+				if (addFakeData)
 				{
-					size_t fakeSize = max(this->CreateStruct.FakePacketMinSize, 2)-2; //2 bytes always added for fakeSize
-					BYTE fakeBuffer[BARBA_HttpFakePacketMaxSize] = {0};
-					fakeSize = fakeSize > sendPacketSize ? fakeSize-sendPacketSize : 0;
-					memcpy_s(sendPacket+sendPacketSize, 2, &fakeSize, 2);
+					memcpy_s(&sendPacket.front() + sendPacketSize, sendPacket.size()-sendPacketSize, &fakeSize, 2);
 					sendPacketSize += 2;
-					memcpy_s(sendPacket+sendPacketSize, fakeSize, fakeBuffer, fakeSize);
+					memset(&sendPacket.front() + sendPacketSize, 0, fakeSize);
 					sendPacketSize += fakeSize;
 
 				}
 
-				size_t sentCount = barbaSocket->Send(sendPacket, sendPacketSize);
+				size_t sentCount = barbaSocket->Send(sendPacket.data(), sendPacketSize);
 				this->SentBytesCount += sentCount; //courier bytes
 				sentBytes += sentCount; //current socket bytes
 				this->LastSentTime = GetTickCount();
@@ -258,14 +267,14 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 		//read message
 		if (messageLen!=0)
 		{
-			BYTE messageBuf[BarbaCourier_MaxMessageLength];
-			size_t receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
+			std::vector<BYTE> messageBuf(messageLen);
+			size_t receiveCount = barbaSocket->Receive(&messageBuf.front(), messageLen, true);
 			if (receiveCount!=messageLen)
 				throw new BarbaException( _T("Out of sync while reading message!") );
 			messageRecievedBytes+= receiveCount; //current socket bytes
 			
 			//notify new message
-			this->Receive(messageBuf, receiveCount);
+			this->Receive(messageBuf.data(), receiveCount);
 		}
 
 		//wait for fake data length
@@ -283,8 +292,8 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 			//read message
 			if (messageLen!=0)
 			{
-				BYTE messageBuf[BarbaCourier_MaxMessageLength];
-				size_t receiveCount = barbaSocket->Receive(messageBuf, messageLen, true);
+				std::vector<BYTE> messageBuf(messageLen);
+				size_t receiveCount = barbaSocket->Receive(&messageBuf.front(), messageLen, true);
 				if (receiveCount!=messageLen)
 					throw new BarbaException( _T("Out of sync while reading fake packet data!") );
 				messageRecievedBytes += receiveCount; //current socket bytes
