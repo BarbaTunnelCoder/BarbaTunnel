@@ -4,7 +4,7 @@
 #include "SimpleEvent.h"
 #include "SimpleSafeList.h"
 
-#define BarbaCourier_MaxMessageLength  1600
+#define BarbaCourier_MaxMessageLength 0xFFFF
 #define BarbaCourier_MaxFileHeaderSize (200*1000) //100KB
 
 //BarbaCourierCreateStrcut
@@ -32,11 +32,14 @@ protected:
 	public:
 		Message(BYTE* buffer, size_t count)
 		{
-			memcpy_s(this->Buffer, _countof(this->Buffer), buffer, count); 
-			this->Count=count;
+			this->Buffer.assign(count, 0);
+			memcpy_s(&this->Buffer.front(), count, buffer, count); 
 		}
-		BYTE Buffer[BarbaCourier_MaxMessageLength];
-		size_t Count;
+		BYTE* GetData() {return this->Buffer.data();}
+		size_t GetCount() {return this->Buffer.size();}
+	
+	private:
+		std::vector<BYTE> Buffer;
 	};
 
 public:
