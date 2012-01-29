@@ -71,8 +71,6 @@ struct BarbaHeader
 	BYTE Version;	
 };
 
-typedef std::vector<BYTE> BarbaBuffer;
-
 BarbaModeEnum BarbaMode_FromString(LPCTSTR mode);
 LPCTSTR BarbaMode_ToString(BarbaModeEnum mode);
 u_char BarbaMode_GetProtocol(BarbaModeEnum mode);
