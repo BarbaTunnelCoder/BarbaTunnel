@@ -99,19 +99,25 @@ void BarbaCourier::Dispose()
 	Log(_T("BarbaCourier disposed."));
 }
 
-void BarbaCourier::Send(BYTE* buffer, size_t bufferCount)
+void BarbaCourier::Send(std::vector<BYTE>* data)
 {
-	if (bufferCount>BarbaCourier_MaxMessageLength)
-		throw new BarbaException( _T("Message is too big to send! It should be greater than %u bytes."), BarbaCourier_MaxMessageLength);
-
-	if (!this->IsDisposing())
-	{
-		Send( new Message(buffer, bufferCount) );
-	}
+	Send(new Message(data));
 }
 
 void BarbaCourier::Send(Message* message, bool highPriority)
 {
+	if (message->GetCount()>BarbaCourier_MaxMessageLength)
+	{
+		delete message;
+		throw new BarbaException( _T("Message is too big to send! It should be greater than %u bytes."), BarbaCourier_MaxMessageLength);
+	}
+
+	if (this->IsDisposing())
+	{
+		delete message;
+		return;
+	}
+
 	//wait till pulse set
 	SimpleLock lock(Messages.GetCriticalSection());
 
@@ -139,7 +145,7 @@ std::tstring BarbaCourier::PrepareFakeRequests(std::tstring* request)
 
 }
 
-void BarbaCourier::Receive(BYTE* /*buffer*/, size_t /*bufferCount*/)
+void BarbaCourier::Receive(std::vector<BYTE>* /*data*/)
 {
 }
 
@@ -169,7 +175,7 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 			barbaSocket->GetLastSentTime() < this->LastReceivedTime &&
 			GetTickCount() > (barbaSocket->GetLastSentTime() + this->CreateStruct.KeepAliveInterval) )
 		{
-			message = new Message(NULL, 0);
+			message = new Message();
 		}
 
 		while (message!=NULL)
@@ -274,7 +280,7 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 			messageRecievedBytes+= receiveCount; //current socket bytes
 			
 			//notify new message
-			this->Receive(messageBuf.data(), receiveCount);
+			this->Receive(&messageBuf);
 		}
 
 		//wait for fake data length
@@ -384,7 +390,7 @@ void BarbaCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, size_
 
 }
 
-void BarbaCourier::Crypt(BYTE* /*data*/, size_t /*size*/, bool /*encrypt*/)
+void BarbaCourier::Crypt(std::vector<BYTE>* /*data*/, bool /*encrypt*/)
 {
 }
 
@@ -430,7 +436,7 @@ void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR fileName, LPCT
 	std::vector<BYTE> rdataBuffer;
 	rdataBuffer.resize(_tcslen(requestDataStr)*sizeof TCHAR);
 	memcpy_s(&rdataBuffer.front(), rdataBuffer.size(), requestDataStr, rdataBuffer.size());
-	Crypt(&rdataBuffer.front(), rdataBuffer.size(), true);
+	Crypt(&rdataBuffer, true);
 	//convert to base64
 	std::tstring requestData = Base64::encode(&rdataBuffer);
 
@@ -451,7 +457,7 @@ std::tstring BarbaCourier::GetRequestDataFromHttpRequest(LPCTSTR httpRequest)
 			return _T("");
 		std::vector<BYTE> requestDataBuf;
 		Base64::decode(requestDataEnc, requestDataBuf);
-		this->Crypt(&requestDataBuf.front(), requestDataBuf.size(), false);
+		this->Crypt(&requestDataBuf, false);
 		requestDataBuf.push_back(0);
 		requestDataBuf.push_back(0);
 		std::string ret = (char*)requestDataBuf.data(); //should be ANSI
