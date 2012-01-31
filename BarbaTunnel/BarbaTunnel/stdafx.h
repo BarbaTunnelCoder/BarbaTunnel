@@ -43,3 +43,5 @@ typedef stringstream tstringstream;
 #ifdef _DEBUG
     #define new new( _CLIENT_BLOCK, __FILE__, __LINE__)
 #endif // _DEBUG
+
+#pragma comment(lib, "Ws2_32.lib")
