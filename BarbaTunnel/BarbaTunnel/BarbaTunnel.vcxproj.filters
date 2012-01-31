@@ -23,15 +23,11 @@
     <None Include="Certificate\BarbaTunnel.pvk" />
     <None Include="WinDivert\amd64\WdfCoInstaller01009.dll" />
     <None Include="WinDivert\amd64\divert.dll" />
-    <None Include="WinDivert\amd64\divert.exp" />
     <None Include="WinDivert\amd64\divert.inf" />
-    <None Include="WinDivert\amd64\divert.pdb" />
     <None Include="WinDivert\amd64\divert.sys" />
     <None Include="WinDivert\i386\divert.dll" />
     <None Include="WinDivert\i386\WdfCoInstaller01009.dll" />
-    <None Include="WinDivert\i386\divert.exp" />
     <None Include="WinDivert\i386\divert.inf" />
-    <None Include="WinDivert\i386\divert.pdb" />
     <None Include="WinDivert\i386\divert.sys" />
   </ItemGroup>
   <ItemGroup>
@@ -179,6 +175,12 @@
     <ClInclude Include="WinDivert\divert_device.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WinDivert\WinDivertApi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinpkFilter\WinpkFilterApi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -294,11 +296,5 @@
     <ResourceCompile Include="BarbaTunnel.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="WinpkFilter\amd64\ndisapi.lib" />
-    <Library Include="WinpkFilter\i386\ndisapi.lib" />
-    <Library Include="WinDivert\amd64\divert.lib" />
-    <Library Include="WinDivert\i386\divert.lib" />
   </ItemGroup>
 </Project>

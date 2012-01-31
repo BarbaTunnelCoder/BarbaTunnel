@@ -25,6 +25,7 @@ private:
 	void GetFilter(STATIC_FILTER* staticFilter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
 	
 	//Process Methods
+	HANDLE DivertHandle;
 	ULARGE_INTEGER GetAdapterHandleLarge();
 	size_t FindAdapterIndex();
 	size_t AdapterIndex;
