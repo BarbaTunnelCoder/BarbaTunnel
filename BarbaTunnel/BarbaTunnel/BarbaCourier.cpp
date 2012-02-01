@@ -184,8 +184,8 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 			{
 				size_t messageSize = message->GetCount();
 				size_t packetSize = messageSize + 2;
-				
-				//calculate by adding fakesize
+
+				//calculate by adding fake-size
 				bool addFakeData = this->CreateStruct.FakePacketMinSize>0 && this->CreateStruct.FakePacketMinSize<BARBA_HttpFakePacketMaxSize;
 				size_t fakeSize = max(this->CreateStruct.FakePacketMinSize, 2)-2; //2 bytes always added for fakeSize
 				fakeSize = fakeSize > packetSize ? fakeSize-packetSize : 0;
@@ -205,7 +205,9 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 				{
 					memcpy_s(&sendPacket.front() + sendPacketSize, sendPacket.size()-sendPacketSize, &fakeSize, 2);
 					sendPacketSize += 2;
-					memset(&sendPacket.front() + sendPacketSize, 0, fakeSize);
+					std::vector<BYTE> fakeBuffer(fakeSize);
+					Crypt(&fakeBuffer, true);
+					memcpy_s(&sendPacket.front() + sendPacketSize, sendPacket.size()-sendPacketSize, fakeBuffer.data(), fakeBuffer.size());
 					sendPacketSize += fakeSize;
 
 				}
