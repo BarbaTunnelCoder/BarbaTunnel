@@ -116,13 +116,46 @@ void BarbaSocket::UninitializeLib()
 	 ::WSACleanup();
 }
 
+int BarbaSocket::recv(SOCKET s, char* buf, int len, int flags)
+{
+	//use original api if flag does not have MSG_WAITALL
+	if ( (flags&MSG_WAITALL)==0 )
+		return ::recv(s, buf, len, flags);
+
+	//check is MSG_WAITALL supported
+	static bool isWaitAllSupported = true;
+	if (isWaitAllSupported)
+	{
+		int ret = ::recv(s, buf, len, flags);
+		if (ret==SOCKET_ERROR && WSAGetLastError()==WSAEOPNOTSUPP)
+			isWaitAllSupported = false;
+		else
+			return ret;
+	}
+
+	//custom wait all of legacy windows
+	flags &= ~MSG_WAITALL;
+	int ret = ::recv(s, buf, len, flags);
+	if (ret==SOCKET_ERROR || ret==0)
+		return ret;
+
+	int readed = ret;
+	while (readed<len)
+	{
+		ret = ::recv(s, (buf + readed), len-readed, flags);
+		if (ret==SOCKET_ERROR || ret==0) 
+			return ret;
+		readed += ret;
+	}
+	return readed;
+}
 
 size_t BarbaSocket::Receive(BYTE* buf, size_t bufCount, bool waitAll)
 {
 	int flags = 0;
 	if (waitAll) flags |= MSG_WAITALL;
 	_IsReceiving = true;
-	int ret = ::recv(_Socket, (char*)buf, (int)bufCount, flags);
+	int ret = recv(_Socket, (char*)buf, (int)bufCount, flags);
 	_IsReceiving = false;
 	if (ret==SOCKET_ERROR)
 		ThrowSocketError();
