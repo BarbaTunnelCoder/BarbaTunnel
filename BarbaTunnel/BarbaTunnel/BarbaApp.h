@@ -66,7 +66,6 @@ private:
 	TCHAR _ModuleFileName[MAX_PATH];
 	BarbaFilterDriver* FilterDriver;
 	bool IsRestartCommand;
-	volatile bool IsStopping;
 };
 
 extern BarbaApp* theApp;

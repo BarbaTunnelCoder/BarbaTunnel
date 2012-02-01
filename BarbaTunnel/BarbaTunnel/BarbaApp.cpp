@@ -10,7 +10,6 @@ BarbaApp::BarbaApp(void)
 	BarbaSocket::InitializeLib();
 	this->IsRestartCommand = false;
 	this->_IsDisposed = false;
-	this->IsStopping = false;
 	this->FilterDriver = NULL;
 	srand((UINT)time(0));
 
@@ -316,10 +315,9 @@ void BarbaApp::OnNewCommand(BarbaComm::CommandEnum command)
 
 void BarbaApp::Stop()
 {
-	if (IsStopping)
+	if (this->FilterDriver->IsStopping() || !this->FilterDriver->IsStarted())
 		return;
 
-	this->IsStopping = true;
 	BarbaLog(_T("BarbaTunnel Stopping."));
 	if (this->FilterDriver!=NULL)
 		this->FilterDriver->Stop();
@@ -335,7 +333,6 @@ void BarbaApp::Start()
 	BarbaLog(_T("Ready!"));
 	BarbaNotify(_T("%s Started\r\nVersion: %s"), GetName(), BARBA_CurrentVersion);
 	this->Comm.SetStatus(_T("Started"));
-	this->IsStopping = false;
 	this->FilterDriver->Start();
 
 	//report finish

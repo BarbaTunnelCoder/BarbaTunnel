@@ -47,6 +47,15 @@ void WinDivertFilterDriver::SetMTUDecrement(DWORD /*value*/)
 
 void WinDivertFilterDriver::Initialize()
 {
+	DWORD winVersion = GetVersion();
+	DWORD majorVersion = (DWORD)(LOBYTE(LOWORD(winVersion)));
+	if (majorVersion<6)
+	{
+		BarbaNotify(_T("Error: Your Windows is not supported!\r\nWinDivert requires Windows Vista or later, you should change the FilterDriver."));
+		throw new BarbaException(_T("WinDivert requires Windows Vista or later, you should change the FilterDriver!"));
+	}
+
+
 	InitWinDivertApi();
 	this->DivertHandle = OpenDivertHandle();
 }
