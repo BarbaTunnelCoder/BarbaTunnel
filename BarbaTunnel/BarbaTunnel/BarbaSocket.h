@@ -59,6 +59,7 @@ protected:
 
 private:
 	volatile bool _IsReceiving;
+	static int recv(SOCKET s, char* buf, int len, int flags);
 };  
 
 //BarbaSocketClient

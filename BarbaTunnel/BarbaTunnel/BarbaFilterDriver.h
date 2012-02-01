@@ -46,6 +46,7 @@ public:
 	virtual void SetMTUDecrement(DWORD value)=0;
 	virtual size_t GetMaxPacketLen();
 	bool IsStarted() {return this->_IsStarted;}
+	bool IsStopping() {return this->StopEvent.IsSet();}
 
 protected:
 	volatile bool _IsStarted;
