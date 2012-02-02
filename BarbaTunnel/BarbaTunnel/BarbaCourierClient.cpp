@@ -28,7 +28,7 @@ BarbaCourierClient::~BarbaCourierClient()
 {
 }
 
-size_t BarbaCourierClient::SendFakeRequest(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader)
+size_t BarbaCourierClient::SendFakeRequest(BarbaSocket* socket, BarbaBuffer* fakeFileHeader)
 {
 	bool outgoing = fakeFileHeader!=NULL;
 	size_t fileSize;
@@ -108,7 +108,7 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 
 			if (isOutgoing)
 			{
-				std::vector<BYTE> fakeFileHeader;
+				BarbaBuffer fakeFileHeader;
 				size_t fakeFileSize = _this->SendFakeRequest(socket, &fakeFileHeader);
 
 				//sending fake file header

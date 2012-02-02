@@ -10,8 +10,8 @@ public:
 	static bool GetProtocolAndPort(LPCTSTR value, BYTE* protocol, u_short* port);
 	static void GetProtocolAndPortArray(LPCTSTR value, std::vector<ProtocolPort>* result);
 	//@return number of bytes copied to buffer
-	static void ConvertHexStringToBuffer(LPCTSTR hexString, std::vector<BYTE>* buffer);
-	static std::tstring ConvertBufferToHexString(std::vector<BYTE>* buffer);
+	static void ConvertHexStringToBuffer(LPCTSTR hexString, BarbaBuffer* buffer);
+	static std::tstring ConvertBufferToHexString(BarbaBuffer* buffer);
 	// @param lphProcess return handle to opened process; if not NULL user must close handle after use it
 	static bool SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine=_T(""), int nShow=SW_SHOWNORMAL, LPCTSTR lpszWorkDirectory = NULL, LPCTSTR lpVerb=NULL, HWND hWnd=NULL, DWORD* lpExitCode=NULL);
 	static bool SimpleShellExecuteAndWait(LPCTSTR fileName, LPCTSTR commandLine=_T(""), int nShow=SW_SHOWNORMAL, LPCTSTR lpszWorkDirectory = NULL, LPCTSTR lpVerb=NULL, HWND hWnd=NULL);
@@ -19,7 +19,7 @@ public:
 	//return number of parsed portRanges
 	static void ParsePortRanges(LPCTSTR value, std::vector<PortRange>* portRange);
 	static bool IsThreadAlive(const HANDLE hThread, bool* alive);
-	static bool LoadFileToBuffer(LPCTSTR fileName, std::vector<BYTE>* buffer);
+	static bool LoadFileToBuffer(LPCTSTR fileName, BarbaBuffer* buffer);
 	static std::string LoadFileToString(LPCTSTR fileName);
 	static u_int GetRandom(u_int start, u_int end);
 	static void FindFiles(LPCTSTR folder, LPCTSTR search, std::vector<std::tstring>* files);
@@ -28,7 +28,7 @@ public:
 	static std::tstring GetFileExtensionFromUrl(LPCTSTR url);
 	static std::tstring GetFileNameFromUrl(LPCTSTR url);
 	static std::tstring GetFileTitleFromUrl(LPCTSTR url);
-	static std::tstring BarbaUtils::GetFileFolderFromUrl(LPCTSTR url);
+	static std::tstring GetFileFolderFromUrl(LPCTSTR url);
 	static std::tstring GetFileUrlFromHttpRequest(LPCTSTR httpRequest);
 	static std::tstring GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key);
 	static u_int GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key, u_int defValue);

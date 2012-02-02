@@ -99,7 +99,7 @@ void BarbaCourier::Dispose()
 	Log(_T("BarbaCourier disposed."));
 }
 
-void BarbaCourier::Send(std::vector<BYTE>* data)
+void BarbaCourier::Send(BarbaBuffer* data)
 {
 	Send(new Message(data));
 }
@@ -145,7 +145,7 @@ std::tstring BarbaCourier::PrepareFakeRequests(std::tstring* request)
 
 }
 
-void BarbaCourier::Receive(std::vector<BYTE>* /*data*/)
+void BarbaCourier::Receive(BarbaBuffer* /*data*/)
 {
 }
 
@@ -185,33 +185,56 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 				size_t messageSize = message->GetCount();
 				size_t packetSize = messageSize + 2;
 
+				//check to finish file transfer
+				transferFinish = maxBytes!=0 && (sentBytes + packetSize + 4) >maxBytes;
+				if (transferFinish)
+				{
+					//bring message back to front of list
+					Send(message, true); 
+					
+					//sent zero bytes to fit exact file size
+					size_t remain = maxBytes - sentBytes;
+					BarbaBuffer buffer(remain);
+					size_t sentCount = barbaSocket->Send(buffer.data(), buffer.size());
+
+					//calculates stats
+					this->SentBytesCount += sentCount; //courier bytes
+					sentBytes += sentCount; //current socket bytes
+					this->LastSentTime = GetTickCount();
+					Log(_T("Finish sending fake file."));
+					break;
+				}
+
 				//calculate by adding fake-size
 				bool addFakeData = this->CreateStruct.FakePacketMinSize>0 && this->CreateStruct.FakePacketMinSize<BARBA_HttpFakePacketMaxSize;
-				size_t fakeSize = max(this->CreateStruct.FakePacketMinSize, 2)-2; //2 bytes always added for fakeSize
+				size_t fakeSize = max(this->CreateStruct.FakePacketMinSize, 2) - 2; //2 bytes always added for fakeSize
 				fakeSize = fakeSize > packetSize ? fakeSize-packetSize : 0;
 				if (addFakeData)
 					packetSize += fakeSize + 2;
 
 				//add message length to start of packet, then add message itself
 				size_t sendPacketSize = 0;
-				std::vector<BYTE> sendPacket(packetSize);
-				memcpy_s(&sendPacket.front(), sendPacket.size()-sendPacketSize, &messageSize, 2);
+				BarbaBuffer sendPacket(packetSize);
+				memcpy_s(sendPacket.data(), sendPacket.size()-sendPacketSize, &messageSize, 2);
 				sendPacketSize += 2;
-				memcpy_s(&sendPacket.front() + sendPacketSize, sendPacket.size()-sendPacketSize, message->GetData(), message->GetCount());
+				memcpy_s(sendPacket.data() + sendPacketSize, sendPacket.size()-sendPacketSize, message->GetData(), message->GetCount());
 				sendPacketSize += messageSize;
 
 				//add fake data
 				if (addFakeData)
 				{
-					memcpy_s(&sendPacket.front() + sendPacketSize, sendPacket.size()-sendPacketSize, &fakeSize, 2);
+					memcpy_s(sendPacket.data() + sendPacketSize, sendPacket.size()-sendPacketSize, &fakeSize, 2);
 					sendPacketSize += 2;
-					std::vector<BYTE> fakeBuffer(fakeSize);
-					Crypt(&fakeBuffer, true);
-					memcpy_s(&sendPacket.front() + sendPacketSize, sendPacket.size()-sendPacketSize, fakeBuffer.data(), fakeBuffer.size());
-					sendPacketSize += fakeSize;
-
+					if (fakeSize>0)
+					{
+						BarbaBuffer fakeBuffer(fakeSize);
+						Crypt(&fakeBuffer, true);
+						memcpy_s(sendPacket.data() + sendPacketSize, sendPacket.size()-sendPacketSize, fakeBuffer.data(), fakeBuffer.size());
+						sendPacketSize += fakeSize;
+					}
 				}
 
+				//calculate stats
 				size_t sentCount = barbaSocket->Send(sendPacket.data(), sendPacketSize);
 				this->SentBytesCount += sentCount; //courier bytes
 				sentBytes += sentCount; //current socket bytes
@@ -221,14 +244,6 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 				delete message;
 				message = NULL;
 
-				//check is file finished
-				transferFinish = maxBytes!=0 && sentBytes>=maxBytes;
-				if (transferFinish)
-				{
-					Log(_T("Finish sending fake file."));
-					break;
-				}
-				
 				//get next message
 				message = this->Messages.RemoveHead();
 			}
@@ -275,8 +290,8 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 		//read message
 		if (messageLen!=0)
 		{
-			std::vector<BYTE> messageBuf(messageLen);
-			size_t receiveCount = barbaSocket->Receive(&messageBuf.front(), messageLen, true);
+			BarbaBuffer messageBuf(messageLen);
+			size_t receiveCount = barbaSocket->Receive(messageBuf.data(), messageLen, true);
 			if (receiveCount!=messageLen)
 				throw new BarbaException( _T("Out of sync while reading message!") );
 			messageRecievedBytes+= receiveCount; //current socket bytes
@@ -300,8 +315,8 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket)
 			//read message
 			if (messageLen!=0)
 			{
-				std::vector<BYTE> messageBuf(messageLen);
-				size_t receiveCount = barbaSocket->Receive(&messageBuf.front(), messageLen, true);
+				BarbaBuffer messageBuf(messageLen);
+				size_t receiveCount = barbaSocket->Receive(messageBuf.data(), messageBuf.size(), true);
 				if (receiveCount!=messageLen)
 					throw new BarbaException( _T("Out of sync while reading fake packet data!") );
 				messageRecievedBytes += receiveCount; //current socket bytes
@@ -342,7 +357,7 @@ void BarbaCourier::Sockets_Remove(BarbaSocket* socket, bool isOutgoing)
 	delete socket;
 }
 
-void BarbaCourier::SendFakeFileHeader(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader)
+void BarbaCourier::SendFakeFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHeader)
 {
 	if (fakeFileHeader->empty())
 	{
@@ -374,13 +389,13 @@ void BarbaCourier::WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRe
 		std::tstring url = BarbaUtils::GetFileUrlFromHttpRequest(httpRequest);
 		Log(_T("Waiting for incoming fake file header. URL: %s, HeaderSize: %u."), url.data(), fileSize);
 		
-		std::vector<BYTE> buffer(fileSize);
-		if (socket->Receive(&buffer.front(), buffer.size(), true)!=(int)buffer.size())
+		BarbaBuffer buffer(fileSize);
+		if (socket->Receive(buffer.data(), buffer.size(), true)!=(int)buffer.size())
 			throw new BarbaException(_T("Could not receive fake file header."));
 	}
 }
 
-void BarbaCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, std::vector<BYTE>* /*fakeFileHeader*/, bool createNew)
+void BarbaCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* /*fakeFileHeader*/, bool createNew)
 {
 	*fileSize = BarbaUtils::GetRandom(this->CreateStruct.FakeFileMaxSize/2, this->CreateStruct.FakeFileMaxSize); 
 	if (createNew)
@@ -392,7 +407,7 @@ void BarbaCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, size_
 
 }
 
-void BarbaCourier::Crypt(std::vector<BYTE>* /*data*/, bool /*encrypt*/)
+void BarbaCourier::Crypt(BarbaBuffer* /*data*/, bool /*encrypt*/)
 {
 }
 
@@ -432,15 +447,13 @@ void BarbaCourier::InitFakeRequestVars(std::tstring& src, LPCTSTR fileName, LPCT
 		BarbaUtils::UpdateHttpRequest(&src, _T("Content-Type"), contentType);
 	
 	//prepare RequestData: 
-	TCHAR requestDataStr[2000]; //hlen=AAFF;session=AABB
-	_stprintf_s(requestDataStr, _T("hlen=%u;session=%u;packetminsize=%u;keepalive=%u;"), fileHeaderSize, this->CreateStruct.SessionId, this->CreateStruct.FakePacketMinSize, this->CreateStruct.KeepAliveInterval);
+	CHAR requestDataStr[2000]; //hlen=AAFF;session=AABB
+	sprintf_s(requestDataStr, "hlen=%u;session=%u;packetminsize=%u;keepalive=%u;", fileHeaderSize, this->CreateStruct.SessionId, this->CreateStruct.FakePacketMinSize, this->CreateStruct.KeepAliveInterval);
 	//encrypt-data
-	std::vector<BYTE> rdataBuffer;
-	rdataBuffer.resize(_tcslen(requestDataStr)*sizeof TCHAR);
-	memcpy_s(&rdataBuffer.front(), rdataBuffer.size(), requestDataStr, rdataBuffer.size());
+	BarbaBuffer rdataBuffer((BYTE*)requestDataStr, _tcslen(requestDataStr));
 	Crypt(&rdataBuffer, true);
 	//convert to base64
-	std::tstring requestData = Base64::encode(&rdataBuffer);
+	std::tstring requestData = Base64::encode(rdataBuffer.data(), rdataBuffer.size());
 
 	//RequestData
 	std::tstring data;
@@ -457,11 +470,13 @@ std::tstring BarbaCourier::GetRequestDataFromHttpRequest(LPCTSTR httpRequest)
 		std::tstring requestDataEnc = BarbaUtils::GetKeyValueFromString(httpRequest, this->CreateStruct.RequestDataKeyName.data());
 		if (requestDataEnc.empty())
 			return _T("");
-		std::vector<BYTE> requestDataBuf;
-		Base64::decode(requestDataEnc, requestDataBuf);
+		
+		std::vector<BYTE> decodeBuffer;
+		Base64::decode(requestDataEnc, decodeBuffer);
+		BarbaBuffer requestDataBuf(&decodeBuffer);
 		this->Crypt(&requestDataBuf, false);
-		requestDataBuf.push_back(0);
-		requestDataBuf.push_back(0);
+		requestDataBuf.append((BYTE)0);
+		requestDataBuf.append((BYTE)0);
 		std::string ret = (char*)requestDataBuf.data(); //should be ANSI
 		return ret;
 	}

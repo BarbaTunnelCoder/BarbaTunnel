@@ -26,6 +26,6 @@ private:
 	static unsigned int __stdcall ClientWorkerThread(void* clientThreadData);
 	static unsigned int __stdcall CheckKeepAliveThread(void* BarbaCourier);
 	//@fakeFileHeader if null send incoming request
-	size_t SendFakeRequest(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader);
+	size_t SendFakeRequest(BarbaSocket* socket, BarbaBuffer* fakeFileHeader);
 	void CheckKeepAlive();
 };

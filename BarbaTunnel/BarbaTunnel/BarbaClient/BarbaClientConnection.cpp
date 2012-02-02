@@ -17,7 +17,7 @@ LPCTSTR BarbaClientConnection::GetName()
 	return this->Config->Name.empty() ? _T("Connection") : this->Config->Name.data();
 }
 
-std::vector<BYTE>* BarbaClientConnection::GetKey()
+BarbaBuffer* BarbaClientConnection::GetKey()
 {
 	return &this->Config->Key;
 }

@@ -181,6 +181,9 @@
     <ClInclude Include="WinpkFilter\WinpkFilterApi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BarbaBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

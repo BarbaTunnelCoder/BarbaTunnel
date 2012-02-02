@@ -7,13 +7,13 @@ class BarbaClientHttpCourier : public BarbaCourierClient
 {
 public:
 	explicit BarbaClientHttpCourier(BarbaCourierCreateStrcut* cs, DWORD remoteIp, u_short remotePort, BarbaClientHttpConnection* httpConnection);
-	virtual void Receive(std::vector<BYTE>* data);
-	virtual void Crypt(std::vector<BYTE>* data, bool encrypt);
+	virtual void Receive(BarbaBuffer* data);
+	virtual void Crypt(BarbaBuffer* data, bool encrypt);
 	void SendPacket(PacketHelper* packet);
 
 protected:
 	BarbaClientHttpConnection* HttpConnection;
-	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
+	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* fakeFileHeader, bool createNew);
 	virtual ~BarbaClientHttpCourier(void);
 
 private:

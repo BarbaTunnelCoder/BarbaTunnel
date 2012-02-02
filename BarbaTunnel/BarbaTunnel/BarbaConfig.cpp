@@ -151,18 +151,16 @@ void BarbaConfig::Log(LPCTSTR format, ...)
 }
 
 
-std::tstring BarbaConfig::CreateRequestDataKeyName(std::vector<BYTE>* key)
+std::tstring BarbaConfig::CreateRequestDataKeyName(BarbaBuffer* key)
 {
 	std::string keyName = "BData";
 	//add some 'A' to change they KeyName size depending to key len
 	for (size_t i=0; i<key->size()/2; i++)
 		keyName.push_back( 'A' );
 
-	std::vector<BYTE> keyBuffer(keyName.size());
-	memcpy_s(&keyBuffer.front(), keyBuffer.size(), keyName.data(), keyName.size());
-
+	BarbaBuffer keyBuffer((BYTE*)keyName.data(), keyName.size());
 	BarbaCrypt::Crypt(&keyBuffer, key, true);
-	std::tstring ret = Base64::encode(&keyBuffer);
+	std::tstring ret = Base64::encode(keyBuffer.data(), keyBuffer.size());
 	StringUtils::ReplaceAll(ret, "=", "");
 	StringUtils::ReplaceAll(ret, "/", "");
 	return ret;

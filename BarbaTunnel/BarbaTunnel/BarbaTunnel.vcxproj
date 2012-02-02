@@ -196,6 +196,7 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BarbaApp.h" />
+    <ClInclude Include="BarbaBuffer.h" />
     <ClInclude Include="BarbaClient\BarbaClientHttpCourier.h" />
     <ClInclude Include="BarbaClient\BarbaClientHttpConnection.h" />
     <ClInclude Include="BarbaClient\BarbaClientConnectionManager.h" />

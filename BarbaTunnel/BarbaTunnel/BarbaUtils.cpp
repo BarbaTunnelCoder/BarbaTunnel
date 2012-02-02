@@ -71,10 +71,10 @@ void BarbaUtils::GetProtocolAndPortArray(LPCTSTR value, std::vector<ProtocolPort
 	}
 }
 
-void BarbaUtils::ConvertHexStringToBuffer(LPCTSTR hexString, std::vector<BYTE>* buffer)
+void BarbaUtils::ConvertHexStringToBuffer(LPCTSTR hexString, BarbaBuffer* buffer)
 {
 	size_t len = _tcslen(hexString);
-	buffer->resize(len/2);
+	buffer->assign(len/2);
 
 	for(size_t i=0; i<buffer->size(); i++)
 	{
@@ -128,11 +128,13 @@ bool BarbaUtils::SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine, int n
 
 void BarbaUtils::ParsePortRanges(LPCTSTR value, std::vector<PortRange>* portRanges)
 {
-	std::vector<BYTE> sbuffer(_tcslen(value)*2+2);
-	TCHAR* buffer = (TCHAR*)&sbuffer.front();
-	_tcscpy_s(buffer, sbuffer.size(), value);
+	BarbaBuffer sbuffer((BYTE*)value, _tcslen(value)*2+2);
+	std::tstring buffer = value;
+	if (buffer.empty())
+		return;
+
 	TCHAR* currentPos = NULL;
-	LPCTSTR token = _tcstok_s(buffer, _T(","), &currentPos);
+	LPCTSTR token = _tcstok_s(&buffer.front(), _T(","), &currentPos);
 		
 	while (token!=NULL)
 	{
@@ -154,7 +156,7 @@ bool BarbaUtils::IsThreadAlive(const HANDLE hThread, bool* alive)
 	return true;
 }
 
-bool BarbaUtils::LoadFileToBuffer(LPCTSTR fileName, std::vector<BYTE>* buffer)
+bool BarbaUtils::LoadFileToBuffer(LPCTSTR fileName, BarbaBuffer* buffer)
 {
 	bool ret = false;
 
@@ -166,8 +168,8 @@ bool BarbaUtils::LoadFileToBuffer(LPCTSTR fileName, std::vector<BYTE>* buffer)
 	size_t fileSize = ftell(f); 
 	fseek(f, 0, SEEK_SET);
 
-	buffer->resize(fileSize);
-	ret = fread_s(&buffer->front(), buffer->size(), 1, fileSize, f)==fileSize;
+	buffer->assign(fileSize);
+	ret = fread_s(buffer->data(), buffer->size(), 1, fileSize, f)==fileSize;
 	fclose(f);
 	return ret;
 }

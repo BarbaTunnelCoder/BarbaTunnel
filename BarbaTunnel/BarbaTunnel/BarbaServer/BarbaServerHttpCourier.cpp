@@ -14,7 +14,7 @@ BarbaServerHttpCourier::~BarbaServerHttpCourier(void)
 {
 }
 
-void BarbaServerHttpCourier::Crypt(std::vector<BYTE>* data, bool encrypt)
+void BarbaServerHttpCourier::Crypt(BarbaBuffer* data, bool encrypt)
 {
 	if (IsDisposing()) 
 		return; 
@@ -35,13 +35,12 @@ void BarbaServerHttpCourier::SendPacket(PacketHelper* packet)
 		return; 
 
 	//encrypt whole packet include header
-	std::vector<BYTE> data(packet->GetIpLen());
-	memcpy_s(&data.front(), data.size(), packet->ipHeader, packet->GetIpLen());
+	BarbaBuffer data(packet->ipHeader, packet->GetIpLen());
 	this->HttpConnection->EncryptData(&data);
 	this->Send(&data);
 }
 
-void BarbaServerHttpCourier::Receive(std::vector<BYTE>* data)
+void BarbaServerHttpCourier::Receive(BarbaBuffer* data)
 {
 	if (IsDisposing()) 
 		return; 
@@ -56,7 +55,7 @@ void BarbaServerHttpCourier::Receive(std::vector<BYTE>* data)
 	this->HttpConnection->ProcessPacket(&packet, false);
 }
 
-void BarbaServerHttpCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew)
+void BarbaServerHttpCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* fakeFileHeader, bool createNew)
 {
 	if (IsDisposing()) 
 		return; 
