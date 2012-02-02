@@ -159,7 +159,7 @@ std::tstring BarbaConfig::CreateRequestDataKeyName(BarbaBuffer* key)
 		keyName.push_back( 'A' );
 
 	BarbaBuffer keyBuffer((BYTE*)keyName.data(), keyName.size());
-	BarbaCrypt::Crypt(&keyBuffer, key, true);
+	BarbaCrypt::Crypt(&keyBuffer, key, 0, true);
 	std::tstring ret = Base64::encode(keyBuffer.data(), keyBuffer.size());
 	StringUtils::ReplaceAll(ret, "=", "");
 	StringUtils::ReplaceAll(ret, "/", "");

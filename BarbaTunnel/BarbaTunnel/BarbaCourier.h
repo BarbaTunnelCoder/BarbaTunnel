@@ -49,7 +49,7 @@ public:
 	virtual void Send(BarbaBuffer* data);
 	virtual void Receive(BarbaBuffer* data);
 	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* fakeFileHeader, bool createNew);
-	virtual void Crypt(BarbaBuffer* data, bool encrypt);
+	virtual void Crypt(BYTE* data, size_t dataSize, size_t index, bool encrypt);
 	virtual bool IsServer()=0;
 	std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
@@ -61,6 +61,7 @@ public:
 	HANDLE Delete();
 
 private:
+	void Crypt(BarbaBuffer* data, size_t index, bool encrypt);
 	std::tstring PrepareFakeRequests(std::tstring* request);
 	//@return false if max connection reached
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
@@ -79,10 +80,10 @@ protected:
 	virtual void Send(Message* message, bool highPriority=false);
 	void Sockets_Add(BarbaSocket* socket, bool isOutgoing);
 	void Sockets_Remove(BarbaSocket* socket, bool isOutgoing);
-	void ProcessIncoming(BarbaSocket* barbaSocket);
+	void ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	void SendFakeFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHeader);
-	void WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRequest);
+	void WaitForIncomingFakeHeader(BarbaSocket* socket, size_t fileHeaderSize);
 	void InitFakeRequestVars(std::tstring& src, LPCTSTR filename, LPCTSTR contentType, size_t fileSize, size_t fileHeaderSize);
 	volatile DWORD LastReceivedTime;
 	volatile DWORD LastSentTime;

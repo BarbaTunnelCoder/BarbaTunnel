@@ -69,7 +69,7 @@ std::tstring BarbaServerHttpHost::GetRequestDataFromHttpRequest(LPCTSTR httpRequ
 		std::vector<BYTE> decodeBuffer;
 		Base64::decode(requestDataEnc, decodeBuffer);
 		BarbaBuffer requestDataBuf(&decodeBuffer);
-		BarbaCrypt::Crypt(requestDataBuf.data(), requestDataBuf.size(), key->data(), key->size(), false);
+		BarbaCrypt::Crypt(&requestDataBuf, key, 0, false);
 		requestDataBuf.append((BYTE)0);
 		requestDataBuf.append((BYTE)0);
 		std::string ret = (char*)requestDataBuf.data(); //should be ANSI

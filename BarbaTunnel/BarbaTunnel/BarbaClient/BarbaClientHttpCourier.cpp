@@ -15,19 +15,11 @@ BarbaClientHttpCourier::~BarbaClientHttpCourier(void)
 {
 }
 
-void BarbaClientHttpCourier::Crypt(BarbaBuffer* data, bool encrypt)
+void BarbaClientHttpCourier::Crypt(BYTE* data, size_t dataSize, size_t index, bool encrypt)
 {
 	if (IsDisposing()) 
 		return; 
-
-	if (encrypt)
-	{
-		this->HttpConnection->EncryptData(data);
-	}
-	else
-	{
-		this->HttpConnection->DecryptData(data);
-	}
+	this->HttpConnection->CryptData(data, dataSize, index, encrypt);
 }
 
 void BarbaClientHttpCourier::Receive(BarbaBuffer* data)
@@ -35,7 +27,6 @@ void BarbaClientHttpCourier::Receive(BarbaBuffer* data)
 	if (IsDisposing()) 
 		return; 
 
-	this->HttpConnection->DecryptData(data);
 	PacketHelper packet((iphdr_ptr)data->data());
 	if (!packet.IsValidChecksum())
 	{
@@ -51,7 +42,6 @@ void BarbaClientHttpCourier::SendPacket(PacketHelper* packet)
 
 	//encrypt whole packet include header
 	BarbaBuffer data(packet->ipHeader, packet->GetIpLen());
-	this->HttpConnection->EncryptData(&data);
 	this->Send(&data);
 }
 

@@ -119,9 +119,13 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 
 				//wait for fake reply
 				_this->Log(_T("Waiting for server to accept fake HTTP POST request."));
+				socket->SetReceiveTimeOut(10000);
 				std::string header = socket->ReadHttpRequest();
 				if (header.empty())
-					throw new BarbaException( _T("Server does not reply to fake request!") );
+					throw new BarbaException( _T("Server does not finish fake file!") );
+
+				//report
+				_this->Log(_T("Finish sending fake file."));
 			}
 			else
 			{
@@ -133,12 +137,18 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 				std::string httpReply = socket->ReadHttpRequest();
 				if (httpReply.empty())
 					throw new BarbaException( _T("Server does not reply to fake request!") );
+				std::tstring requestData = _this->GetRequestDataFromHttpRequest(httpReply.data());
+				size_t fileLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("filesize"), 0);
+				size_t fileHeaderLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("fileheadersize"), 0);;
 
 				//wait for incoming fake file header
-				_this->WaitForIncomingFakeHeader(socket, httpReply.data());
+				_this->WaitForIncomingFakeHeader(socket, fileHeaderLen);
 
 				//process socket until socket closed
-				_this->ProcessIncoming(socket);
+				_this->ProcessIncoming(socket, fileLen-fileHeaderLen);
+
+				//report
+				_this->Log(_T("Finish getting fake file (%u KB)."), fileLen/1000);
 			}
 		}
 		catch (BarbaException* er)

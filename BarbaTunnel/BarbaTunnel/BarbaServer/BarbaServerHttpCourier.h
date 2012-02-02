@@ -13,7 +13,7 @@ class BarbaServerHttpCourier : public BarbaCourierServer
 public:
 	explicit BarbaServerHttpCourier(BarbaCourierCreateStrcut* cs, BarbaServerHttpConnection* httpConnection);
 	virtual void Receive(BarbaBuffer* data);
-	virtual void Crypt(BarbaBuffer* data, bool encrypt);
+	virtual void Crypt(BYTE* data, size_t dataSize, size_t index, bool encrypt);
 	void SendPacket(PacketHelper* packet);
 
 protected:
