@@ -59,17 +59,27 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 		
 			//process socket until socket closed
 			_this->ProcessOutgoing(socket, remainBytes);
+
+			//report
+			_this->Log(_T("Finish sending Fake file."));
 		}
 		else
 		{
+			std::tstring requestData = _this->GetRequestDataFromHttpRequest(threadData->HttpRequest.data());
+			size_t fileLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("filesize"), 0);
+			size_t fileHeaderLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("fileheadersize"), 0);;
+
 			//wait for incoming fake file header
-			_this->WaitForIncomingFakeHeader(socket, threadData->HttpRequest.data());
+			_this->WaitForIncomingFakeHeader(socket, fileHeaderLen);
 
 			//process socket until socket closed
-			_this->ProcessIncoming(socket);
+			_this->ProcessIncoming(socket, fileLen-fileHeaderLen);
 
 			//send fake reply 
 			_this->SendFakeReply(socket, threadData->HttpRequest.data(), NULL);
+
+			//report
+			_this->Log(_T("Finish getting fake file (%u KB)."), fileLen/1000);
 		}
 	}
 	catch(BarbaException* er)

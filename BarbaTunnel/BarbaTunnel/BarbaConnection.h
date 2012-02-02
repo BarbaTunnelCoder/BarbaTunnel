@@ -15,8 +15,7 @@ public:
 	virtual BarbaBuffer* GetKey()=0;
 	virtual LPCTSTR GetName()=0;
 	virtual size_t GetId() {return this->ConnectionId;}
-	void EncryptData(BarbaBuffer* data);
-	void DecryptData(BarbaBuffer* data);
+	void CryptData(BYTE* data, size_t dataSize, size_t index, bool encrypt);
 	size_t GetLasNegotiationTime();
 
 protected:

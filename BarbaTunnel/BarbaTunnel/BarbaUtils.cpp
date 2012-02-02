@@ -348,10 +348,10 @@ std::tstring BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key)
 	return buffer;
 }
 
-u_int BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key, u_int defValue)
+size_t BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key, size_t defValue)
 {
 	std::tstring valueStr = BarbaUtils::GetKeyValueFromString(httpRequest,key);
-	u_int fileSize = valueStr.empty() ? defValue : _tcstoul(valueStr.data(), 0, 0);
+	size_t fileSize = valueStr.empty() ? defValue : _tcstoul(valueStr.data(), 0, 0);
 	return fileSize;
 }
 

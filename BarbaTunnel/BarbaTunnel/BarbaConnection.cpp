@@ -21,14 +21,9 @@ size_t BarbaConnection::GetLasNegotiationTime()
 	return this->LasNegotiationTime;
 }
 
-void BarbaConnection::EncryptData(BarbaBuffer* data)
+void BarbaConnection::CryptData(BYTE* data, size_t dataSize, size_t index, bool encrypt)
 {
-	BarbaCrypt::Crypt(data, GetKey(), true);
-}
-
-void BarbaConnection::DecryptData(BarbaBuffer* data)
-{
-	BarbaCrypt::Crypt(data, GetKey(), false);
+	BarbaCrypt::Crypt(data, dataSize, GetKey()->data(), GetKey()->size(), index, encrypt);
 }
 
 void BarbaConnection::EncryptPacket(PacketHelper* packet)
