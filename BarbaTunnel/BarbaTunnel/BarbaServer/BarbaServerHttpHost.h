@@ -37,7 +37,7 @@ public:
 	void Start();
 
 private:
-	static std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest, LPCTSTR keyName, std::vector<BYTE>* key);
+	static std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest, LPCTSTR keyName, BarbaBuffer* key);
 	void AddListenerPort(BarbaServerConfig* config, u_short port);
 	void Log(LPCTSTR format, ...);
 	SimpleCriticalSection CreateConnectionCriticalSection;

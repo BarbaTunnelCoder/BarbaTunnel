@@ -39,8 +39,8 @@ ULARGE_INTEGER WinpkFilterDriver::GetAdapterHandleLarge()
 bool WinpkFilterDriver::ApplyFilters(std::vector<STATIC_FILTER>* filters)
 {
 	size_t filtersBufSize = sizeof (STATIC_FILTER)*filters->size();
-	std::vector<BYTE> filterTableBuf( sizeof STATIC_FILTER_TABLE +  filtersBufSize );
-	STATIC_FILTER_TABLE* filterTable = (STATIC_FILTER_TABLE*)&filterTableBuf.front();
+	BarbaBuffer filterTableBuf( sizeof STATIC_FILTER_TABLE +  filtersBufSize );
+	STATIC_FILTER_TABLE* filterTable = (STATIC_FILTER_TABLE*)filterTableBuf.data();
 	filterTable->m_TableSize = (u_long)filters->size();
 	memcpy_s(filterTable->m_StaticFilters, filtersBufSize, filters->data(), filtersBufSize);
 	return gWinpkFilterApi.SetPacketFilterTable(this->DivertHandle, filterTable)!=FALSE;

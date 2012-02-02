@@ -31,7 +31,7 @@ protected:
 	{
 	public:
 		explicit Message() { }
-		explicit Message(std::vector<BYTE>* data)
+		explicit Message(BarbaBuffer* data)
 		{
 			this->Buffer = *data;
 		}
@@ -40,16 +40,16 @@ protected:
 		size_t GetCount() {return this->Buffer.size();}
 	
 	private:
-		std::vector<BYTE> Buffer;
+		BarbaBuffer Buffer;
 	};
 
 public:
 	//@maxConnenction number of simultaneous connection for each outgoing and incoming, eg: 2 mean 2 connection for send and 2 connection for receive so the total will be 4
 	explicit BarbaCourier(BarbaCourierCreateStrcut* cs);
-	virtual void Send(std::vector<BYTE>* data);
-	virtual void Receive(std::vector<BYTE>* data);
-	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, std::vector<BYTE>* fakeFileHeader, bool createNew);
-	virtual void Crypt(std::vector<BYTE>* data, bool encrypt);
+	virtual void Send(BarbaBuffer* data);
+	virtual void Receive(BarbaBuffer* data);
+	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* fakeFileHeader, bool createNew);
+	virtual void Crypt(BarbaBuffer* data, bool encrypt);
 	virtual bool IsServer()=0;
 	std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
@@ -81,7 +81,7 @@ protected:
 	void Sockets_Remove(BarbaSocket* socket, bool isOutgoing);
 	void ProcessIncoming(BarbaSocket* barbaSocket);
 	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);
-	void SendFakeFileHeader(BarbaSocket* socket, std::vector<BYTE>* fakeFileHeader);
+	void SendFakeFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHeader);
 	void WaitForIncomingFakeHeader(BarbaSocket* socket, LPCTSTR httpRequest);
 	void InitFakeRequestVars(std::tstring& src, LPCTSTR filename, LPCTSTR contentType, size_t fileSize, size_t fileHeaderSize);
 	volatile DWORD LastReceivedTime;

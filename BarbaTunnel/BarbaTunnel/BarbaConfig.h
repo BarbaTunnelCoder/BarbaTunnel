@@ -13,7 +13,7 @@ public:
 	DWORD ServerIp;
 	std::tstring Name;
 	BarbaModeEnum Mode;
-	std::vector<BYTE> Key; 
+	BarbaBuffer Key; 
 	size_t GetTotalTunnelPortsCount();
 	u_char GetTunnelProtocol() {return BarbaMode_GetProtocol(this->Mode);}
 	bool IsTunnelMode() { return Mode==BarbaModeTcpTunnel || Mode==BarbaModeUdpTunnel; }
@@ -27,7 +27,7 @@ public:
 
 private:
 	static std::tstring GetNameFromFileName(LPCTSTR fileName);
-	static std::tstring CreateRequestDataKeyName(std::vector<BYTE>* key);
+	static std::tstring CreateRequestDataKeyName(BarbaBuffer* key);
 	void CheckMaxUserConnections();
 	int _TotalTunnelPortsCount;
 	std::tstring FileName; //used for report

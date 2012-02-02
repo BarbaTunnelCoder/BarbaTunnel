@@ -21,7 +21,6 @@
 #include <tchar.h>
 #include <time.h>
 #include <process.h>
-#include <iostream>
 #include <fstream>
 #include <vector>
 #include "WinpkFilter\Common.h"

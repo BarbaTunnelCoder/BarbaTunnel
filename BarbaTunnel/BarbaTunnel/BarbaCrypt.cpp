@@ -1,10 +1,10 @@
 #include "StdAfx.h"
+#include "General.h"
 #include "BarbaCrypt.h"
-#include "BarbaUtils.h"
 
-void BarbaCrypt::Crypt(std::vector<BYTE>* buffer, std::vector<BYTE>* key, bool encrypt)
+void BarbaCrypt::Crypt(BarbaBuffer* buffer, BarbaBuffer* key, bool encrypt)
 {
-	Crypt(&buffer->front(), buffer->size(), &key->front(), key->size(), encrypt);
+	Crypt(buffer->data(), buffer->size(), key->data(), key->size(), encrypt);
 }
 
 void BarbaCrypt::Crypt(BYTE* buffer, size_t bufferCount, BYTE* key, size_t keyCount, bool encrypt)

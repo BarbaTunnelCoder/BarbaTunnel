@@ -51,7 +51,7 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 		if (isOutgoing)
 		{
 			//send fake reply 
-			std::vector<BYTE> fakeFileHeader;
+			BarbaBuffer fakeFileHeader;
 			size_t remainBytes = _this->SendFakeReply(socket, threadData->HttpRequest.data(), &fakeFileHeader);
 
 			//sending fake file header
@@ -89,7 +89,7 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 	return 0;
 }
 
-size_t BarbaCourierServer::SendFakeReply(BarbaSocket* socket, LPCTSTR httpRequest, std::vector<BYTE>* fakeFileHeader)
+size_t BarbaCourierServer::SendFakeReply(BarbaSocket* socket, LPCTSTR httpRequest, BarbaBuffer* fakeFileHeader)
 {
 	if ( IsDisposing() ) throw new BarbaException(_T("Could not send fake request while disposing!"));
 	bool outgoing = fakeFileHeader!=NULL;
@@ -107,7 +107,7 @@ size_t BarbaCourierServer::SendFakeReply(BarbaSocket* socket, LPCTSTR httpReques
 	InitFakeRequestVars(fakeReply, filename, contentType.data(), fileSize, fakeFileHeaderSize);
 
 	if (outgoing)
-		Log(_T("Sending fake GET reply! File: %s (%u KB)."), filename, fileSize, fakeFileHeaderSize);
+		Log(_T("Sending fake GET reply! File: %s (%u KB)."), filename, fileSize/1000, fakeFileHeaderSize);
 	else
 		Log(_T("Sending fake POST reply! FileName: %s."), filename);
 

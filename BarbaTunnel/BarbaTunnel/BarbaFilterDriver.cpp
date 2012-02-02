@@ -7,7 +7,7 @@
 
 BarbaFilterDriver::BarbaFilterDriver(size_t maxCaptureMessageQueue)
 	: StopEvent(true, false)
-	, RouteFinderSocket(AF_INET, SOCK_RAW, IPPROTO_IP)
+	, RouteFinderSocket(AF_INET, SOCK_RAW, IPPROTO_NONE)
 	, RouteFinderPacket(IPPROTO_NONE, sizeof iphdr)
 	, CaptureEvent(true, true)
 {

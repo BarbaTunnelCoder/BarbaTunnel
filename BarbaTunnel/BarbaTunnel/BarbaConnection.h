@@ -12,11 +12,11 @@ public:
 	virtual u_short GetTunnelPort()=0; //may 0 when protocol has not port
 	virtual u_long GetSessionId() {return 0;} //may 0 when protocol has not session
 	virtual void ReportNewConnection()=0;
-	virtual std::vector<BYTE>* GetKey()=0;
+	virtual BarbaBuffer* GetKey()=0;
 	virtual LPCTSTR GetName()=0;
 	virtual size_t GetId() {return this->ConnectionId;}
-	void EncryptData(std::vector<BYTE>* data);
-	void DecryptData(std::vector<BYTE>* data);
+	void EncryptData(BarbaBuffer* data);
+	void DecryptData(BarbaBuffer* data);
 	size_t GetLasNegotiationTime();
 
 protected:

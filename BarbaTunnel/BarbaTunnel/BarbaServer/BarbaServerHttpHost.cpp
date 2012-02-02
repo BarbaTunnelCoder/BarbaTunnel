@@ -58,18 +58,20 @@ void BarbaServerHttpHost::Dispose()
 	}
 }
 
-std::tstring BarbaServerHttpHost::GetRequestDataFromHttpRequest(LPCTSTR httpRequest, LPCTSTR keyName, std::vector<BYTE>* key)
+std::tstring BarbaServerHttpHost::GetRequestDataFromHttpRequest(LPCTSTR httpRequest, LPCTSTR keyName, BarbaBuffer* key)
 {
 	try
 	{
 		std::tstring requestDataEnc = BarbaUtils::GetKeyValueFromString(httpRequest, keyName);
 		if (requestDataEnc.empty())
 			return _T("");
-		std::vector<BYTE> requestDataBuf;
-		Base64::decode(requestDataEnc, requestDataBuf);
-		BarbaCrypt::Crypt(&requestDataBuf.front(), requestDataBuf.size(), key->data(), key->size(), false);
-		requestDataBuf.push_back(0);
-		requestDataBuf.push_back(0);
+		
+		std::vector<BYTE> decodeBuffer;
+		Base64::decode(requestDataEnc, decodeBuffer);
+		BarbaBuffer requestDataBuf(&decodeBuffer);
+		BarbaCrypt::Crypt(requestDataBuf.data(), requestDataBuf.size(), key->data(), key->size(), false);
+		requestDataBuf.append((BYTE)0);
+		requestDataBuf.append((BYTE)0);
 		std::string ret = (char*)requestDataBuf.data(); //should be ANSI
 		return ret;
 	}

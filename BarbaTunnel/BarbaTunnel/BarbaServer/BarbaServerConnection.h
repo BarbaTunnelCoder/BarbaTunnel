@@ -9,7 +9,7 @@ public:
 	explicit BarbaServerConnection(BarbaServerConfig* config, u_long clientVirtualIp, u_long clientIp);
 	virtual ~BarbaServerConnection(){}
 	virtual BarbaModeEnum GetMode();
-	virtual std::vector<BYTE>* GetKey();
+	virtual BarbaBuffer* GetKey();
 	virtual LPCTSTR GetName();
 	u_long GetClientVirtualIp();
 	void ReportNewConnection();

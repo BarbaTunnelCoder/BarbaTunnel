@@ -1,4 +1,5 @@
 #pragma once
+#include "BarbaBuffer.h"
 #include "Base64.h"
 #include "StringUtils.h"
 #include "PacketHelper.h"
@@ -61,7 +62,7 @@ struct FakeFileHeader
 {
 	std::tstring ContentType;
 	std::tstring Extension;
-	std::vector<BYTE> Data;
+	BarbaBuffer Data;
 };
 
 //BarbaHeader. Not used yet

@@ -63,14 +63,15 @@ void WinDivertFilterDriver::Initialize()
 void WinDivertFilterDriver::Dispose()
 {
 	//all resource disposed in Stop
+	if (this->DivertHandle!=NULL)
+		gWinDivertApi.DivertClose(this->DivertHandle);
+	this->DivertHandle = NULL;
 }
 
 void WinDivertFilterDriver::Stop()
 {
 	BarbaFilterDriver::Stop();
-	if (this->DivertHandle!=NULL)
-		gWinDivertApi.DivertClose(this->DivertHandle);
-	this->DivertHandle = NULL;
+	SendRouteFinderPacket(); //stop DivertRecv
 }
 
 HANDLE WinDivertFilterDriver::OpenDivertHandle()
@@ -83,7 +84,7 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 	std::string filter;
 	AddPacketFilter(&filter);
 	HANDLE divertHandle = gWinDivertApi.DivertOpen(filter.data());
-	
+		
 	if (divertHandle==INVALID_HANDLE_VALUE && GetLastError() == ERROR_INVALID_PARAMETER)
 	{
 		//IP-Only filter
@@ -106,7 +107,7 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 		LPCTSTR msg = 
 			_T("Failed to open Divert device (%d)!\r\n")
 			_T("1) Try to Install BarbaTunnel again.\r\n")
-			_T("2) Make sure your windows has been restart.\r\n")
+			_T("2) Make sure your windows has been restarted.\r\n")
 			_T("3) Make sure your Windows x64 test signing is on: BCDEDIT /SET TESTSIGNING ON\r\n");
 		SetCurrentDirectory( curDir );
 		throw new BarbaException(msg, GetLastError());
@@ -130,7 +131,7 @@ void WinDivertFilterDriver::StartCaptureLoop()
     DIVERT_ADDRESS addr;    // Packet address
     BYTE* buffer = new BYTE[0xFFFF];    // Packet buffer
     UINT recvLen;
-	while (this->DivertHandle!=NULL && !StopEvent.IsSet())
+	while (!IsStopping())
     {
 		//it will return error if this->DivertHandle closed
         if (!gWinDivertApi.DivertRecv(this->DivertHandle, buffer, 0xFFFF, &addr, &recvLen))
