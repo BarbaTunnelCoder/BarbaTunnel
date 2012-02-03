@@ -42,6 +42,6 @@ public:
 	void Log(LPCTSTR msg, bool notify);
 	bool CreateFiles();
 	bool IsAlreadyRunning() {return _IsAlreadyRunning;}
-	u_int MaxLogFilesize;
+	size_t MaxLogFilesize;
 };
 
