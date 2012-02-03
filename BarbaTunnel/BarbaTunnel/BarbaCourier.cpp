@@ -335,7 +335,7 @@ void BarbaCourier::SendFakeFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFile
 	}
 
 	//sending fake file header
-	Log(_T("Sending fake file header. HeaderSize: %u."), fakeFileHeader->size());
+	Log(_T("Sending fake file header. HeaderSize: %u KB."), fakeFileHeader->size()/1000);
 	if (socket->Send(fakeFileHeader->data(), fakeFileHeader->size())!=(int)fakeFileHeader->size())
 		throw new BarbaException(_T("Fake file header does not send!"));
 }
