@@ -33,23 +33,37 @@ namespace BarbaTunnel.Monitor
         BarbaNotify BarbaNotify = new BarbaNotify();
 
         public String AppName { get { return "BarbaTunnel Monitor"; } }
-        public String ModuleFile { get { return System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName; } }
-        private const String CurrentUserRunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+        public String ModuleFile { get { return System.Reflection.Assembly.GetExecutingAssembly().Location; } }
+        private const String WindowsRunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+        private const String BarbaTunnelRegKeyPath = @"Software\BarbaTunnel";
         private String AutoStartRegValue { get { return String.Format("\"{0}\" /delaystart", ModuleFile); } }
+
+        public bool IsProfileCreated
+        {
+            get
+            {
+                int val = (int)Microsoft.Win32.Registry.GetValue("HKEY_CURRENT_USER\\" + BarbaTunnelRegKeyPath, "IsBarbaMonitorInitialized", 0);
+                return val!=0;
+            }
+            set
+            {
+                Microsoft.Win32.Registry.SetValue("HKEY_CURRENT_USER\\" + BarbaTunnelRegKeyPath, "IsBarbaMonitorInitialized", 1);
+            }
+        }
 
         public bool IsAutoStart
         {
             get
             {
-                String val = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(CurrentUserRunKeyPath, true).GetValue("BarbaMonitor", null) as String;
+                String val = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(WindowsRunKeyPath, true).GetValue("BarbaMonitor", null) as String;
                 return AutoStartRegValue.Equals(val, StringComparison.InvariantCultureIgnoreCase);
             }
             set
             {
                 if (value)
-                    Microsoft.Win32.Registry.CurrentUser.OpenSubKey(CurrentUserRunKeyPath, true).SetValue("BarbaMonitor", AutoStartRegValue);
+                    Microsoft.Win32.Registry.CurrentUser.OpenSubKey(WindowsRunKeyPath, true).SetValue("BarbaMonitor", AutoStartRegValue);
                 else
-                    Microsoft.Win32.Registry.CurrentUser.OpenSubKey(CurrentUserRunKeyPath, true).DeleteValue("BarbaMonitor");
+                    Microsoft.Win32.Registry.CurrentUser.OpenSubKey(WindowsRunKeyPath, true).DeleteValue("BarbaMonitor");
             }
         }
 
@@ -57,6 +71,13 @@ namespace BarbaTunnel.Monitor
         bool ExitMode = false;
         public MainWindow()
         {
+            //setup for first time
+            if (!IsProfileCreated)
+            {
+                IsAutoStart = true;
+                IsProfileCreated = true;
+            }
+
             this.Closed += new EventHandler(MainWindow_Closed);
             this.Loaded += new RoutedEventHandler(MainWindow_Loaded);
             BarbaComm.NotifyChanged += new EventHandler(BarbaComm_Notified);
@@ -78,7 +99,7 @@ namespace BarbaTunnel.Monitor
             //StartTunnel when monitor start
             if (BarbaComm.Status == BarbaStatus.Stopped)
             {
-                reportTextBox.Text = "Barbatunnel is not started!";
+                reportTextBox.Text = "BarbaTunnel is not started!";
                 DoStart();
             }
             else
