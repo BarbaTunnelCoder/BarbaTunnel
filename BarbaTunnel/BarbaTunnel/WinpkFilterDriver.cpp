@@ -223,7 +223,7 @@ bool WinpkFilterDriver::SendPacketToOutbound(PacketHelper* packet)
 
 void WinpkFilterDriver::Dispose()
 {
-	// This function releases packets in the adapter queue and stops listening the interface
+	//WARNING: Dispose parent first and wait till its thread closes
 	BarbaFilterDriver::Dispose();
 
 	// Set NULL event to release previously set event object
