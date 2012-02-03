@@ -142,13 +142,14 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 				size_t fileHeaderLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("fileheadersize"), 0);;
 
 				//wait for incoming fake file header
+				_this->Log(_T("Downloading file %u KB."), fileLen/1000);
 				_this->WaitForIncomingFakeHeader(socket, fileHeaderLen);
 
 				//process socket until socket closed
 				_this->ProcessIncoming(socket, fileLen-fileHeaderLen);
 
 				//report
-				_this->Log(_T("Finish getting fake file (%u KB)."), fileLen/1000);
+				_this->Log(_T("Finish downloading file."), fileLen/1000);
 			}
 		}
 		catch (BarbaException* er)
