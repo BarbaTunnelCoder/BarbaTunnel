@@ -2,10 +2,11 @@
 #include "General.h"
 #include "BarbaApp.h"
 
-
+BarbaComm* theComm = NULL;
 BarbaComm::BarbaComm(void)
 	: DisposeEvent(true, false)
 {
+	theComm = this;
 	this->MaxLogFilesize = 1000000; //1MB
 	this->_IsAlreadyRunning = false;
 	this->LogFileHandle = NULL;
@@ -58,7 +59,8 @@ unsigned int BarbaComm::CommandMonitorThread(void* data)
 		DWORD res = WaitForMultipleObjects(_countof(events), events, FALSE, INFINITE);
 		if (res==WAIT_OBJECT_0-0)
 		{
-			theApp->OnNewCommand(_this->GetCommand());
+			if (theApp!=NULL)
+				theApp->OnNewCommand(_this->GetCommand());
 			_this->CommandEvent.Reset();
 		}
 	}
@@ -183,9 +185,9 @@ void BarbaLog(LPCTSTR format, ...)
 	_vstprintf_s(msg, format, argp);
 	va_end(argp);
 
-	if (theApp!=NULL)
+	if (theComm!=NULL)
 	{
-		theApp->Comm.Log(msg, false);
+		theComm->Log(msg, false);
 	}
 	else
 	{
@@ -205,9 +207,9 @@ void BarbaLog2(LPCTSTR format, ...)
 	_vstprintf_s(msg, format, argp);
 	va_end(argp);
 
-	if (theApp!=NULL)
+	if (theComm!=NULL)
 	{
-		theApp->Comm.Log(msg, false);
+		theComm->Log(msg, false);
 	}
 	else
 	{
@@ -224,9 +226,9 @@ void BarbaNotify(LPCTSTR format, ...)
 	_vstprintf_s(msg, format, argp);
 	va_end(argp);
 
-	if (theApp!=NULL)
+	if (theComm!=NULL)
 	{
-		theApp->Comm.Log(msg, true);
+		theComm->Log(msg, true);
 	}
 	else
 	{
