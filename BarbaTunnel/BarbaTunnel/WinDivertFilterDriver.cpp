@@ -62,6 +62,9 @@ void WinDivertFilterDriver::Initialize()
 
 void WinDivertFilterDriver::Dispose()
 {
+	//WARNING: Dispose parent first and wait till its thread closes
+	BarbaFilterDriver::Dispose();
+
 	//all resource disposed in Stop
 	if (this->DivertHandle!=NULL)
 		gWinDivertApi.DivertClose(this->DivertHandle);
