@@ -42,8 +42,14 @@ namespace BarbaTunnel.Monitor
         {
             get
             {
-                int val = (int)Microsoft.Win32.Registry.GetValue("HKEY_CURRENT_USER\\" + BarbaTunnelRegKeyPath, "IsBarbaMonitorInitialized", 0);
-                return val!=0;
+                try
+                {
+                    return (int)Microsoft.Win32.Registry.GetValue("HKEY_CURRENT_USER\\" + BarbaTunnelRegKeyPath, "IsBarbaMonitorInitialized", 0) != 0;
+                }
+                catch
+                {
+                    return false;
+                }
             }
             set
             {
@@ -55,8 +61,15 @@ namespace BarbaTunnel.Monitor
         {
             get
             {
-                String val = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(WindowsRunKeyPath, true).GetValue("BarbaMonitor", null) as String;
-                return AutoStartRegValue.Equals(val, StringComparison.InvariantCultureIgnoreCase);
+                try
+                {
+                    String val = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(WindowsRunKeyPath, true).GetValue("BarbaMonitor", null) as String;
+                    return AutoStartRegValue.Equals(val, StringComparison.InvariantCultureIgnoreCase);
+                }
+                catch
+                {
+                    return false;
+                }
             }
             set
             {
@@ -77,6 +90,7 @@ namespace BarbaTunnel.Monitor
                 IsAutoStart = true;
                 IsProfileCreated = true;
             }
+
 
             this.Closed += new EventHandler(MainWindow_Closed);
             this.Loaded += new RoutedEventHandler(MainWindow_Loaded);

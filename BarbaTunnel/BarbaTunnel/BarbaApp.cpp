@@ -7,6 +7,7 @@ BarbaApp* theApp = NULL;
 
 BarbaApp::BarbaApp(void)
 {
+	this->Comm.Initialize(); //initialize soon as possible to see errors
 	BarbaSocket::InitializeLib();
 	this->IsRestartCommand = false;
 	this->_IsDisposed = false;
@@ -31,6 +32,8 @@ BarbaApp::BarbaApp(void)
 	//FilterDriver
 	TCHAR filterDriverName[200] = {0};
 	GetPrivateProfileString(_T("General"), _T("FilterDriver"), _T("WinDivert"), filterDriverName, _countof(filterDriverName), GetSettingsFile());
+	if (_tcslen(filterDriverName)==0)
+		_tcscpy_s(filterDriverName, _T("WinDivert"));
 	this->FilterDriver = CreateFilterDriverByName(filterDriverName);
 }
 
@@ -42,9 +45,7 @@ BarbaApp::~BarbaApp(void)
 
 void BarbaApp::Initialize()
 {
-	this->Comm.Initialize();
 	BarbaLog(_T("%s Started...\r\nVersion: %s\r\nFilterDriver: %s"), theApp->GetName(), BARBA_CurrentVersion, theApp->GetFilterDriver()->GetName());
-
 	this->FilterDriver->Initialize();
 }
 
