@@ -45,7 +45,6 @@ namespace BarbaTunnel.Service
         {
             Stopping = true;
             ServiceEvent.Set();
-            ServiceEventThread.Abort();
             BarbaComm.Stop();
             ServiceEvent.Close();
         }

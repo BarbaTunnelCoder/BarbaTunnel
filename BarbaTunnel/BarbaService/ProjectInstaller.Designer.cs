@@ -40,7 +40,7 @@
             // serviceInstaller1
             // 
             this.serviceInstaller1.Description = "Redirect or Retunnel VPN packets to bypass firewall.";
-            this.serviceInstaller1.ServiceName = "BarbaTunnel Service";
+            this.serviceInstaller1.ServiceName = "BarbaTunnel";
             this.serviceInstaller1.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
             // 
             // ProjectInstaller
