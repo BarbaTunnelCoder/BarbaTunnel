@@ -72,35 +72,36 @@ void WinpkFilterDriver::ApplyPacketFilter()
 		throw new BarbaException(_T("Could not set packet filtering!"));
 }
 
-void WinpkFilterDriver::GetFilter(STATIC_FILTER* staticFilter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
+void WinpkFilterDriver::GetFilter(STATIC_FILTER* staticFilter, bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
 {
-	if (ipEnd==0) ipEnd = ipStart;
-	if (srcPortEnd==0) srcPortEnd = srcPortStart;
-	if (desPortEnd==0) desPortEnd = desPortStart;
+	srcIpEnd = max(srcIpStart, srcIpEnd);
+	desIpEnd = max(desIpStart, desIpEnd);
+	srcPortEnd = max(srcPortStart, srcPortEnd);
+	desPortEnd = max(desPortStart, desPortEnd);
 
 	staticFilter->m_Adapter = GetAdapterHandleLarge();
 	staticFilter->m_FilterAction = FILTER_PACKET_REDIRECT;
 	staticFilter->m_dwDirectionFlags = send ? PACKET_FLAG_ON_SEND : PACKET_FLAG_ON_RECEIVE;
 
 	//ip filter
-	if (ipStart!=0)
+	if (srcIpStart!=0)
 	{
 		staticFilter->m_ValidFields |= NETWORK_LAYER_VALID;
 		staticFilter->m_NetworkFilter.m_dwUnionSelector = IPV4;
-		if (send)
-		{
-			staticFilter->m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_DEST_ADDRESS;
-			staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_AddressType=IP_RANGE_V4_TYPE;
-			staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_StartIp = ipStart;
-			staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_EndIp = ipEnd;
-		}
-		else
-		{
-			staticFilter->m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_SRC_ADDRESS;
-			staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_AddressType=IP_RANGE_V4_TYPE;
-			staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_IpRange.m_StartIp = ipStart;
-			staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_IpRange.m_EndIp = ipEnd;
-		}
+		staticFilter->m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_SRC_ADDRESS;
+		staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_AddressType=IP_RANGE_V4_TYPE;
+		staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_IpRange.m_StartIp = srcIpStart;
+		staticFilter->m_NetworkFilter.m_IPv4.m_SrcAddress.m_IpRange.m_EndIp = srcIpEnd;
+	}
+
+	if (desIpStart!=0)
+	{
+		staticFilter->m_ValidFields |= NETWORK_LAYER_VALID;
+		staticFilter->m_NetworkFilter.m_dwUnionSelector = IPV4;
+		staticFilter->m_NetworkFilter.m_IPv4.m_ValidFields |= IP_V4_FILTER_DEST_ADDRESS;
+		staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_AddressType=IP_RANGE_V4_TYPE;
+		staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_StartIp = desIpStart;
+		staticFilter->m_NetworkFilter.m_IPv4.m_DestAddress.m_IpRange.m_EndIp = desIpEnd;
 	}
 
 	//protocol filter
@@ -133,12 +134,12 @@ void WinpkFilterDriver::GetFilter(STATIC_FILTER* staticFilter, bool send, u_long
 	}
 }
 
-void WinpkFilterDriver::AddFilter(void* filter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
+void WinpkFilterDriver::AddFilter(void* filter, bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
 {
 	std::vector<STATIC_FILTER>* filters = (std::vector<STATIC_FILTER>*)filter;
 
 	STATIC_FILTER staticFilter = {0};
-	GetFilter(&staticFilter, send, ipStart, ipEnd, protocol, srcPortStart, srcPortEnd, desPortStart, desPortEnd);
+	GetFilter(&staticFilter, send, srcIpStart, srcIpEnd, desIpStart, desIpEnd, protocol, srcPortStart, srcPortEnd, desPortStart, desPortEnd);
 	filters->push_back(staticFilter);
 }
 

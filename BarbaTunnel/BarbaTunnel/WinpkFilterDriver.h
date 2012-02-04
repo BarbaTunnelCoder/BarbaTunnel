@@ -15,14 +15,14 @@ public:
 	virtual DWORD GetMTUDecrement();
 	virtual void SetMTUDecrement(DWORD value);
 	virtual LPCTSTR GetName() {return _T("WinpkFilter");}
-	virtual void AddFilter(void* filters, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
+	virtual void AddFilter(void* filter, bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
 
 private: 
 	//Filtering methods
 	void ApplyPacketFilter();
 	bool ApplyFilters(std::vector<STATIC_FILTER>* filters);
 	void AddBypassPacketFilter(std::vector<STATIC_FILTER>* filters);
-	void GetFilter(STATIC_FILTER* staticFilter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
+	void GetFilter(STATIC_FILTER* staticFilter, bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
 	
 	//Process Methods
 	HANDLE DivertHandle;

@@ -122,7 +122,7 @@ xcopy "$(ProjectDir)WinpkFilter\i386\*" "$(OutDir)" /E /D /Y</Command>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)\WinDivert\amd64\*" "$(OutDir)" /E /D /Y
+      <Command>xcopy "$(ProjectDir)WinDivert\amd64\*" "$(OutDir)" /E /D /Y
 xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -166,7 +166,7 @@ xcopy "$(ProjectDir)WinpkFilter\i386\*" "$(OutDir)" /E /D /Y</Command>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)\WinDivert\amd64\*" "$(OutDir)" /E /D /Y
+      <Command>xcopy "$(ProjectDir)WinDivert\amd64\*" "$(OutDir)" /E /D /Y
 xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
