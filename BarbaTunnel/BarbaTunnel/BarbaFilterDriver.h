@@ -57,7 +57,7 @@ protected:
 	bool IsRouteFinderPacket(PacketHelper* packet);
 	void UpdateMTUDecrement();
 	//@param filter object that should handle by subclass implementer
-	virtual void AddFilter(void* filter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)=0;
+	virtual void AddFilter(void* filter, bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)=0;
 	void AddPacketFilter(void* filter);
 	
 private:

@@ -19,12 +19,12 @@ public:
 	virtual void SetMTUDecrement(DWORD value);
 	virtual LPCTSTR GetName() {return _T("WinDivert");}
 	virtual NetworkLayerEnum GetNetworkLayer() { return NetworkLayerTransport; }
-	virtual void AddFilter(void* filter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
+	virtual void AddFilter(void* filter, bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
 
 private:
 	HANDLE OpenDivertHandle();
 	void CreateRangeFormat(TCHAR* format, LPCSTR fieldName, DWORD start, DWORD end, bool ip=false);
-	std::string GetFilter(bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
+	std::string GetFilter(bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
 	volatile HANDLE DivertHandle;
 	volatile UINT32 MainIfIdx; // Packet's interface index.
     volatile UINT32 MainSubIfIdx; // Packet's sub-interface index.

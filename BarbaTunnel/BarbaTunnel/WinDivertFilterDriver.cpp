@@ -198,27 +198,36 @@ void WinDivertFilterDriver::CreateRangeFormat(TCHAR* format, LPCSTR fieldName, D
 		sprintf_s(format, 1000, "%s>=%s && %s<=%s", fieldName, szStart, fieldName, szEnd);
 }
 
-std::string WinDivertFilterDriver::GetFilter(bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
+std::string WinDivertFilterDriver::GetFilter(bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
 {
-	if (ipEnd==0) ipEnd = ipStart;
-	if (srcPortEnd==0) srcPortEnd = srcPortStart;
-	if (desPortEnd==0) desPortEnd = desPortStart;
+	srcIpEnd = max(srcIpStart, srcIpEnd);
+	desIpEnd = max(desIpStart, desIpEnd);
+	srcPortEnd = max(srcPortStart, srcPortEnd);
+	desPortEnd = max(desPortStart, desPortEnd);
+
 	CHAR buf[1000];
 
 	std::string filter;
 	filter.append( send ? "outbound" : "inbound" );
 
 	//IP filter
-	if (ipStart!=0)
+	if (srcIpStart!=0)
 	{
-		CreateRangeFormat(buf, send ? "ip.DstAddr" : "ip.SrcAddr", ipStart, ipEnd, true);
+		CreateRangeFormat(buf, "ip.SrcAddr", srcIpStart, srcIpEnd, true);
 		filter.append(" && ");
 		filter.append(buf);
-
-		//stop in FilterIpOnly mode
-		if (this->FilterIpOnly)
-			return filter;
 	}
+
+	if (desIpStart!=0)
+	{
+		CreateRangeFormat(buf, "ip.DstAddr", desIpStart, desIpEnd, true);
+		filter.append(" && ");
+		filter.append(buf);
+	}
+
+	//stop in FilterIpOnly mode
+	if (this->FilterIpOnly && (srcIpStart!=0 || desIpStart!=0))
+		return filter;
 
 	//protocol filter
 	if (protocol!=0)
@@ -263,10 +272,10 @@ std::string WinDivertFilterDriver::GetFilter(bool send, u_long ipStart, u_long i
 	return filter;
 }
 
-void WinDivertFilterDriver::AddFilter(void* pfilter, bool send, u_long ipStart, u_long ipEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
+void WinDivertFilterDriver::AddFilter(void* pfilter, bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)
 {
 	std::string* filter = (std::string*)pfilter;
-	std::string res = GetFilter(send, ipStart, ipEnd, protocol, srcPortStart, srcPortEnd, desPortStart, desPortEnd);
+	std::string res = GetFilter(send, srcIpStart, srcIpEnd, desIpStart, desIpEnd, protocol, srcPortStart, srcPortEnd, desPortStart, desPortEnd);
 	if (!filter->empty())
 		filter->append(" || ");
 	

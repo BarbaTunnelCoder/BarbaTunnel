@@ -183,7 +183,8 @@ LPCTSTR BarbaApp::GetModuleFolder()
 
 bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool send)
 {
-	if (!send || !packet->IsIp())
+	std::tstring ss = BarbaUtils::ConvertIpToString(packet->GetDesIp());
+	if (send || !packet->IsIp())
 		return false;
 
 	if (packet->ipHeader->ip_p!=1)
@@ -246,7 +247,7 @@ bool BarbaApp::CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMT
 		}
 		else
 		{
-			BarbaLog(_T("Error: Large outgoing packet size! More %d MTU-Decrement bytes required, Are you sure your system has been restarted?"), this->FilterDriver->GetMaxPacketLen()-outgoingPacketLength);
+			BarbaLog(_T("Error: Large outgoing packet size! More %d MTU-Decrement bytes required, Are you sure your system has been restarted?"), outgoingPacketLength + requiredMTUDecrement - this->FilterDriver->GetMaxPacketLen());
 			BarbaNotify(_T("Error: Large outgoing packet size!\r\nAre you sure your system has been restarted?"));
 		}
 	}
