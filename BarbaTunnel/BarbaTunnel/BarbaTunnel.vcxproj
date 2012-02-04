@@ -185,13 +185,10 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <None Include="WinDivert\i386\divert.inf" />
     <None Include="WinDivert\i386\divert.sys" />
     <None Include="WinDivert\i386\WdfCoInstaller01009.dll" />
-    <None Include="WinpkFilter\amd64\ndisapi.dll">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
+    <None Include="WinpkFilter\amd64\ndisapi.dll" />
     <None Include="WinpkFilter\i386\ndisapi.dll">
       <FileType>Document</FileType>
       <DeploymentContent>true</DeploymentContent>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </None>
   </ItemGroup>
   <ItemGroup>

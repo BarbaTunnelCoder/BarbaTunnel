@@ -125,7 +125,7 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 					throw new BarbaException( _T("Server does not finish fake file!") );
 
 				//report
-				_this->Log(_T("Finish sending fake file."));
+				_this->Log(_T("Finish uploading file."));
 			}
 			else
 			{
@@ -139,7 +139,9 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 					throw new BarbaException( _T("Server does not reply to fake request!") );
 				std::tstring requestData = _this->GetRequestDataFromHttpRequest(httpReply.data());
 				size_t fileLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("filesize"), 0);
-				size_t fileHeaderLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("fileheadersize"), 0);;
+				size_t fileHeaderLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("fileheadersize"), 0);
+				if (fileLen==0)
+					throw new BarbaException( _T("Server replied zero file size! Make sure no other services on server is listening to tunnel port.") );
 
 				//wait for incoming fake file header
 				_this->Log(_T("Downloading file %u KB."), fileLen/1000);
@@ -149,7 +151,7 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 				_this->ProcessIncoming(socket, fileLen-fileHeaderLen);
 
 				//report
-				_this->Log(_T("Finish downloading file."), fileLen/1000);
+				_this->Log(_T("Finish downloading file."));
 			}
 		}
 		catch (BarbaException* er)
