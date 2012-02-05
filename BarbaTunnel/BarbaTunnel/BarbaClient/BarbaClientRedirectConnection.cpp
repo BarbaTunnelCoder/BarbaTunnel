@@ -49,17 +49,17 @@ bool BarbaClientRedirectConnection::ProcessPacket(PacketHelper* packet, bool sen
 {
 	if (send)
 	{
-		packet->SetDesPort(this->GetTunnelPort());
-		EncryptPacket(packet);
+		//packet->SetDesPort(this->GetTunnelPort());
+		//EncryptPacket(packet);
 		SendPacketToOutbound(packet);
 		return true;
 	}
 	else
 	{
-		DecryptPacket(packet);
-		if (!packet->IsValidChecksum())
-			return true;
-		packet->SetSrcPort(this->GetRealPort());
+		//DecryptPacket(packet);
+		//if (!packet->IsValidChecksum())
+			//return true;
+		//packet->SetSrcPort(this->GetRealPort());
 		SendPacketToInbound(packet);
 	}
 
