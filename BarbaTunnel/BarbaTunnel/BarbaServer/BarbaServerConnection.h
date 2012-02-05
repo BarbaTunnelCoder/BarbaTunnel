@@ -7,7 +7,7 @@ class BarbaServerConnection : public BarbaConnection
 {
 public:
 	explicit BarbaServerConnection(BarbaServerConfig* config, u_long clientVirtualIp, u_long clientIp);
-	virtual ~BarbaServerConnection(){}
+	virtual ~BarbaServerConnection();
 	virtual BarbaModeEnum GetMode();
 	virtual BarbaBuffer* GetKey();
 	virtual LPCTSTR GetName();

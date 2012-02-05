@@ -89,7 +89,7 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 	BarbaServerHttpHost* _this = (BarbaServerHttpHost*)threadData->HttpHost;
 	BarbaSocket* socket = (BarbaSocket*)threadData->Socket;
 	std::tstring clientIp = BarbaUtils::ConvertIpToString(socket->GetRemoteIp());
-	socket->SetReceiveTimeOut(theApp->ConnectionTimeout);
+	socket->SetReceiveTimeOut(30000);
 
 	try
 	{

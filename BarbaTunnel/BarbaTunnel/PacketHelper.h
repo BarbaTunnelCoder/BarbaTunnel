@@ -22,6 +22,7 @@ public:
 	//void SetUdpPacket(udphdr_ptr udpHeader);
 
 	explicit PacketHelper();
+	explicit PacketHelper(PacketHelper* packet);
 	explicit PacketHelper(ether_header_ptr packet);
 	explicit PacketHelper(iphdr_ptr ipHeader);
 	explicit PacketHelper(size_t ipLen);
@@ -47,6 +48,7 @@ public:
 	bool IsValidChecksum();
 
 	bool IsTcp() { return tcpHeader!=NULL;}
+	size_t GetTcpLen() { return GetIpLen() - ipHeader->ip_hl*4; }
 	size_t GetTcpPayloadLen() { return GetIpLen() - ipHeader->ip_hl*4 - tcpHeader->th_off*4; }
 	BYTE* GetTcpPayload() {  return (BYTE*)tcpHeader + tcpHeader->th_off*4; }
 	void SetTcpPayload(BYTE* payload, size_t len);
@@ -58,6 +60,7 @@ public:
 	void SetTcpSeq(tcp_seq value) { tcpHeader->th_seq = htonl(value); }
 
 	bool IsUdp() { return udpHeader!=NULL;}
+	size_t GetUdpLen() { return GetIpLen() - ipHeader->ip_hl*4; }
 	size_t GetUdpPayloadLen() { return ntohs(udpHeader->length) - sizeof(udphdr); }
 	BYTE* GetUdpPayload() { return (BYTE*)udpHeader + sizeof(udphdr); }
 	void SetUdpPayload(BYTE* payload, size_t len);
