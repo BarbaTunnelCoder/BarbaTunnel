@@ -112,6 +112,7 @@ void BarbaFilterDriver::AddPacket(PacketHelper* packet, bool send)
 		return;
 	}
 
+
 	this->CapturePackets.AddTail(new CapturePacket(packet, send));
 	this->CaptureEvent.Set();
 }
@@ -161,6 +162,7 @@ void BarbaFilterDriver::ProcessCapturedPackets()
 					else
 						this->SendPacketToInbound(capturePacket->Packet);
 				}
+				
 				delete capturePacket;
 				capturePacket = this->CapturePackets.RemoveHead();
 			}
