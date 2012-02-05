@@ -283,7 +283,7 @@ void PacketHelper::RecalculateIPChecksum(iphdr_ptr ipHeader, bool calculateProto
 
 	// Calculate IP header checksum
 	u_short word16;
-	for (int i = 0; i < ipHeader->ip_hl*sizeof(DWORD); i=i+2)
+	for (size_t i = 0; i < ipHeader->ip_hl*sizeof(DWORD); i=i+2)
 	{
 		word16 = ((buff[i]<<8)&0xFF00)+(buff[i+1]&0xFF);
 		sum = sum+word16; 
