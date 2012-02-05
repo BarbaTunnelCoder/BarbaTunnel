@@ -82,7 +82,11 @@ bool BarbaClientUdpConnection::ProcessPacket(PacketHelper* packet, bool send)
 	{
 		//extract Barba packet
 		PacketHelper orgPacket;
-		ExtractUdpBarbaPacket(packet, &orgPacket);
+		if (!ExtractUdpBarbaPacket(packet, &orgPacket))
+		{
+			BarbaLog(_T("Error: Detect packet with invalid checksum for UDP-Tunnel port %d! Check your key."), this->GetTunnelPort());
+			return false;
+		}
 		SendPacketToInbound(&orgPacket);
 		return true;
 	}
