@@ -38,7 +38,18 @@ void PacketHelper::AllocIpBuffer(size_t ipLen)
 PacketHelper::~PacketHelper()
 {
 	if (this->PacketBuffer!=NULL)
+	{
 		delete this->PacketBuffer;
+	}
+}
+
+PacketHelper::PacketHelper(PacketHelper* packet)
+{
+	this->PacketBuffer = new BYTE[packet->PacketSize];
+	this->PacketSize = packet->PacketSize;
+	memcpy_s(this->PacketBuffer, this->PacketSize, packet->PacketBuffer, this->PacketSize);
+	this->ethHeader = (ether_header_ptr)this->PacketBuffer;
+	Reinit();
 }
 
 PacketHelper::PacketHelper(ether_header_ptr packet)
@@ -164,7 +175,8 @@ void PacketHelper::SetUdpPayload(BYTE* payload, size_t len)
 
 void PacketHelper::RecalculateChecksum()
 {
-	RecalculateIPChecksum(ipHeader, true);
+	if (ipHeader!=NULL)
+		RecalculateIPChecksum(ipHeader, true);
 }
 
 u_short PacketHelper::GetDesPort()
@@ -253,28 +265,25 @@ bool PacketHelper::IsValidIPChecksum(iphdr_ptr ipHeader)
 }
 
 
-void PacketHelper::RecalculateIPChecksum(iphdr_ptr pIpHeader, bool calculateProtoCheckSum)
+void PacketHelper::RecalculateIPChecksum(iphdr_ptr ipHeader, bool calculateProtoCheckSum)
 {
 	if (calculateProtoCheckSum)
 	{
-		if (pIpHeader->ip_p==IPPROTO_TCP) RecalculateTCPChecksum(pIpHeader);
-		else if (pIpHeader->ip_p==IPPROTO_UDP) RecalculateUDPChecksum(pIpHeader);
-		else if (pIpHeader->ip_p==IPPROTO_ICMP) RecalculateICMPChecksum(pIpHeader);
+		if (ipHeader->ip_p==IPPROTO_TCP) RecalculateTCPChecksum(ipHeader);
+		else if (ipHeader->ip_p==IPPROTO_UDP) RecalculateUDPChecksum(ipHeader);
+		else if (ipHeader->ip_p==IPPROTO_ICMP) RecalculateICMPChecksum(ipHeader);
 		//else _tprintf_s("Unknown protocol for checksum!\n"); 
 	}
 
-
-	u_short word16;
-	unsigned int sum = 0;
-	unsigned int i = 0;
-	PUCHAR buff;
+	u_int sum = 0;
 
 	// Initialize checksum to zero
-	pIpHeader->ip_sum = 0;
-	buff = (PUCHAR)pIpHeader;
+	ipHeader->ip_sum = 0;
+	BYTE* buff = (BYTE*)ipHeader;
 
 	// Calculate IP header checksum
-	for (i = 0; i < pIpHeader->ip_hl*sizeof(DWORD); i=i+2)
+	u_short word16;
+	for (int i = 0; i < ipHeader->ip_hl*sizeof(DWORD); i=i+2)
 	{
 		word16 = ((buff[i]<<8)&0xFF00)+(buff[i+1]&0xFF);
 		sum = sum+word16; 
@@ -287,7 +296,7 @@ void PacketHelper::RecalculateIPChecksum(iphdr_ptr pIpHeader, bool calculateProt
 	// Take the one's complement of sum
 	sum = ~sum;
 
-	pIpHeader->ip_sum = htons((u_short) sum);
+	ipHeader->ip_sum = htons((u_short) sum);
 }
 
 
@@ -307,48 +316,38 @@ u_short PacketHelper::CheckSum(u_short *buffer, int size)
 	return (u_short)(~cksum);
 }
 
-void PacketHelper::RecalculateTCPChecksum(iphdr_ptr pIpHeader)
+void PacketHelper::RecalculateTCPChecksum(iphdr_ptr ipHeader)
 {
-	tcphdr_ptr pTcpHeader = NULL;
-	unsigned short word16, padd = 0;
-	unsigned int i, sum = 0;
-	PUCHAR buff;
-	DWORD dwTcpLen;
+	u_int sum = 0;
 
 	// Sanity check
-	if (pIpHeader->ip_p == IPPROTO_TCP)
-	{
-		pTcpHeader = (tcphdr_ptr)(((PUCHAR)pIpHeader) + sizeof(DWORD)*pIpHeader->ip_hl);
-	}
-	else
+	if (ipHeader->ip_p != IPPROTO_TCP)
 		return;
 	
-	dwTcpLen = ntohs(pIpHeader->ip_len) - pIpHeader->ip_hl*4;//pPacket->m_Length - ((PUCHAR)(pTcpHeader) - pPacket->m_IBuffer);
+	tcphdr_ptr tcpHeader = (tcphdr_ptr)(((BYTE*)ipHeader) + sizeof(DWORD)*ipHeader->ip_hl);
+	size_t tcpLen = ntohs(ipHeader->ip_len) - ipHeader->ip_hl*4;//pPacket->m_Length - ((BYTE*)(tcpHeader) - pPacket->m_IBuffer);
 
-	if ( (dwTcpLen/2)*2 != dwTcpLen )
-	{
-		padd=1;
-		((BYTE*)pIpHeader)[pIpHeader->ip_hl*4+dwTcpLen] = 0;
-	}
-
-	buff = (PUCHAR)pTcpHeader;
-	pTcpHeader->th_sum = 0;
+	BYTE* buff = (BYTE*)tcpHeader;
+	tcpHeader->th_sum = 0;
 
 	// make 16 bit words out of every two adjacent 8 bit words and 
-	// calculate the sum of all 16 vit words
-	for (i=0; i< dwTcpLen+padd; i=i+2){
-		word16 =((buff[i]<<8)&0xFF00)+(buff[i+1]&0xFF);
+	// calculate the sum of all 16 bit words
+	u_short word16;
+	for (size_t i=0; i< tcpLen; i=i+2)
+	{
+		word16 = (buff[i]<<8) & 0xFF00;
+		if ( i+1<tcpLen ) word16 += buff[i+1] & 0xFF;
 		sum = sum + (u_int)word16;
 	}
 	
 	// add the TCP pseudo header which contains:
 	// the IP source and destination addresses,
 
-	sum = sum + ntohs(pIpHeader->ip_src.S_un.S_un_w.s_w1) + ntohs(pIpHeader->ip_src.S_un.S_un_w.s_w2);
-	sum = sum + ntohs(pIpHeader->ip_dst.S_un.S_un_w.s_w1) + ntohs(pIpHeader->ip_dst.S_un.S_un_w.s_w2);
+	sum = sum + ntohs(ipHeader->ip_src.S_un.S_un_w.s_w1) + ntohs(ipHeader->ip_src.S_un.S_un_w.s_w2);
+	sum = sum + ntohs(ipHeader->ip_dst.S_un.S_un_w.s_w1) + ntohs(ipHeader->ip_dst.S_un.S_un_w.s_w2);
 	
 	// the protocol number and the length of the TCP packet
-	sum = sum + IPPROTO_TCP + (u_short)dwTcpLen;
+	sum = sum + IPPROTO_TCP + (u_short)tcpLen;
 
 	// keep only the last 16 bits of the 32 bit calculated sum and add the carries
     while (sum>>16)
@@ -357,40 +356,28 @@ void PacketHelper::RecalculateTCPChecksum(iphdr_ptr pIpHeader)
 	// Take the one's complement of sum
 	sum = ~sum;
 
-	pTcpHeader->th_sum = htons((u_short)sum);
+	tcpHeader->th_sum = htons((u_short)sum);
 }
 
-void PacketHelper::RecalculateICMPChecksum(iphdr_ptr pIpHeader)
+void PacketHelper::RecalculateICMPChecksum(iphdr_ptr ipHeader)
 {
-	u_short word16, padd = 0;
-	u_int i, sum = 0;
-	PUCHAR buff;
-	DWORD dwIcmpLen;
-	icmphdr_ptr pIcmpHeader = NULL;
-
-	// Sanity check
-	if (pIpHeader->ip_p == IPPROTO_ICMP)
-	{
-		pIcmpHeader = (icmphdr_ptr)(((PUCHAR)pIpHeader) + sizeof(DWORD)*pIpHeader->ip_hl);
-	}
-	else
+	u_int sum = 0;
+	if (ipHeader->ip_p != IPPROTO_ICMP)
 		return;
+	
+	icmphdr_ptr icmpHeader = (icmphdr_ptr)(((BYTE*)ipHeader) + sizeof(DWORD)*ipHeader->ip_hl);
 
-	dwIcmpLen = ntohs(pIpHeader->ip_len) - pIpHeader->ip_hl*4;
-
-	if ( (dwIcmpLen/2)*2 != dwIcmpLen )
-	{
-		padd=1;
-		((BYTE*)pIpHeader)[pIpHeader->ip_hl*4+dwIcmpLen] = 0;
-	}
-
-	buff = (PUCHAR)pIcmpHeader;
-	pIcmpHeader->checksum = 0;
+	size_t icmpLen = ntohs(ipHeader->ip_len) - ipHeader->ip_hl*4;
+	BYTE* buff = (BYTE*)icmpHeader;
+	icmpHeader->checksum = 0;
 
 	// make 16 bit words out of every two adjacent 8 bit words and 
 	// calculate the sum of all 16 bit words
-	for (i=0; i< dwIcmpLen+padd; i=i+2){
-		word16 =((buff[i]<<8)&0xFF00)+(buff[i+1]&0xFF);
+	u_short word16;
+	for (size_t i=0; i< icmpLen; i=i+2)
+	{
+		word16 = (buff[i]<<8) & 0xFF00;
+		if ( i+1<icmpLen ) word16 += buff[i+1] & 0xFF;
 		sum = sum + (u_int)word16;
 	}
 	
@@ -401,51 +388,38 @@ void PacketHelper::RecalculateICMPChecksum(iphdr_ptr pIpHeader)
 	// Take the one's complement of sum
 	sum = ~sum;
 
-	pIcmpHeader->checksum = ntohs((u_short)sum);
+	icmpHeader->checksum = ntohs((u_short)sum);
 }
 
-void PacketHelper::RecalculateUDPChecksum(iphdr_ptr pIpHeader)
+void PacketHelper::RecalculateUDPChecksum(iphdr_ptr ipHeader)
 {
-	udphdr_ptr pUdpHeader = NULL;
-	unsigned short word16, padd = 0;
-	unsigned int i, sum = 0;
-	PUCHAR buff;
-	DWORD dwUdpLen;
-
-	// Sanity check
-	if (pIpHeader->ip_p == IPPROTO_UDP)
-	{
-		pUdpHeader = (udphdr_ptr)(((PUCHAR)pIpHeader) + sizeof(DWORD)*pIpHeader->ip_hl);
-	}
-	else
+	u_int sum = 0;
+	if (ipHeader->ip_p != IPPROTO_UDP)
 		return;
 	
-	dwUdpLen = ntohs(pIpHeader->ip_len) - pIpHeader->ip_hl*4;//pPacket->m_Length - ((PUCHAR)(pTcpHeader) - pPacket->m_IBuffer);
-
-	if ( (dwUdpLen/2)*2 != dwUdpLen )
-	{
-		padd=1;
-		((BYTE*)pIpHeader)[pIpHeader->ip_hl*4+dwUdpLen] = 0;
-	}
-
-	buff = (PUCHAR)pUdpHeader;
-	pUdpHeader->th_sum = 0;
+	udphdr_ptr udpHeader = (udphdr_ptr)(((BYTE*)ipHeader) + sizeof(DWORD)*ipHeader->ip_hl);
+	size_t udpLen = ntohs(ipHeader->ip_len) - ipHeader->ip_hl*4;//pPacket->m_Length - ((BYTE*)(tcpHeader) - pPacket->m_IBuffer);
+	BYTE* buff = (BYTE*)udpHeader;
+	udpHeader->th_sum = 0;
 
 	// make 16 bit words out of every two adjacent 8 bit words and 
-	// calculate the sum of all 16 vit words
-	for (i=0; i< dwUdpLen+padd; i=i+2){
-		word16 =((buff[i]<<8)&0xFF00)+(buff[i+1]&0xFF);
+	// calculate the sum of all 16 bit words
+	u_int word16;
+	for (size_t i=0; i<udpLen; i=i+2)
+	{
+		word16 = (buff[i]<<8) & 0xFF00;
+		if ( i+1<udpLen ) word16 += buff[i+1] & 0xFF;
 		sum = sum + (u_int)word16;
 	}
 	
 	// add the UDP pseudo header which contains:
 	// the IP source and destination addresses,
 
-	sum = sum + ntohs(pIpHeader->ip_src.S_un.S_un_w.s_w1) + ntohs(pIpHeader->ip_src.S_un.S_un_w.s_w2);
-	sum = sum + ntohs(pIpHeader->ip_dst.S_un.S_un_w.s_w1) + ntohs(pIpHeader->ip_dst.S_un.S_un_w.s_w2);
+	sum = sum + ntohs(ipHeader->ip_src.S_un.S_un_w.s_w1) + ntohs(ipHeader->ip_src.S_un.S_un_w.s_w2);
+	sum = sum + ntohs(ipHeader->ip_dst.S_un.S_un_w.s_w1) + ntohs(ipHeader->ip_dst.S_un.S_un_w.s_w2);
 	
 	// the protocol number and the length of the UDP packet
-	sum = sum + IPPROTO_UDP + (u_short)dwUdpLen;
+	sum = sum + IPPROTO_UDP + (u_short)udpLen;
 
 	// keep only the last 16 bits of the 32 bit calculated sum and add the carries
     while (sum>>16)
@@ -454,7 +428,7 @@ void PacketHelper::RecalculateUDPChecksum(iphdr_ptr pIpHeader)
 	// Take the one's complement of sum
 	sum = ~sum;
 
-	pUdpHeader->th_sum = ntohs((u_short)sum);
+	udpHeader->th_sum = ntohs((u_short)sum);
 }
 
 DWORD PacketHelper::ConvertStringIp(LPCTSTR pszIp)
