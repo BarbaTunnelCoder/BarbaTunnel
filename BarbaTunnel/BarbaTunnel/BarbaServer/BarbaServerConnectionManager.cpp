@@ -19,6 +19,14 @@ void BarbaServerConnectionManager::Initialize(IpRange* virtualIpRange)
 	this->VirtualIpManager.Initialize(virtualIpRange);
 }
 
+void BarbaServerConnectionManager::RemoveConnection(BarbaConnection* conn)
+{
+	u_long ip = ((BarbaServerConnection*)conn)->GetClientVirtualIp();
+	BarbaConnectionManager::RemoveConnection(conn);
+	VirtualIpManager.ReleaseIp(ip);
+}
+
+
 BarbaServerConnection* BarbaServerConnectionManager::FindByVirtualIp(DWORD ip)
 {
 	BarbaServerConnection* ret = NULL;

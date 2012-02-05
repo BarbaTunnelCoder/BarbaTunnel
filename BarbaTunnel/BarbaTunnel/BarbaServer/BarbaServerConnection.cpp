@@ -11,6 +11,11 @@ BarbaServerConnection::BarbaServerConnection(BarbaServerConfig* config, u_long c
 	this->ClientIp = clientIp;
 }
 
+BarbaServerConnection::~BarbaServerConnection()
+{
+}
+
+
 BarbaBuffer* BarbaServerConnection::GetKey()
 {
 	return &this->Config->Key;

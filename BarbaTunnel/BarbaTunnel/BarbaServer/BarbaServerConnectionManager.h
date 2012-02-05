@@ -10,6 +10,7 @@ class BarbaServerConnectionManager : public BarbaConnectionManager
 public:
 	BarbaServerConnectionManager(void);
 	virtual ~BarbaServerConnectionManager(void);
+	virtual void RemoveConnection(BarbaConnection* conn);
 	void Initialize(IpRange* virtualIpRange);
 	BarbaServerConnection* FindByVirtualIp(DWORD ip);
 	BarbaServerConnection* FindBySessionId(DWORD sessionId);

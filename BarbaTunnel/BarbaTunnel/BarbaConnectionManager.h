@@ -9,7 +9,7 @@ public:
 	virtual ~BarbaConnectionManager(void);
 	virtual void Dispose();
 	SimpleSafeList<BarbaConnection*> Connections;
-	void RemoveConnection(BarbaConnection* conn);
+	virtual void RemoveConnection(BarbaConnection* conn);
 	void AddConnection(BarbaConnection* conn);
 	void CleanTimeoutConnections();
 	BarbaConnection* FindByPacketToProcess(PacketHelper* packet);
