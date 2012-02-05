@@ -45,7 +45,10 @@ bool BarbaServerRedirectConnection::ProcessPacket(PacketHelper* packet, bool sen
 	{
 		DecryptPacket(packet);
 		if (!packet->IsValidChecksum())
+		{
+			BarbaLog(_T("Error: Detect packet with invalid checksum to redirecting port %d! Check your key."), this->GetTunnelPort());
 			return true; //don't process packet
+		}
 		packet->SetSrcIp(this->ClientVirtualIp);
 		packet->SetDesPort(this->GetRealPort());
 		SendPacketToInbound(packet);
