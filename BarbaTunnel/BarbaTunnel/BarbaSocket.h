@@ -28,6 +28,7 @@ public:
 	size_t Send(BYTE* buf, size_t bufCount);
 	void Close();
 	bool IsWritable();
+	bool IsOpen() {return this->_Socket!=NULL;}
 	//@return empty string if not found
 	std::string ReadHttpRequest(int maxlen=5000);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
