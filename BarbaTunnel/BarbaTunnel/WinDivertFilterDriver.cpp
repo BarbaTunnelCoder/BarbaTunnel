@@ -57,6 +57,7 @@ void WinDivertFilterDriver::Initialize()
 
 
 	InitWinDivertApi();
+	
 	this->DivertHandle = OpenDivertHandle();
 }
 
@@ -83,11 +84,16 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 	GetCurrentDirectory(_countof(curDir), curDir);
 	SetCurrentDirectory( BarbaApp::GetModuleFolder() ); //WinDivert need current directory to install driver perhaps for WdfCoInstaller01009
 
+	//try to solve WinDivert issue at first time load
+	HANDLE divertHandle = gWinDivertApi.DivertOpen("false");
+	if (divertHandle!=INVALID_HANDLE_VALUE)
+		gWinDivertApi.DivertClose(divertHandle);
+
 	//apply filter
 	std::string filter;
 	AddPacketFilter(&filter);
-	HANDLE divertHandle = gWinDivertApi.DivertOpen(filter.data());
-		
+	divertHandle = gWinDivertApi.DivertOpen(filter.data());
+
 	if (divertHandle==INVALID_HANDLE_VALUE && GetLastError() == ERROR_INVALID_PARAMETER)
 	{
 		//IP-Only filter
