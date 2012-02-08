@@ -93,7 +93,6 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 	std::string filter;
 	AddPacketFilter(&filter);
 	divertHandle = gWinDivertApi.DivertOpen(filter.data());
-
 	if (divertHandle==INVALID_HANDLE_VALUE && GetLastError() == ERROR_INVALID_PARAMETER)
 	{
 		//IP-Only filter
