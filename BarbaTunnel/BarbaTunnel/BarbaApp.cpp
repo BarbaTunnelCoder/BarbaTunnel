@@ -342,17 +342,14 @@ void BarbaApp::Start()
 	this->Comm.SetStatus(_T("Stopped"));
 
 	//report restarting
-	HANDLE newThreadHandle = NULL;
+	PROCESS_INFORMATION pi = {0};
 	if (this->IsRestartCommand)
 	{
 		BarbaLog(_T("BarbaTunnel Restarting..."));
 		STARTUPINFO inf = {0};
 		inf.cb = sizeof STARTUPINFO;
 		GetStartupInfo(&inf);
-		PROCESS_INFORMATION pi = {0};
-		if (CreateProcess(BarbaApp::GetModuleFile(), _T(""), NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &inf, &pi))
-			newThreadHandle = pi.hThread;
-		else
+		if (!CreateProcess(BarbaApp::GetModuleFile(), _T(""), NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &inf, &pi))
 			BarbaLog(_T("Failed to restart BarbaTunnel!"));
 	}
 	else
@@ -364,8 +361,12 @@ void BarbaApp::Start()
 	Dispose();
 
 	//restarting after dispose
-	if (newThreadHandle!=NULL)
-		ResumeThread(newThreadHandle);
+	if (pi.hThread!=NULL)
+	{
+		ResumeThread(pi.hThread);
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
 }
 
 bool BarbaApp::ProcessFilterDriverPacket(PacketHelper* packet, bool send)
