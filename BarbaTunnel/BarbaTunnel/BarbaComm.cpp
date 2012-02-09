@@ -45,6 +45,7 @@ void BarbaComm::Dispose()
 	CloseHandle(this->CommandMonitorThreadHandle); this->CommandMonitorThreadHandle = NULL;
 	CloseHandle(this->LogFileHandle); this->LogFileHandle = NULL;
 	CloseHandle(this->NotifyFileHandle); this->NotifyFileHandle = NULL;
+	CommandEvent.Close();
 }
 
 unsigned int BarbaComm::CommandMonitorThread(void* data)
