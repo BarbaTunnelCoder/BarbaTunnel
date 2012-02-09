@@ -36,10 +36,18 @@ public:
 		return ret;
 	}
 
-	~SimpleEvent()
+	void Close()
 	{
 		if (this->EventHandle!=NULL)
+		{
 			CloseHandle(this->EventHandle);
+			this->EventHandle = NULL;
+		}
+	}
+
+	~SimpleEvent()
+	{
+		Close();
 	}
 
 	bool IsSet()
