@@ -10,6 +10,7 @@ namespace BarbaTunnel.Monitor
     {
         NotifyIcon _NotifyIcon = new NotifyIcon();
         public NotifyIcon NotifyIcon { get { return _NotifyIcon; } }
+        public MenuItem ExitAndStopMenu { get; private set; }
         public MenuItem ExitMenu { get; private set; }
         public MenuItem StartMenu { get; private set; }
         public MenuItem RestartMenu { get; private set; }
@@ -28,7 +29,8 @@ namespace BarbaTunnel.Monitor
             RestartMenu = menu.MenuItems.Add("Restart");
             StopMenu = menu.MenuItems.Add("Stop");
             menu.MenuItems.Add("-");
-            ExitMenu = menu.MenuItems.Add("Exit && Stop");
+            ExitAndStopMenu = menu.MenuItems.Add("Exit && Stop");
+            ExitMenu = menu.MenuItems.Add("Exit");
 
             NotifyIcon.Icon = Resource1.Status_Stopped;
             NotifyIcon.Visible = true;

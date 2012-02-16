@@ -100,7 +100,8 @@ namespace BarbaTunnel.Monitor
             BarbaNotify.NotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_MouseClick);
             BarbaNotify.NotifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_MouseClick);
             BarbaNotify.MainWindowMenu.Click += delegate(object sender, EventArgs args) { this.DoShowMainWindow(); };
-            BarbaNotify.ExitMenu.Click += delegate(object sender, EventArgs args) { this.DoStopAndExit(); };
+            BarbaNotify.ExitMenu.Click += delegate(object sender, EventArgs args) { this.DoExit(false); };
+            //BarbaNotify.ExitAndStopMenu.Click += delegate(object sender, EventArgs args) { this.DoExit(true); };
             BarbaNotify.StartMenu.Click += delegate(object sender, EventArgs args) { this.DoStart(); };
             BarbaNotify.RestartMenu.Click += delegate(object sender, EventArgs args) { this.DoRestart(); };
             BarbaNotify.StopMenu.Click += delegate(object sender, EventArgs args) { this.DoStop(); };
@@ -235,11 +236,11 @@ namespace BarbaTunnel.Monitor
             timer.Start();
         }
 
-        void DoStopAndExit()
+        void DoExit(bool stop)
         {
             try
             {
-                if (BarbaComm.Status != BarbaStatus.Stopped)
+                if (stop && BarbaComm.Status != BarbaStatus.Stopped)
                     BarbaComm.Stop();
 
                 this.ExitMode = true;
