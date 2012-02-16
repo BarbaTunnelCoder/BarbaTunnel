@@ -225,8 +225,6 @@ void BarbaApp::Dispose()
 
 bool BarbaApp::SendPacketToOutbound(PacketHelper* packet)
 {
-	if (!packet->IsValidChecksum())
-		BarbaLog("Invalid !!!");
 	return this->FilterDriver->SendPacketToOutbound(packet);
 }
 
