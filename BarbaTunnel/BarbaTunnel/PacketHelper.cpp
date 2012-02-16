@@ -124,10 +124,14 @@ void PacketHelper::Reinit()
 		ipHeader = (iphdr*)(ethHeader + 1);
 			
 	if (ipHeader!=NULL && ipHeader->ip_p==IPPROTO_TCP)
+	{
 		tcpHeader = (tcphdr_ptr)(((BYTE*)ipHeader) + ipHeader->ip_hl*4);
+	}
 
 	if (ipHeader!=NULL && ipHeader->ip_p==IPPROTO_UDP)
+	{
 		udpHeader = (udphdr_ptr)(((BYTE*)ipHeader) + ipHeader->ip_hl*4);
+	}
 }
 
 void PacketHelper::SetDesPort(u_short port)
@@ -260,6 +264,16 @@ bool PacketHelper::IsValidChecksum()
 bool PacketHelper::IsValidIPChecksum(iphdr_ptr ipHeader)
 {
 	PacketHelper packet(ipHeader);
+
+	//check UDP integrity
+	if (packet.IsUdp())
+	{
+		u_short udpLenCalc = ntohs(ipHeader->ip_len) - ipHeader->ip_hl*4;
+		u_short udpLen = ntohs(packet.udpHeader->length);
+		if (udpLenCalc!=udpLen)
+			return false;
+	}
+
 	PacketHelper::RecalculateIPChecksum(packet.ipHeader, false);
 	return packet.ipHeader->ip_sum==ipHeader->ip_sum;
 }
