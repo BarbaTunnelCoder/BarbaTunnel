@@ -101,7 +101,7 @@ namespace BarbaTunnel.Monitor
             BarbaNotify.NotifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_MouseClick);
             BarbaNotify.MainWindowMenu.Click += delegate(object sender, EventArgs args) { this.DoShowMainWindow(); };
             BarbaNotify.ExitMenu.Click += delegate(object sender, EventArgs args) { this.DoExit(false); };
-            //BarbaNotify.ExitAndStopMenu.Click += delegate(object sender, EventArgs args) { this.DoExit(true); };
+            BarbaNotify.ExitAndStopMenu.Click += delegate(object sender, EventArgs args) { this.DoExit(true); };
             BarbaNotify.StartMenu.Click += delegate(object sender, EventArgs args) { this.DoStart(); };
             BarbaNotify.RestartMenu.Click += delegate(object sender, EventArgs args) { this.DoRestart(); };
             BarbaNotify.StopMenu.Click += delegate(object sender, EventArgs args) { this.DoStop(); };

@@ -1,25 +1,26 @@
 #include "StdAfx.h"
 #include "PacketHelper.h"
+#define EXTRA_MEM 50
 
 void PacketHelper::AllocIpBuffer(size_t ipLen)
 {
 	if (ipLen>0xFFFF)
 		throw _T("Invalid IP size!");
 
-	size_t size = ipLen + sizeof ether_header;
+	size_t size = ipLen + sizeof ether_header; 
 
 	//allocate new buffer
 	if (this->PacketBuffer==NULL)
 	{
 		this->PacketSize = size;
-		this->PacketBuffer = new BYTE[size];
+		this->PacketBuffer = new BYTE[size + EXTRA_MEM]; //EXTRA_MEM I couldn't find the memory bug :(
 		memset(this->PacketBuffer, 0, size);
 	}
 
 	//reallocate buffer
 	else if (this->PacketSize<size)
 	{
-		BYTE* buffer = new BYTE[size];
+		BYTE* buffer = new BYTE[size + EXTRA_MEM]; //EXTRA_MEM I couldn't find the memory bug :(
 		memset(buffer, 0, size);
 		memcpy_s(buffer, size, this->PacketBuffer, this->PacketSize);
 		delete this->PacketBuffer;
@@ -45,7 +46,7 @@ PacketHelper::~PacketHelper()
 
 PacketHelper::PacketHelper(PacketHelper* packet)
 {
-	this->PacketBuffer = new BYTE[packet->PacketSize];
+	this->PacketBuffer = new BYTE[packet->PacketSize + EXTRA_MEM]; //EXTRA_MEM I couldn't find the memory bug :(
 	this->PacketSize = packet->PacketSize;
 	memcpy_s(this->PacketBuffer, this->PacketSize, packet->PacketBuffer, this->PacketSize);
 	this->ethHeader = (ether_header_ptr)this->PacketBuffer;
