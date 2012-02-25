@@ -263,17 +263,26 @@ bool PacketHelper::IsValidChecksum()
 
 bool PacketHelper::IsValidIPChecksum(iphdr_ptr ipHeader)
 {
-	PacketHelper packet(ipHeader);
-
 	//check UDP integrity
-	if (packet.IsUdp())
+	if (ipHeader->ip_p==IPPROTO_UDP)
 	{
+		udphdr_ptr udpHeader = (udphdr_ptr)(((BYTE*)ipHeader) + ipHeader->ip_hl*4);
 		u_short udpLenCalc = ntohs(ipHeader->ip_len) - ipHeader->ip_hl*4;
-		u_short udpLen = ntohs(packet.udpHeader->length);
+		u_short udpLen = ntohs(udpHeader->length);
 		if (udpLenCalc!=udpLen)
 			return false;
 	}
 
+	//check TCP integrity
+	if (ipHeader->ip_p==IPPROTO_TCP)
+	{
+		tcphdr_ptr tcpHeader = (tcphdr_ptr)(((BYTE*)ipHeader) + ipHeader->ip_hl*4);
+		if ( (ipHeader->ip_hl*4 + tcpHeader->th_off*4) > ntohs(ipHeader->ip_len) )
+			return false;
+	}
+
+
+	PacketHelper packet(ipHeader);
 	PacketHelper::RecalculateIPChecksum(packet.ipHeader, false);
 	return packet.ipHeader->ip_sum==ipHeader->ip_sum;
 }
