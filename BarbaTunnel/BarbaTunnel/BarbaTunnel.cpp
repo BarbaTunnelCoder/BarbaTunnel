@@ -15,15 +15,17 @@ BarbaFilterDriver* CreateFilterDriverByName(LPCTSTR name)
 	throw new BarbaException(_T("Invalid FilterDriver (%s)!"), name);
 }
 
-void InitMemoryLeackReport()
+void InitMemoryLeackReport(_HFILE fileHandle)
 {
+	UNREFERENCED_PARAMETER(fileHandle); //for release mode
+
 	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 	_CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
-	_CrtSetReportFile( _CRT_WARN, _CRTDBG_FILE_STDOUT );
+	_CrtSetReportFile( _CRT_WARN, fileHandle );
 	_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_FILE );
-	_CrtSetReportFile( _CRT_ERROR, _CRTDBG_FILE_STDOUT );
+	_CrtSetReportFile( _CRT_ERROR, fileHandle );
 	_CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_FILE );
-	_CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDOUT );
+	_CrtSetReportFile( _CRT_ASSERT, fileHandle );
 }
 
 int test()
@@ -36,7 +38,7 @@ int main(int argc, char* argv[])
 	//test(); return 0; //just for debug
 
 	// memory leak detection
-	InitMemoryLeackReport();
+	InitMemoryLeackReport( _CRTDBG_FILE_STDOUT );
 	try
 	{
 		//find IsBarbaServer
@@ -53,6 +55,7 @@ int main(int argc, char* argv[])
 		//create App
 		theApp = isBarbaServer ? (BarbaApp*)new BarbaServerApp(delayStart) : (BarbaApp*)new BarbaClientApp() ;
 		theApp->Initialize();
+		InitMemoryLeackReport(theApp->Comm.GetNotifyFileHandle());
 		theApp->Start();
 	}
 	catch(BarbaException* er)
