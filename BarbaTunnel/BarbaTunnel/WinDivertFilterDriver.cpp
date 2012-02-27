@@ -145,9 +145,10 @@ void WinDivertFilterDriver::StartCaptureLoop()
         if (!gWinDivertApi.DivertRecv(this->DivertHandle, buffer, 0xFFFF, &addr, &recvLen))
             continue;
 
+
 		//Initialize Packet
 		bool send = addr.Direction == DIVERT_PACKET_DIRECTION_OUTBOUND;
-		PacketHelper* packet = new PacketHelper((iphdr_ptr)buffer);
+		PacketHelper* packet = new PacketHelper((iphdr_ptr)buffer, recvLen);
 
 		//user adapter index for any grab packet
 		this->MainIfIdx = addr.IfIdx;
