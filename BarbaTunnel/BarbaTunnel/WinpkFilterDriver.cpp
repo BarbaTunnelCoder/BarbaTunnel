@@ -309,7 +309,7 @@ void WinpkFilterDriver::StartCaptureLoop()
 			{
 				PINTERMEDIATE_BUFFER buffer = request.EthPacket.Buffer;
 				bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
-				PacketHelper* packet = new PacketHelper((ether_header_ptr)buffer->m_IBuffer);
+				PacketHelper* packet = new PacketHelper((ether_header_ptr)buffer->m_IBuffer, buffer->m_Length);
 				AddPacket(packet, send);
 			}
 			WinpkPacketEvent.Reset();

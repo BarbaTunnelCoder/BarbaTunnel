@@ -42,7 +42,7 @@ bool BarbaClientUdpConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, 
 {
 	DecryptPacket(barbaPacket);
 	orgPacket->SetEthHeader(barbaPacket->ethHeader);
-	orgPacket->SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload());
+	orgPacket->SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload(), barbaPacket->GetUdpPayloadLen());
 	return orgPacket->IsValidChecksum();
 }
 

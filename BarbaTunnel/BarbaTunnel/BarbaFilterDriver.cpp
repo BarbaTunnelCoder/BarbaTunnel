@@ -96,6 +96,13 @@ void BarbaFilterDriver::Dispose()
 
 void BarbaFilterDriver::AddPacket(PacketHelper* packet, bool send)
 {
+	if (!packet->IsValidChecksum())
+	{
+		BarbaLog2("Error: Invalid packet received and dropped!");
+		delete packet;
+		return;
+	}
+
 	//Don't process RouteFinderPacket
 	if (IsRouteFinderPacket(packet))
 	{

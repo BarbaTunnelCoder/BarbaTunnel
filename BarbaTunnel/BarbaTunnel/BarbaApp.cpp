@@ -374,10 +374,6 @@ bool BarbaApp::ProcessFilterDriverPacket(PacketHelper* packet, bool send)
 	if (!packet->IsIp())
 		return false;
 
-	//check integrity for incoming message
-	if (!send && !packet->IsValidChecksum())
-		return true; //drop packet
-
 	//check commands
 	if (IsDebugMode() && CheckTerminateCommands(packet, send))
 	{

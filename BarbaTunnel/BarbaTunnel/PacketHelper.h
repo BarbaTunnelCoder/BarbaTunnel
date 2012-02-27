@@ -16,15 +16,15 @@ public:
 	void SetSrcEthAddress(BYTE* address);
 	void SetDesEthAddress(BYTE* address);
 	void SetEthHeader(ether_header_ptr ethHeader);
-	void SetEthPacket(ether_header_ptr ethHeader);
+	void SetEthPacket(ether_header_ptr ethHeader, size_t bufferLen);
 
 	//void SetTcpPacket(tcphdr_ptr tcpHeader);
 	//void SetUdpPacket(udphdr_ptr udpHeader);
 
 	explicit PacketHelper();
 	explicit PacketHelper(PacketHelper* packet);
-	explicit PacketHelper(ether_header_ptr packet);
-	explicit PacketHelper(iphdr_ptr ipHeader);
+	explicit PacketHelper(ether_header_ptr packet, size_t bufferLen);
+	explicit PacketHelper(iphdr_ptr ipHeader, size_t bufferLen);
 	explicit PacketHelper(size_t ipLen);
 	explicit PacketHelper(u_char ipProtocol, size_t ipLen);
 	~PacketHelper();
@@ -41,7 +41,7 @@ public:
 	u_short GetSrcPort();
 	void SetDesPort(u_short port);
 	void SetSrcPort(u_short port);
-	void SetIpPacket(iphdr_ptr ipHeader);
+	void SetIpPacket(iphdr_ptr ipHeader, size_t bufferLen);
 	BYTE* GetIpExtraHeader(); 
 	size_t GetIpExtraHeaderLen(); 
 	void RecalculateChecksum();
@@ -69,11 +69,11 @@ public:
 	size_t GetPacketLen() { return sizeof (ether_header) + GetIpLen(); }
 
 	static u_short CheckSum(u_short *buffer, int size);
-	static void RecalculateICMPChecksum(iphdr_ptr pIpHeader);
-	static void RecalculateUDPChecksum(iphdr_ptr pIpHeader);
-	static void RecalculateTCPChecksum(iphdr_ptr pIpHeader);
-	static void RecalculateIPChecksum(iphdr_ptr pIpHeader, bool calculateProtoCheckSum=true);
-	static bool IsValidIPChecksum(iphdr_ptr pIpHeader);
+	static void RecalculateICMPChecksum(iphdr_ptr ipHeader);
+	static void RecalculateUDPChecksum(iphdr_ptr ipHeader);
+	static void RecalculateTCPChecksum(iphdr_ptr ipHeader);
+	static void RecalculateIPChecksum(iphdr_ptr ipHeader, bool calculateProtoCheckSum=true);
+	static bool IsValidIPChecksum(iphdr_ptr ipHeader, size_t bufferLen);
 	static DWORD ConvertStringIp(LPCTSTR pszIp);
 	static void ConvertIpToString(DWORD ip, TCHAR* buffer, rsize_t bufferCount);
 	static char* ConvertStringToIp(DWORD ip);
