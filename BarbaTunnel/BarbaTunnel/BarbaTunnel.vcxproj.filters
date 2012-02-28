@@ -27,6 +27,8 @@
     <None Include="WinDivert\i386\divert.dll" />
     <None Include="WinDivert\i386\WdfCoInstaller01009.dll" />
     <None Include="WinDivert\i386\divert.sys" />
+    <None Include="WinDivert\i386\divert.inf" />
+    <None Include="WinDivert\amd64\divert.inf" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
