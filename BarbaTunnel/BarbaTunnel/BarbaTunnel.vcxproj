@@ -178,9 +178,11 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
       <DeploymentContent>false</DeploymentContent>
     </None>
     <None Include="WinDivert\amd64\divert.dll" />
+    <None Include="WinDivert\amd64\divert.inf" />
     <None Include="WinDivert\amd64\divert.sys" />
     <None Include="WinDivert\amd64\WdfCoInstaller01009.dll" />
     <None Include="WinDivert\i386\divert.dll" />
+    <None Include="WinDivert\i386\divert.inf" />
     <None Include="WinDivert\i386\divert.sys" />
     <None Include="WinDivert\i386\WdfCoInstaller01009.dll" />
     <None Include="WinpkFilter\amd64\ndisapi.dll" />
