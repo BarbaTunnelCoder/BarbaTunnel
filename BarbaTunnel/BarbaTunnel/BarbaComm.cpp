@@ -159,7 +159,7 @@ bool BarbaComm::CreateFiles()
 	BarbaUtils::SimpleShellExecuteAndWait(_T("cacls.exe"), cmd, NULL, SW_HIDE);
 
 	//Create files
-	LogFileHandle = CreateFile(GetLogFilePath(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	LogFileHandle = CreateFile(GetLogFilePath(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	NotifyFileHandle = CreateFile(GetNotifyFilePath(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	HANDLE commFileHandle = CreateFile(GetCommFilePath(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (commFileHandle!=INVALID_HANDLE_VALUE)

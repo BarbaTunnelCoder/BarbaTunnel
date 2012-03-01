@@ -15,6 +15,7 @@ public:
 	void assign(size_t size) {buf.assign(size, 0);}
 	void assign(size_t size, BYTE value) {buf.assign(size, value);}
 	void assign(BYTE* data, size_t size) {resize(0); append(data, size); }
+	void assign(BarbaBuffer* buffer) {resize(0); append(buffer); }
 	void reserve(size_t size) {buf.reserve(size);}
 	void append(void* data, size_t size) { size_t oldSize = this->size(); resize(oldSize + size); memcpy_s(this->data() + oldSize, this->size()-oldSize, data, size);}	
 	void append(BarbaBuffer* buffer) { append(buffer->data(), buffer->size()); }
