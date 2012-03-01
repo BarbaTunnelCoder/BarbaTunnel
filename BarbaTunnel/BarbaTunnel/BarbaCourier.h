@@ -33,7 +33,7 @@ protected:
 		explicit Message() { }
 		explicit Message(BarbaBuffer* data)
 		{
-			this->Buffer = *data;
+			this->Buffer.assign(data);
 		}
 
 		BYTE* GetData() {return this->Buffer.data();}

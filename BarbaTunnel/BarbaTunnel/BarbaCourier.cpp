@@ -191,11 +191,11 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 				{
 					Send(message, true); //bring message back to front of list
 					message = new Message(); //empty message
-					fakeSize = maxBytes - sentBytes - 4; //rest file is fake packet
+					fakeSize = max( (int)(maxBytes - sentBytes - 4), 0 ); //rest file is fake packet
 				}
 				else
 				{
-					fakeSize =  max( (int)(minPacketSize - message->GetCount() - 4), 0 );
+					fakeSize = max( (int)(minPacketSize - message->GetCount() - 4), 0 );
 				}
 
 
