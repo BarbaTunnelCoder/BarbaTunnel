@@ -156,6 +156,7 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 	size_t sentBytes = 0;
 	bool transferFinish = false;
 	size_t minPacketSize = max(min(BARBA_HttpFakePacketMaxSize, this->CreateStruct.FakePacketMinSize), 4); //fake packet size min is 4
+	if (maxBytes==0) maxBytes = (size_t)-1;
 	
 	//remove message from list
 	while(!this->IsDisposing() && !transferFinish)
@@ -183,11 +184,10 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 		{
 			try
 			{
-				size_t fakeSize = minPacketSize - message->GetCount() - 4;
+				size_t fakeSize = minPacketSize - message->GetCount() - 4; //-4: 2 bytes for message size, 2 bytes for fake size
 				
-				//check is transfer finished
-				transferFinish = maxBytes!=0 && (sentBytes + message->GetCount() + 4) > maxBytes; //+4: 2 bytes for message size, 2 bytes for fake size
-				if (transferFinish)
+				//check is next message count will pass maxBytes
+				if ( (sentBytes + message->GetCount() + 4) > maxBytes) //+4: 2 bytes for message size, 2 bytes for fake size
 				{
 					Send(message, true); //bring message back to front of list
 					message = new Message(); //empty message
@@ -217,6 +217,9 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 				this->SentBytesCount += sentCount; //courier bytes
 				sentBytes += sentCount; //current socket bytes
 				this->LastSentTime = GetTickCount();
+
+				//recheck is transfer finish
+				transferFinish = sentBytes>=maxBytes;
 
 				//delete sent message
 				delete message;
