@@ -183,7 +183,7 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 		{
 			try
 			{
-				size_t fakeSize = 0;
+				size_t fakeSize = minPacketSize - message->GetCount() - 4;
 				
 				//check is transfer finished
 				transferFinish = maxBytes!=0 && (sentBytes + message->GetCount() + 4) > maxBytes; //+4: 2 bytes for message size, 2 bytes for fake size
@@ -191,14 +191,15 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 				{
 					Send(message, true); //bring message back to front of list
 					message = new Message(); //empty message
-					fakeSize = max( (int)(maxBytes - sentBytes - 4), 0 ); //rest file is fake packet
-				}
-				else
-				{
-					fakeSize = max( (int)(minPacketSize - message->GetCount() - 4), 0 );
+					fakeSize = maxBytes - sentBytes - 4; //rest file is fake packet
 				}
 
+				//verify fakeSize boundary
+				size_t maxFakeSize = maxBytes - sentBytes - message->GetCount() - 4;
+				fakeSize = min((int)fakeSize, (int)maxFakeSize); //should not more than remain bytes
+				fakeSize = max((int)fakeSize, 0); //should not less than zero
 
+				//prepare sending message
 				size_t messageSize = message->GetCount();
 				BarbaBuffer fakeData(fakeSize);
 
