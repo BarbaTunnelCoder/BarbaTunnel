@@ -139,13 +139,16 @@ void BarbaComm::Log(LPCTSTR msg, bool notify)
 	else
 	{
 		if (GetFileSize(LogFileHandle, NULL)>this->MaxLogFilesize)
-			SetEndOfFile(0); //reset if reach limit
+		{
+			SetFilePointer(NotifyFileHandle, 0, 0, FILE_BEGIN);
+			SetEndOfFile(NotifyFileHandle); //reset if reach limit
+		}
 
 		_tprintf_s(msg);
 		_tprintf_s(_T("\r\n"));
 		WriteFile(LogFileHandle, msgUtf8, (DWORD)strlen(msgUtf8), &writeLen, NULL);
 		WriteFile(LogFileHandle, _T("\r\n"), 2, &writeLen, NULL);
-		SetEndOfFile(LogFileHandle);
+		SetEndOfFile(LogFileHandle); //release cash
 	}
 }
 
