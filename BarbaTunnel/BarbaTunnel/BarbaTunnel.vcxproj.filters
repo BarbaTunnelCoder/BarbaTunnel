@@ -21,14 +21,17 @@
     <None Include="Certificate\BarbaTunnel.cer" />
     <None Include="Certificate\BarbaTunnel.pfx" />
     <None Include="Certificate\BarbaTunnel.pvk" />
+    <None Include="..\WinDivert\src\_binDownload2\amd64\WdfCoInstaller01009.dll" />
+    <None Include="..\WinDivert\src\_binDownload2\amd64\WinDivert.dll" />
+    <None Include="..\WinDivert\src\_binDownload2\amd64\WinDivert.inf" />
+    <None Include="..\WinDivert\src\_binDownload2\amd64\WinDivert.sys" />
     <None Include="WinDivert\amd64\WdfCoInstaller01009.dll" />
-    <None Include="WinDivert\amd64\divert.dll" />
-    <None Include="WinDivert\amd64\divert.sys" />
-    <None Include="WinDivert\i386\divert.dll" />
-    <None Include="WinDivert\i386\WdfCoInstaller01009.dll" />
-    <None Include="WinDivert\i386\divert.sys" />
-    <None Include="WinDivert\i386\divert.inf" />
-    <None Include="WinDivert\amd64\divert.inf" />
+    <None Include="WinDivert\amd64\WinDivert.dll" />
+    <None Include="WinDivert\amd64\WinDivert.inf" />
+    <None Include="WinDivert\amd64\WinDivert.sys" />
+    <None Include="WinDivert\i386\WinDivert.dll" />
+    <None Include="WinDivert\i386\WinDivert.inf" />
+    <None Include="WinDivert\i386\WinDivert.sys" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -172,9 +175,6 @@
     <ClInclude Include="WinDivert\divert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WinDivert\divert_device.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WinDivert\WinDivertApi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -182,6 +182,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BarbaBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\WinDivert\src\include\divert_device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\WinDivert\src\include\divert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\WinDivert\src\_binDownload2\include\divert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -299,5 +308,8 @@
     <ResourceCompile Include="BarbaTunnel.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="WinDivert\i386\WinDivert.lib" />
   </ItemGroup>
 </Project>
