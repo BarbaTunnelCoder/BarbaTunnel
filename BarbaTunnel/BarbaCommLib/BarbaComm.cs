@@ -313,18 +313,29 @@ namespace BarbaTunnel.CommLib
 
         public String ReadLog()
         {
+            var log = "";
             try
             {
+                const int MaxSize = 200*1000;
                 using (var fs = File.Open(LogFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                using (var logReader = new StreamReader(fs, Encoding.UTF8))
                 {
-                    return logReader.ReadToEnd();
+                    var pos = Math.Max(fs.Length - MaxSize, 0);
+                    fs.Seek(pos, SeekOrigin.Begin);
+                    using (var logReader = new StreamReader(fs, Encoding.UTF8))
+                    {
+                        log = logReader.ReadToEnd();
+                        var nl = log.IndexOf("\r\n");
+                        if (pos > 0 && nl != -1)
+                        {
+                            log = log.Substring(nl + 2);
+                        }
+                    }
                 }
             }
-            catch
-            {
-                return "";
-            }
+            catch { }
+
+            return log;
+
         }
 
         DateTime ReadLastWorkTime()
