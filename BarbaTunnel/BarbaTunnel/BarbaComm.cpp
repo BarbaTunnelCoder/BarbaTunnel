@@ -7,7 +7,6 @@ BarbaComm::BarbaComm(void)
 	: DisposeEvent(true, false)
 {
 	theComm = this;
-	this->MaxLogFilesize = 1000000; //1MB
 	this->_IsAlreadyRunning = false;
 	this->LogFileHandle = NULL;
 	this->NotifyFileHandle = NULL;
@@ -138,11 +137,11 @@ void BarbaComm::Log(LPCTSTR msg, bool notify)
 	}
 	else
 	{
-		if (GetFileSize(LogFileHandle, NULL)>this->MaxLogFilesize)
-		{
-			SetFilePointer(NotifyFileHandle, 0, 0, FILE_BEGIN);
-			SetEndOfFile(NotifyFileHandle); //reset if reach limit
-		}
+		//if (GetFileSize(LogFileHandle, NULL)>this->MaxLogFilesize)
+		//{
+		//	SetFilePointer(NotifyFileHandle, 0, 0, FILE_BEGIN);
+		//	SetEndOfFile(NotifyFileHandle); //reset if reach limit
+		//}
 
 		_tprintf_s(msg);
 		_tprintf_s(_T("\r\n"));

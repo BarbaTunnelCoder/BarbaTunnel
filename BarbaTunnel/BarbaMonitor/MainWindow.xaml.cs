@@ -109,7 +109,7 @@ namespace BarbaTunnel.Monitor
             BarbaNotify.AutoStartMenu.Checked = IsAutoStart;
             InitializeComponent();
             BarbaComm.Initialize();
-            this.verboseCheckBox.IsChecked = BarbaComm.VerboseMode;
+            verboseCheckBox.IsChecked = BarbaComm.VerboseMode;
 
             //StartTunnel when monitor start
             if (BarbaComm.Status == BarbaStatus.Stopped)
