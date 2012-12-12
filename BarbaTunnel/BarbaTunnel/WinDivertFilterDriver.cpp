@@ -16,10 +16,10 @@ void InitWinDivertApi()
 	TCHAR curDir[MAX_PATH];
 	GetCurrentDirectory(_countof(curDir), curDir);
 	SetCurrentDirectory( BarbaApp::GetModuleFolder() ); //WinDivert need current directory to install driver perhaps for WdfCoInstaller01009
-	HMODULE module = LoadLibrary(_T("divert.dll"));
+	HMODULE module = LoadLibrary(_T("WinDivert.dll"));
 	SetCurrentDirectory(curDir);
 	if (module==NULL) 
-		throw _T("Could not load divert.dll module!");
+		throw _T("Could not load WinDivert.dll module!");
 	gWinDivertApi.Init(module);
 }
 
