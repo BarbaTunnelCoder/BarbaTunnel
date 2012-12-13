@@ -21,10 +21,6 @@
     <None Include="Certificate\BarbaTunnel.cer" />
     <None Include="Certificate\BarbaTunnel.pfx" />
     <None Include="Certificate\BarbaTunnel.pvk" />
-    <None Include="..\WinDivert\src\_binDownload2\amd64\WdfCoInstaller01009.dll" />
-    <None Include="..\WinDivert\src\_binDownload2\amd64\WinDivert.dll" />
-    <None Include="..\WinDivert\src\_binDownload2\amd64\WinDivert.inf" />
-    <None Include="..\WinDivert\src\_binDownload2\amd64\WinDivert.sys" />
     <None Include="WinDivert\amd64\WdfCoInstaller01009.dll" />
     <None Include="WinDivert\amd64\WinDivert.dll" />
     <None Include="WinDivert\amd64\WinDivert.inf" />
@@ -182,15 +178,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BarbaBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\WinDivert\src\include\divert_device.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\WinDivert\src\include\divert.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\WinDivert\src\_binDownload2\include\divert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
