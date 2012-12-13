@@ -175,10 +175,6 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\WinDivert\src\_binDownload2\amd64\WdfCoInstaller01009.dll" />
-    <None Include="..\WinDivert\src\_binDownload2\amd64\WinDivert.dll" />
-    <None Include="..\WinDivert\src\_binDownload2\amd64\WinDivert.inf" />
-    <None Include="..\WinDivert\src\_binDownload2\amd64\WinDivert.sys" />
     <None Include="Certificate\BarbaTunnel.cer" />
     <None Include="Certificate\BarbaTunnel.pfx" />
     <None Include="Certificate\BarbaTunnel.pvk" />
@@ -199,9 +195,6 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\WinDivert\src\include\divert.h" />
-    <ClInclude Include="..\WinDivert\src\include\divert_device.h" />
-    <ClInclude Include="..\WinDivert\src\_binDownload2\include\divert.h" />
     <ClInclude Include="BarbaApp.h" />
     <ClInclude Include="BarbaBuffer.h" />
     <ClInclude Include="BarbaClient\BarbaClientHttpCourier.h" />
