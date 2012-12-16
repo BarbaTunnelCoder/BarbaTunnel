@@ -85,14 +85,14 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 	SetCurrentDirectory( BarbaApp::GetModuleFolder() ); //WinDivert need current directory to install driver perhaps for WdfCoInstaller01009
 
 	//try to solve WinDivert issue at first time load
-	HANDLE divertHandle = gWinDivertApi.DivertOpen("false");
+	HANDLE divertHandle = gWinDivertApi.DivertOpen("false", DIVERT_LAYER_NETWORK, 0, 0);
 	if (divertHandle!=INVALID_HANDLE_VALUE)
 		gWinDivertApi.DivertClose(divertHandle);
 
 	//apply filter
 	std::string filter;
 	AddPacketFilter(&filter);
-	divertHandle = gWinDivertApi.DivertOpen(filter.data());
+	divertHandle = gWinDivertApi.DivertOpen(filter.data(), DIVERT_LAYER_NETWORK, 0, 0);
 	if (divertHandle==INVALID_HANDLE_VALUE && GetLastError() == ERROR_INVALID_PARAMETER)
 	{
 		//IP-Only filter
@@ -100,14 +100,14 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 		this->FilterIpOnly = true;
 		filter.clear();
 		AddPacketFilter(&filter);
-		divertHandle = gWinDivertApi.DivertOpen(filter.data());
+		divertHandle = gWinDivertApi.DivertOpen(filter.data(), DIVERT_LAYER_NETWORK, 0, 0);
 	}
 
 	//true filter
 	if (divertHandle==INVALID_HANDLE_VALUE && GetLastError() == ERROR_INVALID_PARAMETER)
 	{
 		BarbaLog(_T("WinDivert does not accept filter criteria. Please reduce configuration files. BarbaTunnel try to capture all network packets (slow performance)!"));
-		divertHandle = gWinDivertApi.DivertOpen("true");
+		divertHandle = gWinDivertApi.DivertOpen("true", DIVERT_LAYER_NETWORK, 0, 0);
 	}
 
 	if (divertHandle==INVALID_HANDLE_VALUE)
