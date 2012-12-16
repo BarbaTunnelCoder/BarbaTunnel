@@ -1,321 +1,313 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Threading;
-using System.Security.AccessControl;
-using System.Security.Principal;
-using System.Runtime.InteropServices;
-using System.IO;
 using System.Windows.Threading;
 using BarbaTunnel.CommLib;
 
+// ReSharper disable LocalizableElement
 namespace BarbaTunnel.Monitor
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
-    {
-        [DllImport("kernel32.dll")]
-        private static extern int GetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName);
+	/// <summary>
+	/// Interaction logic for MainWindow.xaml
+	/// </summary>
+	public partial class MainWindow
+	{
+		readonly BarbaComm _barbaComm = new BarbaComm();
+		readonly BarbaNotify _barbaNotify = new BarbaNotify();
 
-        BarbaComm BarbaComm = new BarbaComm();
-        BarbaNotify BarbaNotify = new BarbaNotify();
+		public String AppName { get { return "BarbaTunnel Monitor"; } }
+		public String ModuleFile { get { return System.Reflection.Assembly.GetExecutingAssembly().Location; } }
+		private const String WindowsRunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+		private const String BarbaTunnelRegKeyPath = @"Software\BarbaTunnel";
+		private String AutoStartRegValue { get { return String.Format("\"{0}\" /delaystart", ModuleFile); } }
 
-        public String AppName { get { return "BarbaTunnel Monitor"; } }
-        public String ModuleFile { get { return System.Reflection.Assembly.GetExecutingAssembly().Location; } }
-        private const String WindowsRunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
-        private const String BarbaTunnelRegKeyPath = @"Software\BarbaTunnel";
-        private String AutoStartRegValue { get { return String.Format("\"{0}\" /delaystart", ModuleFile); } }
+		// ReSharper disable ValueParameterNotUsed
+		public bool IsProfileCreated
+		{
+			get
+			{
+				try
+				{
+					return (int)Microsoft.Win32.Registry.GetValue("HKEY_CURRENT_USER\\" + BarbaTunnelRegKeyPath, "IsBarbaMonitorInitialized", 0) != 0;
+				}
+				catch
+				{
+					return false;
+				}
+			}
+			set
+			{
+				Microsoft.Win32.Registry.SetValue("HKEY_CURRENT_USER\\" + BarbaTunnelRegKeyPath, "IsBarbaMonitorInitialized", 1);
+			}
+		}
+		// ReSharper restore ValueParameterNotUsed
 
-        public bool IsProfileCreated
-        {
-            get
-            {
-                try
-                {
-                    return (int)Microsoft.Win32.Registry.GetValue("HKEY_CURRENT_USER\\" + BarbaTunnelRegKeyPath, "IsBarbaMonitorInitialized", 0) != 0;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-            set
-            {
-                Microsoft.Win32.Registry.SetValue("HKEY_CURRENT_USER\\" + BarbaTunnelRegKeyPath, "IsBarbaMonitorInitialized", 1);
-            }
-        }
+		public bool IsAutoStartTunnel
+		{
+			get { return _barbaComm.IsAutoStartTunnel; }
+			set { _barbaComm.IsAutoStartTunnel = value; }
+		}
 
-        public bool IsAutoStart
-        {
-            get
-            {
-                try
-                {
-                    String val = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(WindowsRunKeyPath, true).GetValue("BarbaMonitor", null) as String;
-                    return AutoStartRegValue.Equals(val, StringComparison.InvariantCultureIgnoreCase);
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-            set
-            {
-                if (value)
-                    Microsoft.Win32.Registry.CurrentUser.OpenSubKey(WindowsRunKeyPath, true).SetValue("BarbaMonitor", AutoStartRegValue);
-                else
-                    Microsoft.Win32.Registry.CurrentUser.OpenSubKey(WindowsRunKeyPath, true).DeleteValue("BarbaMonitor");
-            }
-        }
-
-
-        bool ExitMode = false;
-        public MainWindow()
-        {
-            //setup for first time
-            if (!IsProfileCreated)
-            {
-                IsAutoStart = true;
-                IsProfileCreated = true;
-            }
+		// ReSharper disable PossibleNullReferenceException
+		public bool IsAutoStartMonitor
+		{
+			get
+			{
+				try
+				{
+					var val = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(WindowsRunKeyPath, true).GetValue("BarbaMonitor", null) as String;
+					return AutoStartRegValue.Equals(val, StringComparison.InvariantCultureIgnoreCase);
+				}
+				catch
+				{
+					return false;
+				}
+			}
+			set
+			{
+				if (value)
+					Microsoft.Win32.Registry.CurrentUser.OpenSubKey(WindowsRunKeyPath, true).SetValue("BarbaMonitor", AutoStartRegValue);
+				else
+					Microsoft.Win32.Registry.CurrentUser.OpenSubKey(WindowsRunKeyPath, true).DeleteValue("BarbaMonitor");
+			}
+		}
+		// ReSharper restore PossibleNullReferenceException
 
 
-            this.Closed += new EventHandler(MainWindow_Closed);
-            this.Loaded += new RoutedEventHandler(MainWindow_Loaded);
-            BarbaComm.NotifyChanged += new EventHandler(BarbaComm_Notified);
-            BarbaComm.LogChanged += new EventHandler(BarbaComm_LogAdded);
-            BarbaComm.StatusChanged += new EventHandler(BarbaComm_StatusChanged);
-            BarbaNotify.NotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_MouseClick);
-            BarbaNotify.NotifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_MouseClick);
-            BarbaNotify.MainWindowMenu.Click += delegate(object sender, EventArgs args) { this.DoShowMainWindow(); };
-            BarbaNotify.ExitMenu.Click += delegate(object sender, EventArgs args) { this.DoExit(false); };
-            BarbaNotify.ExitAndStopMenu.Click += delegate(object sender, EventArgs args) { this.DoExit(true); };
-            BarbaNotify.StartMenu.Click += delegate(object sender, EventArgs args) { this.DoStart(); };
-            BarbaNotify.RestartMenu.Click += delegate(object sender, EventArgs args) { this.DoRestart(); };
-            BarbaNotify.StopMenu.Click += delegate(object sender, EventArgs args) { this.DoStop(); };
-            BarbaNotify.AutoStartMenu.Click += delegate(object sender, EventArgs args) { IsAutoStart = !IsAutoStart; BarbaNotify.AutoStartMenu.Checked = IsAutoStart; };
-            BarbaNotify.AutoStartMenu.Checked = IsAutoStart;
-            InitializeComponent();
-            BarbaComm.Initialize();
-            verboseCheckBox.IsChecked = BarbaComm.VerboseMode;
+		bool _exitMode;
+		public MainWindow()
+		{
+			//setup for first time
+			if (!IsProfileCreated)
+			{
+				IsAutoStartMonitor = true;
+				IsProfileCreated = true;
+			}
 
-            //StartTunnel when monitor start
-            if (BarbaComm.Status == BarbaStatus.Stopped)
-            {
-                reportTextBox.Text = "BarbaTunnel is not started!";
-                DoStart();
-            }
-            else
-            {
-                reportTextBox.Text = BarbaComm.ReadLog();
-            }
-        }
 
-        void UpdateStatus()
-        {
-            BarbaStatus status = BarbaComm.Status;
-            if (status == BarbaStatus.Stopped)
-            {
-                statusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-                BarbaNotify.NotifyIcon.Icon = new System.Drawing.Icon(Resource1.Status_Stopped, new System.Drawing.Size(16, 16));
-                Icon = StopIcon.Source;
-            }
-            else if (status == BarbaStatus.Idle || status == BarbaStatus.Waiting)
-            {
-                statusTextBlock.Foreground = new SolidColorBrush(Colors.Orange);
-                BarbaNotify.NotifyIcon.Icon = new System.Drawing.Icon(Resource1.Status_Idle, new System.Drawing.Size(16, 16));
-                Icon = IdleIcon.Source;
-            }
-            else
-            {
-                statusTextBlock.Foreground = new SolidColorBrush(Colors.Green);
-                BarbaNotify.NotifyIcon.Icon = new System.Drawing.Icon(Resource1.Status_Started, new System.Drawing.Size(16, 16));
-                Icon = StartIcon.Source;
-            }
+			Closed += MainWindow_Closed;
+			Loaded += MainWindow_Loaded;
+			_barbaComm.NotifyChanged += BarbaComm_Notified;
+			_barbaComm.LogChanged += BarbaComm_LogAdded;
+			_barbaComm.StatusChanged += BarbaComm_StatusChanged;
+			_barbaNotify.NotifyIcon.MouseClick += NotifyIcon_MouseClick;
+			_barbaNotify.NotifyIcon.MouseDoubleClick += NotifyIcon_MouseClick;
+			_barbaNotify.MainWindowMenu.Click += (sender, args) => DoShowMainWindow();
+			_barbaNotify.ExitMenu.Click += delegate { DoExit(false); };
+			_barbaNotify.ExitAndStopMenu.Click += delegate { DoExit(true); };
+			_barbaNotify.StartMenu.Click += delegate { DoStart(); };
+			_barbaNotify.RestartMenu.Click += (sender, args) => DoRestart();
+			_barbaNotify.StopMenu.Click += delegate { DoStop(); };
+			_barbaNotify.AutoStartMonitorMenu.Click += delegate { IsAutoStartMonitor = !IsAutoStartMonitor; _barbaNotify.AutoStartMonitorMenu.Checked = IsAutoStartMonitor; };
+			_barbaNotify.AutoStartMonitorMenu.Checked = IsAutoStartMonitor;
+			_barbaNotify.AutoStartTunnelMenu.Click += delegate { IsAutoStartTunnel = !IsAutoStartTunnel; _barbaNotify.AutoStartTunnelMenu.Checked = IsAutoStartTunnel; };
+			_barbaNotify.AutoStartTunnelMenu.Checked = IsAutoStartTunnel;
+			InitializeComponent();
+			_barbaComm.Initialize();
+			VerboseCheckBox.IsChecked = _barbaComm.IsVerboseMode;
 
-            BarbaNotify.StartMenu.Enabled = startButton.IsEnabled = status == BarbaStatus.Stopped && status != BarbaStatus.Waiting;
-            BarbaNotify.StopMenu.Enabled = stopButton.IsEnabled = status != BarbaStatus.Stopped && status != BarbaStatus.Waiting;
-            BarbaNotify.RestartMenu.Enabled = restartButton.IsEnabled = status != BarbaStatus.Stopped && status != BarbaStatus.Waiting;
-            statusTextBlock.Text = BarbaComm.Status.ToString();
-            BarbaNotify.NotifyIcon.Text = "BarbaTunnel is " + BarbaComm.Status.ToString();
-        }
+			//StartTunnel when monitor start
+			if (_barbaComm.Status == BarbaStatus.Stopped && IsAutoStartTunnel)
+			{
+				ReportTextBox.Text = "BarbaTunnel is not started!";
+				DoStart();
+			}
+			else
+			{
+				ReportTextBox.Text = _barbaComm.ReadLog();
+			}
+		}
 
-        void BarbaComm_StatusChanged(object sender, EventArgs e)
-        {
-            this.Dispatcher.Invoke(DispatcherPriority.Normal, (ThreadStart)delegate
-            {
-                UpdateStatus();
-            });
-        }
+		void UpdateStatus()
+		{
+			var status = _barbaComm.Status;
+			if (status == BarbaStatus.Stopped)
+			{
+				StatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+				_barbaNotify.NotifyIcon.Icon = new System.Drawing.Icon(Resource1.Status_Stopped, new System.Drawing.Size(16, 16));
+				Icon = StopIcon.Source;
+			}
+			else if (status == BarbaStatus.Idle || status == BarbaStatus.Waiting)
+			{
+				StatusTextBlock.Foreground = new SolidColorBrush(Colors.Orange);
+				_barbaNotify.NotifyIcon.Icon = new System.Drawing.Icon(Resource1.Status_Idle, new System.Drawing.Size(16, 16));
+				Icon = IdleIcon.Source;
+			}
+			else
+			{
+				StatusTextBlock.Foreground = new SolidColorBrush(Colors.Green);
+				_barbaNotify.NotifyIcon.Icon = new System.Drawing.Icon(Resource1.Status_Started, new System.Drawing.Size(16, 16));
+				Icon = StartIcon.Source;
+			}
 
-        void UpdateLog()
-        {
-            if (reportCheckBox.IsChecked.Value)
-            {
-                if (reportTextBox.IsFocused)
-                    reportCheckBox.Focus(); // TextBox jump to start if have focus
-                reportTextBox.Text = BarbaComm.ReadLog();
-                reportTextBox.ScrollToEnd();
-            }
-        }
+			_barbaNotify.StartMenu.Enabled = StartButton.IsEnabled = status == BarbaStatus.Stopped && status != BarbaStatus.Waiting;
+			_barbaNotify.StopMenu.Enabled = StopButton.IsEnabled = status != BarbaStatus.Stopped && status != BarbaStatus.Waiting;
+			_barbaNotify.RestartMenu.Enabled = RestartButton.IsEnabled = status != BarbaStatus.Stopped && status != BarbaStatus.Waiting;
+			StatusTextBlock.Text = _barbaComm.Status.ToString();
+			_barbaNotify.NotifyIcon.Text = "BarbaTunnel is " + _barbaComm.Status.ToString();
+		}
 
-        void BarbaComm_LogAdded(object sender, EventArgs e)
-        {
-            this.Dispatcher.Invoke(DispatcherPriority.Normal, (ThreadStart)delegate
-            {
-                UpdateLog();
-            });
-        }
+		void BarbaComm_StatusChanged(object sender, EventArgs e)
+		{
+			Dispatcher.Invoke(DispatcherPriority.Normal, (ThreadStart)UpdateStatus);
+		}
 
-        private void reportCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            UpdateLog();
-        }
+		void UpdateLog()
+		{
+			if (ReportCheckBox.IsChecked != null && ReportCheckBox.IsChecked.Value)
+			{
+				if (ReportTextBox.IsFocused)
+					ReportCheckBox.Focus(); // TextBox jump to start if have focus
+				ReportTextBox.Text = _barbaComm.ReadLog();
+				ReportTextBox.ScrollToEnd();
+			}
+		}
 
-        void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            UpdateStatus();
-            reportTextBox.ScrollToEnd();
-        }
+		void BarbaComm_LogAdded(object sender, EventArgs e)
+		{
+			Dispatcher.Invoke(DispatcherPriority.Normal, (ThreadStart)UpdateLog);
+		}
 
-        void BarbaComm_Notified(object sender, EventArgs e)
-        {
-            String title;
-            String text = BarbaComm.ReadNotify(out title);
-            if (!String.IsNullOrEmpty(title) && !String.IsNullOrEmpty(text))
-            {
-                var tipIcon = System.Windows.Forms.ToolTipIcon.Info;
-                if (title.IndexOf("error:", StringComparison.InvariantCultureIgnoreCase) != -1 || title.IndexOf("stopped", StringComparison.InvariantCultureIgnoreCase) != -1)
-                {
-                    tipIcon = System.Windows.Forms.ToolTipIcon.Error;
-                }
+		private void ReportCheckBox_Checked(object sender, RoutedEventArgs e)
+		{
+			UpdateLog();
+		}
 
-                BarbaNotify.NotifyIcon.ShowBalloonTip(10, title, text, tipIcon);
-            }
-        }
+		void MainWindow_Loaded(object sender, RoutedEventArgs e)
+		{
+			UpdateStatus();
+			ReportTextBox.ScrollToEnd();
+		}
 
-        void NotifyIcon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
-        {
-            if (e.Button == System.Windows.Forms.MouseButtons.Left)
-                DoShowMainWindow();
-        }
+		void BarbaComm_Notified(object sender, EventArgs e)
+		{
+			String title;
+			var text = _barbaComm.ReadNotify(out title);
+			if (!String.IsNullOrEmpty(title) && !String.IsNullOrEmpty(text))
+			{
+				var tipIcon = System.Windows.Forms.ToolTipIcon.Info;
+				if (title.IndexOf("error:", StringComparison.InvariantCultureIgnoreCase) != -1 || title.IndexOf("stopped", StringComparison.InvariantCultureIgnoreCase) != -1)
+				{
+					tipIcon = System.Windows.Forms.ToolTipIcon.Error;
+				}
 
-        void MainWindow_Closed(object sender, EventArgs e)
-        {
-            BarbaComm.Dispose();
-            BarbaNotify.Dispose();
-        }
+				_barbaNotify.NotifyIcon.ShowBalloonTip(10, title, text, tipIcon);
+			}
+		}
 
-        void ShowMainWindowTimer(object sender, EventArgs e)
-        {
-            DispatcherTimer timer = (DispatcherTimer)sender;
-            timer.Stop();
-            this.Activate();
-        }
+		void NotifyIcon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
+		{
+			if (e.Button == System.Windows.Forms.MouseButtons.Left)
+				DoShowMainWindow();
+		}
 
-        void DoShowMainWindow()
-        {
-            this.Visibility = System.Windows.Visibility.Visible;
-            this.Activate();
-            if (this.WindowState == System.Windows.WindowState.Minimized) this.WindowState = System.Windows.WindowState.Normal;
-            DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(0);
-            timer.Tick += new EventHandler(ShowMainWindowTimer); // i don't know why WPF does not activate MainWindow at first-time
-            timer.Start();
-        }
+		void MainWindow_Closed(object sender, EventArgs e)
+		{
+			_barbaComm.Dispose();
+			_barbaNotify.Dispose();
+		}
 
-        void DoExit(bool stop)
-        {
-            try
-            {
-                if (stop && BarbaComm.Status != BarbaStatus.Stopped)
-                    BarbaComm.Stop();
+		void ShowMainWindowTimer(object sender, EventArgs e)
+		{
+			var timer = (DispatcherTimer)sender;
+			timer.Stop();
+			Activate();
+		}
 
-                this.ExitMode = true;
-                this.Close();
-            }
-            catch { }
-        }
+		void DoShowMainWindow()
+		{
+			Visibility = Visibility.Visible;
+			Activate();
+			if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+			var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(0) };
+			timer.Tick += ShowMainWindowTimer; // i don't know why WPF does not activate MainWindow at first-time
+			timer.Start();
+		}
 
-        void DoStart()
-        {
-            try
-            {
-                if (BarbaComm.IsServiceRunnig)
-                    BarbaComm.StartByService();
-                else
-                    BarbaComm.Start();
-            }
-            catch (Exception err)
-            {
-                MessageBox.Show(err.ToString(), AppName, MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
+		void DoExit(bool stop)
+		{
+			try
+			{
+				if (stop && _barbaComm.Status != BarbaStatus.Stopped)
+					_barbaComm.Stop();
 
-        void DoRestart()
-        {
-            try
-            {
-                BarbaComm.Restart();
-            }
-            catch (Exception err)
-            {
-                MessageBox.Show(err.ToString(), AppName, MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
+				_exitMode = true;
+				Close();
+			}
+			// ReSharper disable EmptyGeneralCatchClause
+			catch
+			// ReSharper restore EmptyGeneralCatchClause
+			{ }
+		}
 
-        void DoStop()
-        {
-            try
-            {
-                BarbaComm.Stop();
-            }
-            catch (Exception err)
-            {
-                MessageBox.Show(err.ToString(), AppName, MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+		void DoStart()
+		{
+			try
+			{
+				if (_barbaComm.IsServiceRunnig)
+					_barbaComm.StartByService();
+				else
+					_barbaComm.Start();
+			}
+			catch (Exception err)
+			{
+				MessageBox.Show(err.ToString(), AppName, MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+		}
 
-        }
+		void DoRestart()
+		{
+			try
+			{
+				_barbaComm.Restart();
+			}
+			catch (Exception err)
+			{
+				MessageBox.Show(err.ToString(), AppName, MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+		}
 
-        void startButton_Click(object sender, RoutedEventArgs e)
-        {
-            DoStart();
-        }
+		void DoStop()
+		{
+			try
+			{
+				_barbaComm.Stop();
+			}
+			catch (Exception err)
+			{
+				MessageBox.Show(err.ToString(), AppName, MessageBoxButton.OK, MessageBoxImage.Error);
+			}
 
-        private void restartButton_Click(object sender, RoutedEventArgs e)
-        {
-            DoRestart();
-        }
+		}
 
-        private void stopButton_Click(object sender, RoutedEventArgs e)
-        {
-            DoStop();
-        }
+		void StartButton_Click(object sender, RoutedEventArgs e)
+		{
+			DoStart();
+		}
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            if (!ExitMode)
-            {
-                this.Visibility = System.Windows.Visibility.Hidden;
-                e.Cancel = true;
-            }
-        }
+		private void RestartButton_Click(object sender, RoutedEventArgs e)
+		{
+			DoRestart();
+		}
 
-        private void verboseCheckBox_Click(object sender, RoutedEventArgs e)
-        {
-            BarbaComm.VerboseMode = verboseCheckBox.IsChecked.Value;
-        }
-    }
+		private void StopButton_Click(object sender, RoutedEventArgs e)
+		{
+			DoStop();
+		}
+
+		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			if (!_exitMode)
+			{
+				Visibility = Visibility.Hidden;
+				e.Cancel = true;
+			}
+		}
+
+		private void VerboseCheckBox_Click(object sender, RoutedEventArgs e)
+		{
+			_barbaComm.IsVerboseMode = VerboseCheckBox.IsChecked != null && VerboseCheckBox.IsChecked.Value;
+		}
+	}
 }

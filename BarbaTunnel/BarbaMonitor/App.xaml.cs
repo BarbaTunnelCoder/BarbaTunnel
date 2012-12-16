@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
 using System.Windows;
 using Microsoft.Shell;
 
@@ -11,7 +8,7 @@ namespace BarbaTunnel.Monitor
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application, ISingleInstanceApp
+    public partial class App : ISingleInstanceApp
     {
         private const string Unique = @"Local\BarbaMonitor_SingleInstance";
 
@@ -36,10 +33,10 @@ namespace BarbaTunnel.Monitor
         {
             // handle command line arguments of second instance
             // ...
-            if (this.MainWindow.WindowState == System.Windows.WindowState.Minimized)
-                this.MainWindow.WindowState = System.Windows.WindowState.Normal;
-            this.MainWindow.Visibility = Visibility.Visible;
-            this.MainWindow.Activate();
+            if (MainWindow.WindowState == System.Windows.WindowState.Minimized)
+                MainWindow.WindowState = System.Windows.WindowState.Normal;
+            MainWindow.Visibility = Visibility.Visible;
+            MainWindow.Activate();
             return true;
         }
 

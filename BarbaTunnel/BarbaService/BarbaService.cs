@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.ServiceProcess;
-using System.Text;
+﻿using System.ServiceProcess;
 using System.Threading;
 using System.Security.AccessControl;
 
@@ -13,52 +6,55 @@ namespace BarbaTunnel.Service
 {
     public partial class BarbaService : ServiceBase
     {
-        BarbaTunnel.CommLib.BarbaComm BarbaComm = new BarbaTunnel.CommLib.BarbaComm();
-        EventWaitHandle ServiceEvent;
-        Thread ServiceEventThread;
-        bool Stopping = false;
+	    readonly CommLib.BarbaComm _barbaComm = new CommLib.BarbaComm();
+        EventWaitHandle _serviceEvent;
+        Thread _serviceEventThread;
+        bool _stopping;
         public BarbaService()
         {
             InitializeComponent();
-            BarbaComm.Initialize(false);
+            _barbaComm.Initialize(false);
         }
 
         private void InitServiceEvent()
         {
-            Stopping = false;
-            EventWaitHandleSecurity sec = new EventWaitHandleSecurity();
+            _stopping = false;
+            var sec = new EventWaitHandleSecurity();
             sec.AddAccessRule(new EventWaitHandleAccessRule("Everyone", EventWaitHandleRights.Synchronize | EventWaitHandleRights.Modify, AccessControlType.Allow));
             bool createdNew;
-            ServiceEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "Global\\BarbaTunnel_ServiceEvent", out createdNew, sec);
-            ServiceEventThread = new Thread(new ThreadStart(EventThreadMethod));
-            ServiceEventThread.Start();
+            _serviceEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "Global\\BarbaTunnel_ServiceEvent", out createdNew, sec);
+            _serviceEventThread = new Thread(EventThreadMethod);
+            _serviceEventThread.Start();
         }
 
         protected override void OnStart(string[] args)
         {
             //when BarbaService is running, BarbaTunnel should run by service not by user
             InitServiceEvent();
-            BarbaComm.Start(true);
+			if (_barbaComm.IsAutoStartTunnel)
+				_barbaComm.Start(true);
         }
 
         protected override void OnStop()
         {
-            Stopping = true;
-            ServiceEvent.Set();
-            BarbaComm.Stop();
-            ServiceEvent.Close();
+            _stopping = true;
+            _serviceEvent.Set();
+            _barbaComm.Stop();
+            _serviceEvent.Close();
         }
 
         void EventThreadMethod()
         {
             try
             {
-                while (ServiceEvent.WaitOne() && !Stopping)
+                while (_serviceEvent.WaitOne() && !_stopping)
                 {
-                    BarbaComm.Start();
+                    _barbaComm.Start();
                 }
             }
+// ReSharper disable EmptyGeneralCatchClause
             catch { }
+// ReSharper restore EmptyGeneralCatchClause
         }
 
     }

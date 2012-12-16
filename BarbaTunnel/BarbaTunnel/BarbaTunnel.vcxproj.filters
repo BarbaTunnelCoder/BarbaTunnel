@@ -28,6 +28,9 @@
     <None Include="WinDivert\i386\WinDivert.dll" />
     <None Include="WinDivert\i386\WinDivert.inf" />
     <None Include="WinDivert\i386\WinDivert.sys" />
+    <None Include="WinDivert\i386\WdfCoInstaller01009.dll" />
+    <None Include="WinDivert\i386\msvcr100.dll" />
+    <None Include="WinDivert\amd64\msvcr100.dll" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -295,8 +298,5 @@
     <ResourceCompile Include="BarbaTunnel.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="WinDivert\i386\WinDivert.lib" />
   </ItemGroup>
 </Project>
