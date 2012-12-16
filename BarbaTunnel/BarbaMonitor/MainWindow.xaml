@@ -3,22 +3,22 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="BarbaTunnel Monitor" Height="427" Width="810" Closing="Window_Closing" Visibility="Hidden">
     <Grid>
-        <TextBox Margin="12,116,12,12" Name="reportTextBox" IsReadOnly="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="LightGray" UndoLimit="0"></TextBox>
-        <Button Height="23" Margin="0,86,175,0" Name="startButton" VerticalAlignment="Top" Click="startButton_Click" HorizontalAlignment="Right" Width="75">
+        <TextBox Margin="12,116,12,12" Name="ReportTextBox" IsReadOnly="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="LightGray" UndoLimit="0"></TextBox>
+        <Button Height="23" Margin="0,86,175,0" Name="StartButton" VerticalAlignment="Top" Click="StartButton_Click" HorizontalAlignment="Right" Width="75">
             <StackPanel Orientation="Horizontal">
                 <Image Height="16" Width="16" HorizontalAlignment="Left" VerticalAlignment="Top"  Source="/BarbaMonitor;component/Resources/start.png" ></Image>
                 <TextBlock>Start</TextBlock>
             </StackPanel>
         </Button>
-        <TextBlock Height="23" HorizontalAlignment="Left" Margin="15,70,0,0" Name="textBlock2" Text="Status:" VerticalAlignment="Top" Width="45" />
-        <TextBlock Height="23" Margin="66,70,0,0" Name="statusTextBlock" VerticalAlignment="Top" Text="Stopped" HorizontalAlignment="Left" Width="115" FontWeight="Bold" />
-        <Button  Height="23" Margin="0,86,94,0" Name="restartButton" VerticalAlignment="Top" Click="restartButton_Click" HorizontalAlignment="Right" Width="75">
+        <TextBlock Height="23" HorizontalAlignment="Left" Margin="15,70,0,0" Name="TextBlock2" Text="Status:" VerticalAlignment="Top" Width="45" />
+        <TextBlock Height="23" Margin="66,70,0,0" Name="StatusTextBlock" VerticalAlignment="Top" Text="Stopped" HorizontalAlignment="Left" Width="115" FontWeight="Bold" />
+        <Button  Height="23" Margin="0,86,94,0" Name="RestartButton" VerticalAlignment="Top" Click="RestartButton_Click" HorizontalAlignment="Right" Width="75">
             <StackPanel Orientation="Horizontal">
                 <Image Height="16" Width="16" HorizontalAlignment="Left" VerticalAlignment="Top"  Source="/BarbaMonitor;component/Resources/restart.png" ></Image>
                 <TextBlock>Restart</TextBlock>
             </StackPanel>
         </Button>
-        <Button Height="23" Margin="0,86,13,0" Name="stopButton" VerticalAlignment="Top" Click="stopButton_Click" HorizontalAlignment="Right" Width="75">
+        <Button Height="23" Margin="0,86,13,0" Name="StopButton" VerticalAlignment="Top" Click="StopButton_Click" HorizontalAlignment="Right" Width="75">
             <StackPanel Orientation="Horizontal">
                 <Image Height="16" Width="16" HorizontalAlignment="Left" VerticalAlignment="Top"  Source="/BarbaMonitor;component/Resources/stop.png"/>
                 <TextBlock>Stop</TextBlock>
@@ -27,8 +27,8 @@
         <Image Height="32" Width="32" HorizontalAlignment="Left" Margin="172,12,0,0" Name="IdleIcon" VerticalAlignment="Top"  Source="/BarbaMonitor;component/Resources/Status_Idle.ico" Visibility="Hidden" />
         <Image Height="32" Width="32" HorizontalAlignment="Left" Margin="172,12,0,0" Name="StartIcon" VerticalAlignment="Top" Source="/BarbaMonitor;component/Resources/Status_Started.ico" Visibility="Hidden"  />
         <Image Height="32" Width="32" HorizontalAlignment="Left" Margin="172,12,0,0" Name="StopIcon" VerticalAlignment="Top" Source="/BarbaMonitor;component/Resources/Status_Stopped.ico" Visibility="Hidden" />
-        <TextBlock Height="23" HorizontalAlignment="Left" Margin="12,12,0,0" Name="textBlock3" Text="BarbaTunnel Monitor" VerticalAlignment="Top" Width="259" FontWeight="Bold" FontSize="16" />
-        <CheckBox Content="Verbose" Height="18" Margin="83,95,0,0" Name="verboseCheckBox" VerticalAlignment="Top" Click="verboseCheckBox_Click" HorizontalAlignment="Left" Width="68" />
-        <CheckBox Content="Report" Height="16" HorizontalAlignment="Left" Margin="15,95,0,0" Name="reportCheckBox" VerticalAlignment="Top" IsChecked="True" Checked="reportCheckBox_Checked" />
+        <TextBlock Height="23" HorizontalAlignment="Left" Margin="12,12,0,0" Name="TextBlock3" Text="BarbaTunnel Monitor" VerticalAlignment="Top" Width="259" FontWeight="Bold" FontSize="16" />
+        <CheckBox Content="Verbose" Height="18" Margin="83,95,0,0" Name="VerboseCheckBox" VerticalAlignment="Top" Click="VerboseCheckBox_Click" HorizontalAlignment="Left" Width="68" />
+        <CheckBox Content="Report" Height="16" HorizontalAlignment="Left" Margin="15,95,0,0" Name="ReportCheckBox" VerticalAlignment="Top" IsChecked="True" Checked="ReportCheckBox_Checked" />
     </Grid>
 </Window>

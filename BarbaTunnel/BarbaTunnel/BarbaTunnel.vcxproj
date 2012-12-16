@@ -147,6 +147,7 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)WinDivert\i386\*" "$(OutDir)" /E /D /Y
 xcopy "$(ProjectDir)WinpkFilter\i386\*" "$(OutDir)" /E /D /Y</Command>
@@ -178,6 +179,8 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <None Include="Certificate\BarbaTunnel.cer" />
     <None Include="Certificate\BarbaTunnel.pfx" />
     <None Include="Certificate\BarbaTunnel.pvk" />
+    <None Include="WinDivert\amd64\msvcr100.dll" />
+    <None Include="WinDivert\i386\msvcr100.dll" />
     <None Include="ReadMe.txt">
       <DeploymentContent>false</DeploymentContent>
     </None>
@@ -185,6 +188,7 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <None Include="WinDivert\amd64\WinDivert.dll" />
     <None Include="WinDivert\amd64\WinDivert.inf" />
     <None Include="WinDivert\amd64\WinDivert.sys" />
+    <None Include="WinDivert\i386\WdfCoInstaller01009.dll" />
     <None Include="WinDivert\i386\WinDivert.dll" />
     <None Include="WinDivert\i386\WinDivert.inf" />
     <None Include="WinDivert\i386\WinDivert.sys" />
@@ -291,9 +295,6 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BarbaTunnel.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="WinDivert\i386\WinDivert.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
