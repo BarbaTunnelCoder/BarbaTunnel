@@ -7,7 +7,7 @@
 #include "SimpleEvent.h"
 #include "BarbaException.h"
 
-#define BARBA_CurrentVersion _T("6.0")
+#define BARBA_CurrentVersion _T("6.1")
 #define BARBA_MaxConfigName 100
 #define BARBA_ServerMaxVirtualIps 0xFFFF
 #define BARBA_ServerMaxListenSockets 50
