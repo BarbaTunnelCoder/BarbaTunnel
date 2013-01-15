@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Date: 
+Server: Apache/2.2.3 (Red Hat)
+Last-Modified:
+ETag: {data}
+Accept-Ranges: bytes
+Content-Length:
+Keep-Alive: timeout=15, max=100
+Connection: Keep-Alive
+Content-Type:
