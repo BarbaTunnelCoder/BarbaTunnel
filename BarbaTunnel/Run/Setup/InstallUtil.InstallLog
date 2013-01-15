@@ -1,0 +1,70 @@
+﻿
+
+The uninstall is beginning.
+See the contents of the log file for the D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.exe assembly's progress.
+The file is located at D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.InstallLog.
+
+The uninstall has completed.
+
+Running a transacted installation.
+
+Beginning the Install phase of the installation.
+See the contents of the log file for the D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.exe assembly's progress.
+The file is located at D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.InstallLog.
+
+An exception occurred during the Install phase.
+System.InvalidOperationException: Cannot open Service Control Manager on computer '.'. This operation might require other privileges.
+The inner exception System.ComponentModel.Win32Exception was thrown with the following error message: Access is denied.
+
+The Rollback phase of the installation is beginning.
+See the contents of the log file for the D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.exe assembly's progress.
+The file is located at D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.InstallLog.
+
+The Rollback phase completed successfully.
+
+The transacted install has completed.
+
+
+The uninstall is beginning.
+See the contents of the log file for the D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.exe assembly's progress.
+The file is located at D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.InstallLog.
+
+The uninstall has completed.
+
+Running a transacted installation.
+
+Beginning the Install phase of the installation.
+See the contents of the log file for the D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.exe assembly's progress.
+The file is located at D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.InstallLog.
+
+An exception occurred during the Install phase.
+System.Security.SecurityException: The source was not found, but some or all event logs could not be searched.  Inaccessible logs: Security.
+
+The Rollback phase of the installation is beginning.
+See the contents of the log file for the D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.exe assembly's progress.
+The file is located at D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.InstallLog.
+
+The Rollback phase completed successfully.
+
+The transacted install has completed.
+
+
+The uninstall is beginning.
+See the contents of the log file for the D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.exe assembly's progress.
+The file is located at D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.InstallLog.
+
+The uninstall has completed.
+
+Running a transacted installation.
+
+Beginning the Install phase of the installation.
+See the contents of the log file for the D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.exe assembly's progress.
+The file is located at D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.InstallLog.
+
+The Install phase completed successfully, and the Commit phase is beginning.
+See the contents of the log file for the D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.exe assembly's progress.
+The file is located at D:\Mad\BarbaTunnel\Run\bin\debug\BarbaService.InstallLog.
+
+The Commit phase completed successfully.
+
+The transacted install has completed.
