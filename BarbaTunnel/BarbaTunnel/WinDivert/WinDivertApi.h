@@ -5,10 +5,10 @@ class WinDivertApi
 {
 public:
 	HMODULE ModuleHandle;
-	typedef BOOL (__stdcall *DIVERTCLOSE)(HANDLE handle);
-	typedef HANDLE (__stdcall *DIVERTOPEN)(const char *filter, DIVERT_LAYER layer, INT16 priority, UINT64 flags);
-	typedef BOOL (__stdcall *DIVERTRECV)(HANDLE handle, PVOID pPacket, UINT packetLen, PDIVERT_ADDRESS pAddr, UINT *readLen);
-	typedef BOOL (__stdcall *DIVERTSEND)(HANDLE handle, PVOID pPacket, UINT packetLen, PDIVERT_ADDRESS pAddr, UINT *writeLen);
+	typedef BOOL (*DIVERTCLOSE)(HANDLE handle);
+	typedef HANDLE (*DIVERTOPEN)(const char *filter, DIVERT_LAYER layer, INT16 priority, UINT64 flags);
+	typedef BOOL (*DIVERTRECV)(HANDLE handle, PVOID pPacket, UINT packetLen, PDIVERT_ADDRESS pAddr, UINT *readLen);
+	typedef BOOL (*DIVERTSEND)(HANDLE handle, PVOID pPacket, UINT packetLen, PDIVERT_ADDRESS pAddr, UINT *writeLen);
 	DIVERTOPEN DivertOpen;
 	DIVERTCLOSE DivertClose;
 	DIVERTRECV DivertRecv;
