@@ -7,10 +7,27 @@
 #include "WinDivert\WinDivertApi.h"
 
 WinDivertApi gWinDivertApi;
+extern BarbaComm* theComm;
 void InitWinDivertApi()
 {
 	if (gWinDivertApi.ModuleHandle!=NULL)
 		return;
+
+	//correct WinDivert.sys path in registry
+	TCHAR sysPath[MAX_PATH];
+	DWORD dataLen;
+	LSTATUS res = RegGetValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), REG_EXPAND_SZ, NULL, sysPath, &dataLen);
+	if (res == ERROR_SUCCESS)
+	{
+		if (!BarbaUtils::IsFileExists(sysPath) && _tcsclen(sysPath)!=0)
+		{
+			_stprintf_s(sysPath, _T("\\??\\%s\\WinDivert.sys"), BarbaUtils::GetModuleFolder().data()); 
+			res = RegSetKeyValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), REG_SZ, sysPath, (DWORD)_tcslen(sysPath)) ;
+			if (res != ERROR_SUCCESS )
+				throw _T("WinDivert.sys path is invalid and could not be fixed!");
+			theComm->Log(_T("WinDivert.sys path was invalid and fixed."), false);
+		}
+	}
 
 	//initialize DivertModule
 	TCHAR curDir[MAX_PATH];
@@ -57,7 +74,7 @@ void WinDivertFilterDriver::Initialize()
 
 
 	InitWinDivertApi();
-	
+
 	this->DivertHandle = OpenDivertHandle();
 }
 
@@ -135,15 +152,15 @@ void WinDivertFilterDriver::StartCaptureLoop()
 	//SendRouteFinderPacket
 	SendRouteFinderPacket();
 
-    // Main capture-modify-inject loop:
-    DIVERT_ADDRESS addr;    // Packet address
-    BYTE* buffer = new BYTE[0xFFFF];    // Packet buffer
-    UINT recvLen;
+	// Main capture-modify-inject loop:
+	DIVERT_ADDRESS addr;    // Packet address
+	BYTE* buffer = new BYTE[0xFFFF];    // Packet buffer
+	UINT recvLen;
 	while (!IsStopping())
-    {
+	{
 		//it will return error if this->DivertHandle closed
-        if (!gWinDivertApi.DivertRecv(this->DivertHandle, buffer, 0xFFFF, &addr, &recvLen))
-            continue;
+		if (!gWinDivertApi.DivertRecv(this->DivertHandle, buffer, 0xFFFF, &addr, &recvLen))
+			continue;
 
 
 		//Initialize Packet
@@ -156,14 +173,14 @@ void WinDivertFilterDriver::StartCaptureLoop()
 
 		//add packet to queue
 		AddPacket(packet, send);
-    }
+	}
 
 	delete buffer;
 }
 
 bool WinDivertFilterDriver::SendPacketToOutbound(PacketHelper* packet)
 {
-    DIVERT_ADDRESS addr;
+	DIVERT_ADDRESS addr;
 	addr.IfIdx = this->MainIfIdx;
 	addr.SubIfIdx = this->MainSubIfIdx;
 	addr.Direction = DIVERT_PACKET_DIRECTION_OUTBOUND;
@@ -284,7 +301,7 @@ void WinDivertFilterDriver::AddFilter(void* pfilter, bool send, u_long srcIpStar
 	std::string res = GetFilter(send, srcIpStart, srcIpEnd, desIpStart, desIpEnd, protocol, srcPortStart, srcPortEnd, desPortStart, desPortEnd);
 	if (!filter->empty())
 		filter->append(" || ");
-	
+
 	filter->append("(");
 	filter->append(res);
 	filter->append(")");
