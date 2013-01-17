@@ -15,8 +15,9 @@ void InitWinDivertApi()
 
 	//correct WinDivert.sys path in registry
 	TCHAR sysPath[MAX_PATH];
-	DWORD dataLen;
-	LSTATUS res = RegGetValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), REG_EXPAND_SZ, NULL, sysPath, &dataLen);
+	DWORD dataLen = _countof(sysPath);
+	LSTATUS res = RegGetValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), RRF_RT_ANY, NULL, sysPath, &dataLen);
+	
 	if (res == ERROR_SUCCESS)
 	{
 		if (!BarbaUtils::IsFileExists(sysPath) && _tcsclen(sysPath)!=0)
