@@ -6,12 +6,13 @@ curDir = oFso.GetParentFolderName(Wscript.ScriptFullName)
 ' *** check is xp and 64-bit
 DIM isxp
 DIM is64
+isxp = False
+is64 = False
 Set SystemSet = GetObject("winmgmts:").InstancesOf ("Win32_OperatingSystem") 
 for each System in SystemSet 
 	isxp = InStr(system.Version, "5.")=1
-	is64 = LCase(system.OSArchitecture)="64-bit"
+	if not(isxp) then is64 = LCase(system.OSArchitecture)="64-bit"
 Next
-
 
 ' *** install
 file = chr(34) & curDir & "\install.bat" & chr(34)
