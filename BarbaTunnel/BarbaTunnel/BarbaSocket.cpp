@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "BarbaSocket.h"
+#define MSG_WAITALL     0x8             /* do not complete until packet is completely filled */
 
 BarbaSocket::BarbaSocket(int af, int type, int protocol)
 {

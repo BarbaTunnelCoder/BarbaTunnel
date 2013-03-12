@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*				Copyright (c) 2000-2010 NT Kernel Resources.		     */
+/*                Copyright (c) 2000-2013 NT Kernel Resources.           */
 /*                           All Rights Reserved.                        */
 /*                          http://www.ntkernel.com                      */
 /*                           ndisrd@ntkernel.com                         */
@@ -17,7 +17,9 @@
 #include <WinIoctl.h>   // Compiling Win32 Applications Or DLL's
 #endif // _WINDOWS
 
-#define NDISRD_VERSION		   0x00073000
+#define NDISRD_VERSION			0x00093000
+#define NDISRD_MAJOR_VERSION	0x0003
+#define NDISRD_MINOR_VERSION	0x0009
 
 // Common strings set
 #define DRIVER_NAME_A "NDISRD"
@@ -28,7 +30,7 @@
 #define WINNT_REG_PARAM TEXT("SYSTEM\\CurrentControlSet\\Services\\ndisrd\\Parameters")
 
 #define FILTER_FRIENDLY_NAME        L"WinpkFilter NDIS LightWeight Filter"
-#define FILTER_UNIQUE_NAME          L"{5cbf81bd-5055-47cd-9055-a76b2b4e3697}" //unique name, quid name
+#define FILTER_UNIQUE_NAME          L"{CD75C963-E19F-4139-BC3B-14019EF72F19}" //unique name, quid name
 #define FILTER_SERVICE_NAME         L"NDISRD"
 
 // Some size constants
@@ -101,6 +103,7 @@ struct _INTERMEDIATE_BUFFER
 	ULONG			m_dwDeviceFlags;
 	ULONG			m_Length;
 	ULONG			m_Flags; // NDIS_PACKET flags
+	ULONG			m_8021q; // 802.1q info
 	UCHAR			m_IBuffer [MAX_ETHER_FRAME];
 	
 } INTERMEDIATE_BUFFER, *PINTERMEDIATE_BUFFER;
@@ -112,6 +115,7 @@ struct _INTERMEDIATE_BUFFER_WOW64
 	ULONG			m_dwDeviceFlags;
 	ULONG			m_Length;
 	ULONG			m_Flags; // NDIS_PACKET flags
+	ULONG			m_8021q; // 802.1q tag
 	UCHAR			m_IBuffer [MAX_ETHER_FRAME];
 	
 } INTERMEDIATE_BUFFER_WOW64, *PINTERMEDIATE_BUFFER_WOW64;
@@ -329,6 +333,49 @@ struct _IP_V4_FILTER
 	unsigned char	Padding[3];
 } IP_V4_FILTER, *PIP_V4_FILTER;
 
+typedef 
+struct _IP_SUBNET_V6
+{
+	IN6_ADDR		m_Ip;		// IPv6 address
+	IN6_ADDR		m_IpMask;	// IPv6 mask
+} IP_SUBNET_V6, *PIP_SUBNET_V6;
+
+typedef
+struct _IP_RANGE_V6
+{
+	IN6_ADDR		m_StartIp;	// IPv6 address
+	IN6_ADDR		m_EndIp;	// IPv6 address
+} IP_RANGE_V6, *PIP_RANGE_V6;
+
+typedef
+struct _IP_ADDRESS_V6
+{
+#define IP_SUBNET_V6_TYPE	0x00000001
+#define IP_RANGE_V6_TYPE	0x00000002
+	unsigned long m_AddressType; // Specifies which of the IP v4 address types is used below
+	union
+	{
+		IP_SUBNET_V6		m_IpSubnet;
+		IP_RANGE_V6			m_IpRange;
+	};
+} IP_ADDRESS_V6, *PIP_ADDRESS_V6;
+
+//
+// IP version 6 filter type
+//
+typedef 
+struct _IP_V6_FILTER
+{
+#define IP_V6_FILTER_SRC_ADDRESS	0x00000001
+#define IP_V6_FILTER_DEST_ADDRESS	0x00000002
+#define IP_V6_FILTER_PROTOCOL		0x00000004
+	unsigned long	m_ValidFields;	// Specifies which of the fileds below contain valid values and should be matched against the packet
+	IP_ADDRESS_V6	m_SrcAddress;	// IP v4 source address
+	IP_ADDRESS_V6	m_DestAddress;	// IP v4 destination address
+	unsigned char	m_Protocol;		// Specifies next protocol
+	unsigned char	Padding[3];
+} IP_V6_FILTER, *PIP_V6_FILTER;
+
 typedef
 struct _PORT_RANGE
 {
@@ -370,10 +417,12 @@ typedef
 struct _NETWORK_LAYER_FILTER
 {
 #define IPV4	0x00000001
+#define IPV6	0x00000002
 	unsigned long m_dwUnionSelector;
 	union
 	{
 		IP_V4_FILTER m_IPv4;
+		IP_V6_FILTER m_IPv6;
 	};
 } NETWORK_LAYER_FILTER, *PNETWORK_LAYER_FILTER;
 
