@@ -7,6 +7,7 @@
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#define _WIN32_WINNT _WIN32_WINNT_WINXP
 #endif // WIN32_LEAN_AND_MEAN
 #define _CRT_RAND_S
 
@@ -23,6 +24,7 @@
 #include <process.h>
 #include <fstream>
 #include <vector>
+#include "in6addr.h"
 #include "WinpkFilter\Common.h"
 #include "WinpkFilter\iphlp.h"
 

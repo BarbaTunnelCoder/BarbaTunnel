@@ -6,6 +6,10 @@
 #include "WinDivertFilterDriver.h"
 #include "WinDivert\WinDivertApi.h"
 
+typedef LSTATUS (APIENTRY *REGGETVALUEA) (HKEY hkey, LPCSTR lpSubKey, LPCSTR  lpValue, DWORD dwFlags, LPDWORD pdwType, PVOID pvData, LPDWORD pcbData);
+typedef LSTATUS (APIENTRY *REGSETKEYVALUEA) (HKEY hKey, LPCSTR lpSubKey, LPCSTR lpValueName, DWORD dwType, LPCVOID  lpData, DWORD cbData);
+
+
 WinDivertApi gWinDivertApi;
 extern BarbaComm* theComm;
 void InitWinDivertApi()
@@ -13,17 +17,22 @@ void InitWinDivertApi()
 	if (gWinDivertApi.ModuleHandle!=NULL)
 		return;
 
+	REGGETVALUEA pRegGetValue = (REGGETVALUEA)GetProcAddress(GetModuleHandle(_T("Advapi32.dll")), "RegGetValueA");
+	REGSETKEYVALUEA pRegSetKeyValue = (REGSETKEYVALUEA)GetProcAddress(GetModuleHandle(_T("Advapi32.dll")), "RegSetKeyValueA");
+	if (pRegGetValue==NULL || pRegSetKeyValue==NULL)
+		throw _T("Could not find the required procedure! Note: WinDivert does not work on Windows XP!");
+		
 	//correct WinDivert.sys path in registry
 	TCHAR sysPath[MAX_PATH];
 	DWORD dataLen = _countof(sysPath);
-	LSTATUS res = RegGetValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), RRF_RT_ANY, NULL, sysPath, &dataLen);
-	
+	LSTATUS res = pRegGetValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), RRF_RT_ANY, NULL, sysPath, &dataLen);
+
 	if (res == ERROR_SUCCESS)
 	{
 		if (!BarbaUtils::IsFileExists(sysPath) && _tcsclen(sysPath)!=0)
 		{
 			_stprintf_s(sysPath, _T("\\??\\%s\\WinDivert.sys"), BarbaUtils::GetModuleFolder().data()); 
-			res = RegSetKeyValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), REG_SZ, sysPath, (DWORD)_tcslen(sysPath)) ;
+			res = pRegSetKeyValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), REG_SZ, sysPath, (DWORD)_tcslen(sysPath)) ;
 			if (res != ERROR_SUCCESS )
 				throw _T("WinDivert.sys path is invalid and could not be fixed!");
 			theComm->Log(_T("WinDivert.sys path was invalid and fixed."), false);
