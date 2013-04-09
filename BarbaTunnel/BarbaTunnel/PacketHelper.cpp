@@ -473,6 +473,7 @@ BYTE PacketHelper::ConvertStringProtocol(LPCTSTR protocol)
 	else if (_tcsicmp(protocol, _T("IDP"))==0) return IPPROTO_IDP;
 	else if (_tcsicmp(protocol, _T("GRE"))==0) return IPPROTO_GRE;
 	else if (_tcsicmp(protocol, _T("ND"))==0) return IPPROTO_ND;
+	else if (_tcsicmp(protocol, _T("ESP"))==0) return 50;
 
 	return (BYTE)_tcstoul(protocol, NULL, 0);
 }
@@ -490,6 +491,7 @@ LPCTSTR PacketHelper::ConvertProtocolToString(BYTE protocol)
 	case IPPROTO_IDP: return _T("IDP");
 	case IPPROTO_GRE: return _T("GRE");
 	case IPPROTO_ND: return _T("ND");
+	case 50: return _T("ESP");
 	default: return _T("?");
 	}
 }
