@@ -136,13 +136,17 @@ void BarbaCourier::Send(Message* message, bool highPriority)
 std::tstring BarbaCourier::PrepareFakeRequests(std::tstring* request)
 {
 	std::tstring& ret = *request;
-	StringUtils::ReplaceAll(ret, _T("\r"), _T(""));
-	while (StringUtils::ReplaceAll(ret, _T("\n\n"), _T("\n"))!=0); //prevent more than one \n\n
+	std::tstring req;
+	while (req.length()!=ret.length())
+	{
+		req = ret;
+		StringUtils::Trim(ret, ' ');
+		StringUtils::Trim(ret, '\n');
+	}
 	StringUtils::Trim(ret, '\n');
 	ret.append(_T("\n\n"));
 	StringUtils::ReplaceAll(ret, _T("\n"), _T("\r\n"));
 	return ret;
-
 }
 
 void BarbaCourier::Receive(BarbaBuffer* /*data*/)
