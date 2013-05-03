@@ -23,12 +23,10 @@ struct BarbaCourierCreateStrcut
 	u_int ThreadsStackSize;
 	u_int ConnectionTimeout;
 	u_int KeepAliveInterval;
-	bool bombardGet; 
-	bool bombardPost;  
-	bool bombardPostReply;  
+	bool AllowBombard;
+	std::tstring HttpBombardMode;
 	std::tstring HttpGetTemplateBombard;
 	std::tstring HttpPostTemplateBombard;
-
 };
 
 //BarbaCourier
@@ -54,6 +52,7 @@ protected:
 public:
 	//@maxConnenction number of simultaneous connection for each outgoing and incoming, eg: 2 mean 2 connection for send and 2 connection for receive so the total will be 4
 	explicit BarbaCourier(BarbaCourierCreateStrcut* cs);
+	void RefreshParameters();
 	virtual void Send(BarbaBuffer* data);
 	virtual void Receive(BarbaBuffer* data);
 	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* fakeFileHeader, bool createNew);
@@ -73,12 +72,12 @@ private:
 	std::tstring PrepareFakeRequests(std::tstring* request);
 	//@return false if max connection reached
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
+	static unsigned int __stdcall DeleteThread(void* object);
 	size_t MaxMessageBuffer;
 	size_t SentBytesCount;
 	size_t ReceivedBytesCount;
 	SimpleEvent SendEvent;
 	SimpleSafeList<Message*> Messages;
-	static unsigned int __stdcall DeleteThread(void* object);
 
 protected:
 	void Log(LPCTSTR format, ...);
@@ -100,6 +99,9 @@ protected:
 	std::tstring GetFakeRequest(bool httpPost, bool bombard);
 	volatile DWORD LastReceivedTime;
 	volatile DWORD LastSentTime;
+	bool IsBombardGet; 
+	bool IsBombardPost;  
+	bool IsBombardPostReply;  
 
 	SimpleSafeList<BarbaSocket*> IncomingSockets;
 	SimpleSafeList<BarbaSocket*> OutgoingSockets;

@@ -19,14 +19,32 @@ bool BarbaCourierServer::AddSocket(BarbaSocket* barbaSocket, LPCSTR httpRequest,
 
 	Sockets_Add(barbaSocket, isOutgoing);
 	std::tstring requestData = GetRequestDataFromHttpRequest(httpRequest);
+	bool refresh = false;
 
 	//set fakePacketMinSize
 	if (this->CreateStruct.FakePacketMinSize==0) //can change only one time; instead using mutex
+	{
 		this->CreateStruct.FakePacketMinSize = (u_short)BarbaUtils::GetKeyValueFromString(requestData.data(), _T("packetminsize"), 0);
+		refresh = true;
+	}
+
+	//set fakePacketMinSize
+	if (this->CreateStruct.AllowBombard && this->CreateStruct.HttpBombardMode.size()==0) //can change only one time; instead using mutex
+	{
+		this->CreateStruct.HttpBombardMode = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("bombardmode"), 0);
+		refresh = true;
+	}
 
 	//set KeepAliveInterval
 	if (this->CreateStruct.KeepAliveInterval==0) //can change only one time; instead using mutex
+	{
 		this->CreateStruct.KeepAliveInterval = (u_short)BarbaUtils::GetKeyValueFromString(requestData.data(), _T("keepalive"), 0);
+		refresh = true;
+	}
+
+	//Validate Paramters
+	if (refresh)
+		RefreshParameters();
 
 	//start threads
 	ServerThreadData* threadData = new ServerThreadData(this, barbaSocket, httpRequest, isOutgoing);

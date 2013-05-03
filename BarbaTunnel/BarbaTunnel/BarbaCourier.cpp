@@ -13,13 +13,22 @@ BarbaCourier::BarbaCourier(BarbaCourierCreateStrcut* cs)
 	this->CreateStruct = *cs;
 	this->LastReceivedTime = 0;
 	this->LastSentTime = 0;
-	if (this->CreateStruct.KeepAliveInterval!=0 && this->CreateStruct.KeepAliveInterval<BARBA_HttpKeepAliveIntervalMin) this->CreateStruct.KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
-	if (this->CreateStruct.ThreadsStackSize==0) this->CreateStruct.ThreadsStackSize = BARBA_SocketThreadStackSize; 
-	if (this->CreateStruct.FakeFileMaxSize==0) this->CreateStruct.FakeFileMaxSize = BARBA_HttpFakeFileMaxSize; 
 	PrepareFakeRequests(&this->CreateStruct.HttpGetTemplate);
 	PrepareFakeRequests(&this->CreateStruct.HttpPostTemplate);
 	PrepareFakeRequests(&this->CreateStruct.HttpGetTemplateBombard);
 	PrepareFakeRequests(&this->CreateStruct.HttpPostTemplateBombard);
+	RefreshParameters();
+}
+
+void BarbaCourier::RefreshParameters()
+{
+	StringUtils::MakeLower( this->CreateStruct.HttpBombardMode );
+	if (this->CreateStruct.KeepAliveInterval!=0 && this->CreateStruct.KeepAliveInterval<BARBA_HttpKeepAliveIntervalMin) this->CreateStruct.KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
+	if (this->CreateStruct.ThreadsStackSize==0) this->CreateStruct.ThreadsStackSize = BARBA_SocketThreadStackSize; 
+	if (this->CreateStruct.FakeFileMaxSize==0) this->CreateStruct.FakeFileMaxSize = BARBA_HttpFakeFileMaxSize; 
+	IsBombardGet = _tcsstr(this->CreateStruct.HttpBombardMode.data(), "get")!=NULL;
+	IsBombardPost = _tcsstr(this->CreateStruct.HttpBombardMode.data(), "post")!=NULL;
+	IsBombardPostReply = _tcsstr(this->CreateStruct.HttpBombardMode.data(), "reply")!=NULL;
 }
 
 unsigned BarbaCourier::DeleteThread(void* object) 
@@ -453,8 +462,15 @@ void BarbaCourier::InitRequestVars(std::tstring& src, LPCTSTR fileName, LPCTSTR 
 	BarbaUtils::UpdateHttpRequest(&src, _T("Content-Type"), contentType);
 	
 	//prepare RequestData: 
-	CHAR requestDataStr[2000]; //filesize=1234;fileheadersize=1234;session=1234;keepalive=1234
-	sprintf_s(requestDataStr, "filesize=%u;fileheadersize=%u;session=%u;packetminsize=%u;keepalive=%u;",fileSize, fileHeaderSize, this->CreateStruct.SessionId, this->CreateStruct.FakePacketMinSize, this->CreateStruct.KeepAliveInterval);
+	CHAR requestDataStr[2000]; //filesize=1234;fileheadersize=1234;session=1234;keepalive=1234;bombard=postreply;
+	sprintf_s(requestDataStr, "filesize=%u;fileheadersize=%u;session=%u;packetminsize=%u;keepalive=%u;bombardmode=%s", 
+		fileSize, 
+		fileHeaderSize, 
+		this->CreateStruct.SessionId, 
+		this->CreateStruct.FakePacketMinSize, 
+		this->CreateStruct.KeepAliveInterval, 
+		this->CreateStruct.HttpBombardMode);
+
 	//encrypt-data
 	BarbaBuffer rdataBuffer((BYTE*)requestDataStr, _tcslen(requestDataStr));
 	Crypt(&rdataBuffer, 0, true);

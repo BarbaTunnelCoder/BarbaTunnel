@@ -24,9 +24,6 @@ public:
 	std::vector<std::tstring> FakeFileTypes; //use by HTTP-Tunnel
 	u_int FakeFileMaxSize; //use by HTTP-Tunnel
 	std::tstring RequestDataKeyName; //use by HTTP-Tunnel
-	bool HttpBombardGet;
-	bool HttpBombardPost;
-	bool HttpBombardPostReply;
 
 private:
 	static std::tstring GetNameFromFileName(LPCTSTR fileName);

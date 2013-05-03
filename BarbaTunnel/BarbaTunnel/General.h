@@ -13,7 +13,7 @@
 #define BARBA_ServerMaxListenSockets 50
 #define BARBA_MaxLogFileSize (1 * 100000) //(100 KB)
 #define BARBA_WorkingStateRefreshTime (1*60*1000) //1 Min
-#define BARBA_SocketThreadStackSize (32*1000)
+#define BARBA_SocketThreadStackSize (16*1000)
 #define BARBA_MaxKeyName 1000
 #define BARBA_ConnectionTimeout (15 * 60*1000) //15 min
 #define BARBA_HttpMaxUserConnections 20

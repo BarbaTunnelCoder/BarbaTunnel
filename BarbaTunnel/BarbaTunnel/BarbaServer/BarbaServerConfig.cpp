@@ -8,6 +8,8 @@ BarbaServerConfig::BarbaServerConfig()
 
 bool BarbaServerConfig::LoadFile(LPCTSTR file)
 {
+	//AllowRequestPerPacket
+	this->AllowRequestPerPacket = GetPrivateProfileInt(_T("General"), _T("AllowRequestPerPacket"), 1, file)!=0;
 	return 	BarbaConfig::LoadFile(file);
 }
 

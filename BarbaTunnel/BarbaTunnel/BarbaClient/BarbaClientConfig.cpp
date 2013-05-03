@@ -48,6 +48,11 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 		this->KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
 	}
 
+	//Http-Bombard
+	TCHAR requestPerPacket[1000] = {0};
+	GetPrivateProfileString(_T("General"), _T("RequestPerPacket"), _T(""), requestPerPacket, _countof(requestPerPacket), file);
+	this->RequestPerPacket = requestPerPacket;
+
 	return true;
 }
 

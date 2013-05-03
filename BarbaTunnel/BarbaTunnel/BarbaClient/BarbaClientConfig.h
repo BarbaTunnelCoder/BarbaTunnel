@@ -13,4 +13,5 @@ public:
 	u_short FakePacketMinSize;
 	DWORD KeepAliveInterval;
 	std::vector<ProtocolPort> GrabProtocols; //valid when in Tunnel mode
+	std::tstring RequestPerPacket;
 };
