@@ -14,14 +14,20 @@ BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, 
 	cs.HostName = config->ServerAddress;
 	cs.RequestDataKeyName = config->RequestDataKeyName;
 	cs.FakeFileMaxSize = config->FakeFileMaxSize;
-	cs.FakeHttpGetTemplate = theClientApp->FakeHttpGetTemplate;
-	cs.FakeHttpPostTemplate = theClientApp->FakeHttpPostTemplate;
+	cs.HttpGetTemplate = theClientApp->HttpGetTemplate;
+	cs.HttpPostTemplate = theClientApp->HttpPostTemplate;
+	cs.HttpGetTemplatePerPacket = theClientApp->HttpGetTemplatePerPacket;
+	cs.HttpPostTemplatePerPacket = theClientApp->HttpPostTemplatePerPacket;
+
 	cs.MaxConnection = config->MaxUserConnections;
 	cs.SessionId = this->SessionId;
 	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;
 	cs.ConnectionTimeout = theApp->ConnectionTimeout;
 	cs.FakePacketMinSize = config->FakePacketMinSize;
 	cs.KeepAliveInterval = config->KeepAliveInterval;
+	cs.bombardGet = config->HttpBombardGet;
+	cs.bombardPost = config->HttpBombardPost;
+	cs.bombardPostReply = config->HttpBombardPostReply;
 	this->Courier = new BarbaClientHttpCourier(&cs, config->ServerIp, tunnelPort, this);
 }
 

@@ -114,6 +114,15 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 	GetPrivateProfileString(_T("General"), _T("FakeFileTypes"), _T(""), fakeFileTypes, _countof(fakeFileTypes), file);
 	StringUtils::Tokenize(fakeFileTypes, _T(","), &this->FakeFileTypes);
 
+	//Http-Bombard
+	TCHAR httpBombard[1000] = {0};
+	GetPrivateProfileString(_T("General"), _T("RequestPerPacket"), _T(""), httpBombard, _countof(httpBombard), file);
+	for (int i=0; i<_countof(httpBombard); i++)
+		httpBombard[i] = tolower(httpBombard[i]);
+	this->HttpBombardGet = _tcsstr(httpBombard, "get")!=NULL;
+	this->HttpBombardPost = _tcsstr(httpBombard, "post")!=NULL;
+	this->HttpBombardPostReply = _tcsstr(httpBombard, "postreply")!=NULL;
+
 	//RealPort
 	this->RealPort = (u_short)GetPrivateProfileInt(_T("General"), _T("RealPort"), 0, file);
 	return true;

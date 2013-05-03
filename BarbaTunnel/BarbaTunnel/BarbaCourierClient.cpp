@@ -28,28 +28,120 @@ BarbaCourierClient::~BarbaCourierClient()
 {
 }
 
-size_t BarbaCourierClient::SendFakeRequest(BarbaSocket* socket, BarbaBuffer* fakeFileHeader)
+size_t BarbaCourierClient::SendPostRequestBombard(BarbaSocket* socket, size_t dataLength)
 {
-	bool outgoing = fakeFileHeader!=NULL;
-	size_t fileSize;
 	TCHAR filename[MAX_PATH];
 	std::tstring contentType;
-	GetFakeFile(filename, &contentType, &fileSize, fakeFileHeader, true);
-	size_t fakeFileHeaderSize = fakeFileHeader!=NULL ? fakeFileHeader->size() : 0;
-	//LPCTSTR requestMode = outgoing ? _T("POST") : _T("GET");
+	GetFakeFile(filename, &contentType, NULL, NULL, true);
 
-	std::tstring fakeRequest = outgoing ? this->CreateStruct.FakeHttpPostTemplate : this->CreateStruct.FakeHttpGetTemplate;
-	InitFakeRequestVars(fakeRequest, filename, contentType.data(), fileSize, fakeFileHeaderSize);
+	//use non bombard request for initialize request
+	std::tstring fakeRequest = GetFakeRequest(true, true);
+	InitRequestVars(fakeRequest, filename, contentType.data(), dataLength, 0);
 
-	if (outgoing)
-		Log(_T("Sending fake POST request! File: %s (%u KB)."), filename, fileSize/1000);
-	else
-		Log(_T("Sending fake HTTP GET request! FileName: %s."), filename);
+	//send request
 	std::string fakeRequestA = fakeRequest;
 	if (socket->Send((BYTE*)fakeRequestA.data(), fakeRequestA.length())!=(int)fakeRequestA.length())
 		throw new BarbaException(_T("Could not send fake request!"));
 
-	return fileSize;
+	return fakeRequestA.size();
+}
+
+size_t BarbaCourierClient::SendPostRequest(BarbaSocket* socket)
+{
+	size_t fileSize = 0;
+	TCHAR filename[MAX_PATH];
+	std::tstring contentType;
+	BarbaBuffer fakeFileHeader;
+
+	//Prepare requests
+	LPCTSTR bombardInfo = NULL;
+	if (CreateStruct.bombardPost) bombardInfo = _T("Bombard POST");
+	if (CreateStruct.bombardPostReply) bombardInfo = _T("Bombard POST & REPLY");
+	if (bombardInfo!=NULL)
+	{
+		GetFakeFile(filename, &contentType, NULL, NULL, true);
+		Log(_T("Sending fake HTTP POST request! FileName: %s."), bombardInfo);
+	}
+	else
+	{
+		GetFakeFile(filename, &contentType, &fileSize, &fakeFileHeader, true);
+		Log(_T("Sending fake HTTP POST request! %s!"), filename);
+	}
+
+
+	//use non bombard request for initialize request
+	std::tstring fakeRequest = GetFakeRequest(true, false);
+	InitRequestVars(fakeRequest, filename, contentType.data(), fileSize, fakeFileHeader.size());
+
+	//send request
+	std::string fakeRequestA = fakeRequest;
+	if (socket->Send((BYTE*)fakeRequestA.data(), fakeRequestA.length())!=(int)fakeRequestA.length())
+		throw new BarbaException(_T("Could not send fake request!"));
+
+	//sending fake file header in no bombard mode
+	if (fakeFileHeader.size()!=0)
+		SendFakeFileHeader(socket, &fakeFileHeader);
+
+	return fileSize - fakeFileHeader.size();
+
+}
+
+void BarbaCourierClient::WaitForAcceptPostRequest(BarbaSocket* socket)
+{
+	DWORD oldTimeOut = socket->GetReceiveTimeOut();
+	try
+	{
+		socket->SetReceiveTimeOut(10000);
+		std::string header = socket->ReadHttpRequest();
+		if (header.empty())
+			throw new BarbaException( _T("Server does not accept request!") );
+		socket->SetReceiveTimeOut(oldTimeOut);
+	}
+	catch (...)
+	{
+		socket->SetReceiveTimeOut(oldTimeOut);
+		throw;
+	}
+}
+
+
+void BarbaCourierClient::SendGetRequest(BarbaSocket* socket)
+{
+	TCHAR filename[MAX_PATH];
+
+	std::tstring contentType;
+	GetFakeFile(filename, &contentType, NULL, NULL, true);
+
+	std::tstring fakeRequest = GetFakeRequest(false, false);
+	InitRequestVars(fakeRequest, filename, NULL, 0, 0);
+
+	LPCTSTR bombardInfo = NULL;
+	if (CreateStruct.bombardGet) bombardInfo = _T("Bombard GET");
+	if (bombardInfo!=NULL)
+		Log(_T("Sending fake HTTP GET request! %s!"), bombardInfo);
+	else
+		Log(_T("Sending fake HTTP GET request! FileName: %s."), filename);
+
+	//send request
+	std::string fakeRequestA = fakeRequest;
+	if (socket->Send((BYTE*)fakeRequestA.data(), fakeRequestA.length())!=(int)fakeRequestA.length())
+		throw new BarbaException(_T("Could not send GET request!"));
+}
+
+void BarbaCourierClient::SendGetRequestBombard(BarbaSocket* socket)
+{
+	TCHAR filename[MAX_PATH];
+
+	std::tstring contentType;
+	GetFakeFile(filename, &contentType, NULL, NULL, true);
+
+	std::tstring fakeRequest = GetFakeRequest(false, true);
+	InitRequestVars(fakeRequest, filename, NULL, 0, 0);
+
+	//send request
+	std::string fakeRequestA = fakeRequest;
+	if (socket->Send((BYTE*)fakeRequestA.data(), fakeRequestA.length())!=(int)fakeRequestA.length())
+		throw new BarbaException(_T("Could not send GET request!"));
 }
 
 void BarbaCourierClient::CheckKeepAlive()
@@ -97,9 +189,11 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 		try
 		{
 			hasError = false;
-			
-			//create socket
+
+			//generate log for new connection
 			_this->Log(_T("Creating HTTP %s connection. ServerPort: %d."), requestMode, _this->RemotePort);
+
+			//create socket
 			socket = NULL;
 			socket = new BarbaSocketClient(_this->RemoteIp, _this->RemotePort);
 
@@ -109,35 +203,33 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 
 			if (isOutgoing)
 			{
-				BarbaBuffer fakeFileHeader;
-				size_t fakeFileSize = _this->SendFakeRequest(socket, &fakeFileHeader);
+				size_t fakeFileSize = _this->SendPostRequest(socket);
+				if (fakeFileSize==0)
+				{
+					_this->Log(_T("Waiting for server to accept fake HTTP POST request."));
+					_this->WaitForAcceptPostRequest(socket);
+				}
 
-				//sending fake file header
-				_this->SendFakeFileHeader(socket, &fakeFileHeader);
+				//process socket until socket closed or finish uploading fakeFileSize
+				_this->ProcessOutgoing(socket, fakeFileSize);
 
-				//process socket until socket closed
-				_this->ProcessOutgoing(socket, fakeFileSize - fakeFileHeader.size());
-
-				//wait for fake reply
-				_this->Log(_T("Waiting for server to accept fake HTTP POST request."));
-				socket->SetReceiveTimeOut(10000);
-				std::string header = socket->ReadHttpRequest();
-				if (header.empty())
-					throw new BarbaException( _T("Server does not finish fake file!") );
-
-				//report
-				_this->Log(_T("Finish uploading file."));
+				//wait for fake reply in non bombard mode, in post bomard mode ProcessOutgoing is responsibe to wait for fake reply for each packet
+				if (fakeFileSize!=0)
+				{
+					_this->WaitForAcceptPostRequest(socket);
+					_this->Log(_T("Finish uploading file."));
+				}
 			}
 			else
 			{
 				//send GET fake request
-				_this->SendFakeRequest(socket, NULL);
+				_this->SendGetRequest(socket);
 
 				//wait for fake reply
-				_this->Log(_T("Waiting for server to accept fake HTTP GET request."));
+				_this->Log(_T("Waiting for server to accept HTTP GET request."));
 				std::string httpReply = socket->ReadHttpRequest();
 				if (httpReply.empty())
-					throw new BarbaException( _T("Server does not reply to fake request!") );
+					throw new BarbaException( _T("Server does not reply to HTTP GET request!") );
 				std::tstring requestData = _this->GetRequestDataFromHttpRequest(httpReply.data());
 				size_t fileLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("filesize"), 0);
 				size_t fileHeaderLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("fileheadersize"), 0);

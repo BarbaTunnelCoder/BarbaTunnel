@@ -13,8 +13,8 @@ BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfig* config, 
 	cs.HostName = config->ServerAddress;
 	cs.FakeFileMaxSize = config->FakeFileMaxSize;
 	cs.RequestDataKeyName = config->RequestDataKeyName.data();
-	cs.FakeHttpGetTemplate = theServerApp->FakeHttpGetReplyTemplate.data();
-	cs.FakeHttpPostTemplate = theServerApp->FakeHttpPostReplyTemplate.data();
+	cs.HttpGetTemplate = theServerApp->FakeHttpGetReplyTemplate.data();
+	cs.HttpPostTemplate = theServerApp->FakeHttpPostReplyTemplate.data();
 	cs.MaxConnection = config->MaxUserConnections;
 	cs.ConnectionTimeout = theApp->ConnectionTimeout;
 	cs.SessionId = sessionId;

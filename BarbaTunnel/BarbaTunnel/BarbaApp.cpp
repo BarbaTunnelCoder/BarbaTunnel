@@ -257,7 +257,8 @@ bool BarbaApp::CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMT
 
 bool BarbaApp::GetFakeFile(std::vector<std::tstring>* fakeTypes, size_t fakeFileMaxSize, TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* fakeFileHeader, bool createNew)
 {
-	*fileSize = BarbaUtils::GetRandom((u_int)fakeFileMaxSize/2, (u_int)fakeFileMaxSize); 
+	if (fileSize!=NULL)
+		*fileSize = BarbaUtils::GetRandom((u_int)fakeFileMaxSize/2, (u_int)fakeFileMaxSize); 
 
 	//generate new filename in createNew
 	if (createNew)

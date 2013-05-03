@@ -17,8 +17,10 @@ public:
 	
 	std::vector<BarbaClientConfig> Configs;
 	BarbaClientConnectionManager ConnectionManager;
-	std::string FakeHttpGetTemplate;
-	std::string FakeHttpPostTemplate;
+	std::string HttpGetTemplate;
+	std::string HttpPostTemplate;
+	std::string HttpGetTemplatePerPacket;
+	std::string HttpPostTemplatePerPacket;
 
 private:
 	BarbaClientConfig* ShouldGrabPacket(PacketHelper* packet);

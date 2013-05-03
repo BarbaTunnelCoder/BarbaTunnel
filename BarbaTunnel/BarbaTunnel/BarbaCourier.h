@@ -13,14 +13,22 @@ struct BarbaCourierCreateStrcut
 	u_int SessionId;
 	u_short MaxConnection;
 	std::tstring RequestDataKeyName;
-	std::tstring FakeHttpGetTemplate;
-	std::tstring FakeHttpPostTemplate;
+	std::tstring HttpGetTemplate;
+	std::tstring HttpPostTemplate;
+	std::tstring HttpGetTemplatePerPacket;
+	std::tstring HttpPostTemplatePerPacket;
 	std::tstring HostName;
 	u_int FakeFileMaxSize;
 	u_short FakePacketMinSize;
 	u_int ThreadsStackSize;
 	u_int ConnectionTimeout;
 	u_int KeepAliveInterval;
+	bool bombardGet; 
+	bool bombardPost;  
+	bool bombardPostReply;  
+	std::tstring HttpGetTemplateBombard;
+	std::tstring HttpPostTemplateBombard;
+
 };
 
 //BarbaCourier
@@ -82,9 +90,14 @@ protected:
 	void Sockets_Remove(BarbaSocket* socket, bool isOutgoing);
 	void ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);
+	virtual void BeforeSendMessage(BarbaSocket* barbaSocket, size_t messageLength);
+	virtual void AfterSendMessage(BarbaSocket* barbaSocket);
+	virtual void BeforeReceiveMessage(BarbaSocket* barbaSocket);
+	virtual void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength);
 	void SendFakeFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHeader);
 	void WaitForIncomingFakeHeader(BarbaSocket* socket, size_t fileHeaderSize);
-	void InitFakeRequestVars(std::tstring& src, LPCTSTR filename, LPCTSTR contentType, size_t fileSize, size_t fileHeaderSize);
+	void InitRequestVars(std::tstring& src, LPCTSTR filename, LPCTSTR contentType, size_t fileSize, size_t fileHeaderSize);
+	std::tstring GetFakeRequest(bool httpPost, bool bombard);
 	volatile DWORD LastReceivedTime;
 	volatile DWORD LastSentTime;
 

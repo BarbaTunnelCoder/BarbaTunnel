@@ -10,11 +10,15 @@ BarbaClientApp::BarbaClientApp()
 	//Load Configs
 	BarbaClientConfig::LoadFolder(GetConfigFolder(), &this->Configs);
 
-	//load fake files
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-GetTemplate.txt"), GetAppFolder());
-	this->FakeHttpGetTemplate = BarbaUtils::LoadFileToString(file);
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-PostTemplate.txt"), GetAppFolder());
-	this->FakeHttpPostTemplate = BarbaUtils::LoadFileToString(file);
+	//load template files
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\Get.txt"), GetAppFolder());
+	this->HttpGetTemplate = BarbaUtils::LoadFileToString(file);
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\Post.txt"), GetAppFolder());
+	this->HttpPostTemplate = BarbaUtils::LoadFileToString(file);
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-PerPacket\\Get.txt"), GetAppFolder());
+	this->HttpGetTemplatePerPacket = BarbaUtils::LoadFileToString(file);
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-PerPacket\\Post.txt"), GetAppFolder());
+	this->HttpPostTemplatePerPacket = BarbaUtils::LoadFileToString(file);
 }
 
 BarbaClientApp::~BarbaClientApp()
