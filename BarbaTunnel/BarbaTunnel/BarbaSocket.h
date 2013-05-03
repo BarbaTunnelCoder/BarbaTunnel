@@ -36,7 +36,9 @@ public:
 	void SetNoDelay(bool value);
 	void SetKeepAlive(bool value);
 	void SetReceiveTimeOut(DWORD milisecond);
+	DWORD GetReceiveTimeOut();
 	void SetSendTimeOut(DWORD milisecond);
+	DWORD GetSendTimeOut();
 	u_long GetLastReceivedTime() {return this->LastReceivedTime;}
 	u_long GetLastSentTime() {return this->LastSentTime;}
 	u_long GetRemoteIp() { return this->RemoteIp;}

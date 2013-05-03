@@ -70,6 +70,31 @@ void BarbaSocket::SetSendTimeOut(DWORD milisecond)
 		ThrowSocketError();
 }
 
+DWORD BarbaSocket::GetReceiveTimeOut()
+{
+	//WINDOWS: Timeout value is a DWORD in milliseconds, address passed to setsockopt() is const char *
+	//LINUX: Timeout value is a struct timeval, address passed to setsockopt() is const void *
+	DWORD milisecond = 0;
+	int size = 0;
+	int res = getsockopt(this->_Socket, SOL_SOCKET, SO_RCVTIMEO, (char*)&milisecond, &size);
+	if (res==SOCKET_ERROR)
+		ThrowSocketError();
+	return milisecond;
+}
+
+DWORD BarbaSocket::GetSendTimeOut()
+{
+	//WINDOWS: Timeout value is a DWORD in milliseconds, address passed to setsockopt() is const char *
+	//LINUX: Timeout value is a struct timeval, address passed to setsockopt() is const void *
+	DWORD milisecond = 0;
+	int size = 0;
+	int res = getsockopt(this->_Socket, SOL_SOCKET, SO_SNDTIMEO, (char*)&milisecond, &size);
+	if (res==SOCKET_ERROR)
+		ThrowSocketError();
+	return milisecond;
+}
+
+
 void BarbaSocket::SetNoDelay(bool value)
 {
 	int flag = value ? 1 : 0;

@@ -25,7 +25,11 @@ private:
 	u_short RemotePort;
 	static unsigned int __stdcall ClientWorkerThread(void* clientThreadData);
 	static unsigned int __stdcall CheckKeepAliveThread(void* BarbaCourier);
-	//@fakeFileHeader if null send incoming request
-	size_t SendFakeRequest(BarbaSocket* socket, BarbaBuffer* fakeFileHeader);
+	void WaitForAcceptPostRequest(BarbaSocket* socket);
+	void SendGetRequest(BarbaSocket* socket);
+	void SendGetRequestBombard(BarbaSocket* socket);
+	//@return count of byte that can be sent with this request
+	size_t SendPostRequest(BarbaSocket* socket);
+	size_t SendPostRequestBombard(BarbaSocket* socket, size_t dataLength);
 	void CheckKeepAlive();
 };
