@@ -55,8 +55,8 @@ size_t BarbaCourierClient::SendPostRequest(BarbaSocket* socket)
 
 	//Prepare requests
 	LPCTSTR bombardInfo = NULL;
-	if (CreateStruct.bombardPost) bombardInfo = _T("Bombard POST");
-	if (CreateStruct.bombardPostReply) bombardInfo = _T("Bombard POST & REPLY");
+	if (IsBombardPost) bombardInfo = _T("Bombard POST");
+	if (IsBombardPostReply) bombardInfo = _T("Bombard POST & REPLY");
 	if (bombardInfo!=NULL)
 	{
 		GetFakeFile(filename, &contentType, NULL, NULL, true);
@@ -116,7 +116,7 @@ void BarbaCourierClient::SendGetRequest(BarbaSocket* socket)
 	InitRequestVars(fakeRequest, filename, NULL, 0, 0);
 
 	LPCTSTR bombardInfo = NULL;
-	if (CreateStruct.bombardGet) bombardInfo = _T("Bombard GET");
+	if (IsBombardGet) bombardInfo = _T("Bombard GET");
 	if (bombardInfo!=NULL)
 		Log(_T("Sending fake HTTP GET request! %s!"), bombardInfo);
 	else

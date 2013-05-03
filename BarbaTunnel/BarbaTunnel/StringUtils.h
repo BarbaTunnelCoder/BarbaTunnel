@@ -53,5 +53,11 @@ public:
 
 		delete buffer;
 	}
+
+	static void MakeLower( std::tstring& str )
+	{
+		for (int i=0; i<str.size(); i++)
+			str[i] = (TCHAR)_totlower(str[i]);
+	}
 };
 
