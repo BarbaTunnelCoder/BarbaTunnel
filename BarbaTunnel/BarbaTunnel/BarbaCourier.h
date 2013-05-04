@@ -7,31 +7,25 @@
 #define BarbaCourier_MaxMessageLength 0xFFFF
 #define BarbaCourier_MaxFileHeaderSize (200*1000) //100KB
 
-//BarbaCourierCreateStrcut
-struct BarbaCourierCreateStrcut
-{
-	u_int SessionId;
-	u_short MaxConnection;
-	std::tstring RequestDataKeyName;
-	std::tstring HttpGetTemplate;
-	std::tstring HttpPostTemplate;
-	std::tstring HttpGetTemplatePerPacket;
-	std::tstring HttpPostTemplatePerPacket;
-	std::tstring HostName;
-	u_int FakeFileMaxSize;
-	u_short FakePacketMinSize;
-	u_int ThreadsStackSize;
-	u_int ConnectionTimeout;
-	u_int KeepAliveInterval;
-	bool AllowBombard;
-	std::tstring HttpBombardMode;
-	std::tstring HttpGetTemplateBombard;
-	std::tstring HttpPostTemplateBombard;
-};
-
 //BarbaCourier
 class BarbaCourier
 {
+public:
+	struct CreateStrcutBag
+	{
+		u_int SessionId;
+		u_short MaxConnection;
+		std::tstring RequestDataKeyName;
+		std::tstring HostName;
+		u_int FakeFileMaxSize;
+		u_short FakePacketMinSize;
+		u_int ThreadsStackSize;
+		u_int ConnectionTimeout;
+		u_int KeepAliveInterval;
+		bool AllowBombard;
+		std::tstring HttpBombardMode;
+	};
+
 protected:
 	class Message
 	{
@@ -51,7 +45,7 @@ protected:
 
 public:
 	//@maxConnenction number of simultaneous connection for each outgoing and incoming, eg: 2 mean 2 connection for send and 2 connection for receive so the total will be 4
-	explicit BarbaCourier(BarbaCourierCreateStrcut* cs);
+	explicit BarbaCourier(CreateStrcutBag* cs);
 	void RefreshParameters();
 	virtual void Send(BarbaBuffer* data);
 	virtual void Receive(BarbaBuffer* data);
@@ -66,10 +60,9 @@ public:
 	//This method will call asynchronously. do not use the object after call it 
 	//@return the handle for deleting thread
 	HANDLE Delete();
-
+	
 private:
 	void Crypt(BarbaBuffer* data, size_t index, bool encrypt);
-	std::tstring PrepareFakeRequests(std::tstring* request);
 	//@return false if max connection reached
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
 	static unsigned int __stdcall DeleteThread(void* object);
@@ -93,10 +86,9 @@ protected:
 	virtual void AfterSendMessage(BarbaSocket* barbaSocket);
 	virtual void BeforeReceiveMessage(BarbaSocket* barbaSocket);
 	virtual void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength);
-	void SendFakeFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHeader);
-	void WaitForIncomingFakeHeader(BarbaSocket* socket, size_t fileHeaderSize);
+	void SendFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHeader);
+	void WaitForIncomingFileHeader(BarbaSocket* socket, size_t fileHeaderSize);
 	void InitRequestVars(std::tstring& src, LPCTSTR filename, LPCTSTR contentType, size_t fileSize, size_t fileHeaderSize);
-	std::tstring GetFakeRequest(bool httpPost, bool bombard);
 	volatile DWORD LastReceivedTime;
 	volatile DWORD LastSentTime;
 	bool IsBombardGet; 
@@ -107,7 +99,6 @@ protected:
 	SimpleSafeList<BarbaSocket*> OutgoingSockets;
 	SimpleSafeList<HANDLE> Threads;
 	SimpleEvent DisposeEvent;
-
-	BarbaCourierCreateStrcut CreateStruct;
+	CreateStrcutBag CreateStruct;
 };
 

@@ -14,11 +14,15 @@ private:
 	};
 
 public:
-	BarbaCourierClient(BarbaCourierCreateStrcut* cs, DWORD remoteIp, u_short remotePort);
+	BarbaCourierClient(BarbaCourier::CreateStrcutBag* cs, DWORD remoteIp, u_short remotePort);
 	bool IsServer() {return false;}
 
 protected:
+	virtual std::tstring GetHttpPostTemplate(bool bombardMode)=0;
+	virtual std::tstring GetHttpGetTemplate(bool bombardMode)=0;
 	virtual ~BarbaCourierClient();
+	void BeforeSendMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
+	void AfterSendMessage(BarbaSocket* barbaSocket) override;
 	
 private:
 	DWORD RemoteIp;

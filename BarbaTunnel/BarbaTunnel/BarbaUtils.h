@@ -37,5 +37,5 @@ public:
 	static std::tstring ConvertIpToString(u_int ip);
 	static bool IsFileExists(LPCTSTR filename);
 	static void UpdateHttpRequest(std::tstring* httpRequest, std::tstring key, std::tstring value);
-
+	static std::tstring PrepareHttpRequest(std::tstring request);
 };

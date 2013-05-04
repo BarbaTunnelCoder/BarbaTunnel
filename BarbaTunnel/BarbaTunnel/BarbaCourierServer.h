@@ -16,17 +16,24 @@ private:
 	};
 
 public:
-	explicit BarbaCourierServer(BarbaCourierCreateStrcut* cs);
+	explicit BarbaCourierServer(BarbaCourier::CreateStrcutBag* cs);
+	void Init(LPCTSTR requestData);
+
 	//@return false if no new connection accepted and caller should delete the socket
 	//@return true if connection accepted, in this case caller should not delete the socket and it will be deleted automatically
 	bool AddSocket(BarbaSocket* Socket, LPCSTR httpRequest, bool isOutgoing);
 	bool IsServer() {return true;}
 
 protected:
+	void BeforeReceiveMessage(BarbaSocket* barbaSocket) override;
+	void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
+	virtual std::tstring GetHttpPostReplyRequest(bool bombardMode)=0;
+	virtual std::tstring GetHttpGetReplyRequest(bool bombardMode)=0;
 	virtual ~BarbaCourierServer(void);
 
 private:
+	void SendPostReply(BarbaSocket* socket);
 	//@return the entire fake file size
-	size_t SendFakeReply(BarbaSocket* socket, LPCTSTR httpRequest, BarbaBuffer* fakeFileHeader);
+	size_t SendGetReply(BarbaSocket* socket, LPCTSTR httpRequest, BarbaBuffer* fakeFileHeader);
 	static unsigned int __stdcall ServerWorkerThread(void* serverThreadData);
 };

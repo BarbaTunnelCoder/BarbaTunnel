@@ -113,9 +113,13 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 		//find connection by session id
 		SimpleLock lock(&_this->CreateConnectionCriticalSection);
 		BarbaServerHttpConnection* conn = (BarbaServerHttpConnection*)theServerApp->ConnectionManager.FindBySessionId(sessionId);
+
 		//create new connection if session not found
 		if (conn==NULL)
+		{
 			conn = theServerApp->ConnectionManager.CreateHttpConnection(threadData->Config, socket->GetRemoteIp(), threadData->ServerPort, sessionId);
+			conn->Init(requestData.data());
+		}
 		lock.Unlock();
 
 		//add socket to HTTP connection

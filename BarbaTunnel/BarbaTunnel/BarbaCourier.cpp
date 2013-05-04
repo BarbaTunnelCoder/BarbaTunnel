@@ -3,7 +3,7 @@
 #include "BarbaUtils.h"
 #include "BarbaCrypt.h"
 
-BarbaCourier::BarbaCourier(BarbaCourierCreateStrcut* cs)
+BarbaCourier::BarbaCourier(BarbaCourier::CreateStrcutBag* cs)
 	: SendEvent(true, true)
 	, DisposeEvent(true, false)
 {
@@ -13,10 +13,6 @@ BarbaCourier::BarbaCourier(BarbaCourierCreateStrcut* cs)
 	this->CreateStruct = *cs;
 	this->LastReceivedTime = 0;
 	this->LastSentTime = 0;
-	PrepareFakeRequests(&this->CreateStruct.HttpGetTemplate);
-	PrepareFakeRequests(&this->CreateStruct.HttpPostTemplate);
-	PrepareFakeRequests(&this->CreateStruct.HttpGetTemplateBombard);
-	PrepareFakeRequests(&this->CreateStruct.HttpPostTemplateBombard);
 	RefreshParameters();
 }
 
@@ -144,22 +140,6 @@ void BarbaCourier::Send(Message* message, bool highPriority)
 	SendEvent.Set();
 }
 
-std::tstring BarbaCourier::PrepareFakeRequests(std::tstring* request)
-{
-	std::tstring& ret = *request;
-	std::tstring req;
-	while (req.length()!=ret.length())
-	{
-		req = ret;
-		StringUtils::Trim(ret, ' ');
-		StringUtils::Trim(ret, '\n');
-	}
-	StringUtils::Trim(ret, '\n');
-	ret.append(_T("\n\n"));
-	StringUtils::ReplaceAll(ret, _T("\n"), _T("\r\n"));
-	return ret;
-}
-
 void BarbaCourier::Receive(BarbaBuffer* /*data*/)
 {
 }
@@ -270,8 +250,9 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
 {
 	Log(_T("HTTP connection is ready to receive the actual data."));
-
+	
 	size_t receivedBytes = 0;
+	if (maxBytes==0) maxBytes = (size_t)-1;
 
 	//remove message from list
 	while(!this->IsDisposing() && receivedBytes<maxBytes)
@@ -324,7 +305,7 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
 		this->ReceivedBytesCount += (receivedBytes - orgReceivedBytes);
 
 		//notify message received
-		AfterReceiveMessage(barbaSocket, messageLen + 2);
+		AfterReceiveMessage(barbaSocket, (receivedBytes - orgReceivedBytes));
 	}
 }
 
@@ -362,7 +343,7 @@ void BarbaCourier::Sockets_Remove(BarbaSocket* socket, bool isOutgoing)
 	delete socket;
 }
 
-void BarbaCourier::SendFakeFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHeader)
+void BarbaCourier::SendFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHeader)
 {
 	if (fakeFileHeader->empty())
 	{
@@ -376,7 +357,7 @@ void BarbaCourier::SendFakeFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFile
 		throw new BarbaException(_T("Fake file header does not send!"));
 }
 
-void BarbaCourier::WaitForIncomingFakeHeader(BarbaSocket* socket, size_t fileHeaderSize)
+void BarbaCourier::WaitForIncomingFileHeader(BarbaSocket* socket, size_t fileHeaderSize)
 {
 	if (fileHeaderSize==0)
 	{
@@ -410,14 +391,6 @@ void BarbaCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, size_
 
 }
 
-std::tstring BarbaCourier::GetFakeRequest(bool httpPost, bool bombard)
-{
-	if (bombard)
-		return httpPost ? this->CreateStruct.HttpPostTemplateBombard : this->CreateStruct.HttpGetTemplateBombard;
-	else
-		return httpPost ? this->CreateStruct.HttpPostTemplate : this->CreateStruct.HttpGetTemplate;
-}
-
 void BarbaCourier::Crypt(BarbaBuffer* data, size_t index, bool encrypt)
 {
 	Crypt(data->data(), data->size(), index, encrypt);
@@ -441,12 +414,9 @@ void BarbaCourier::InitRequestVars(std::tstring& src, LPCTSTR fileName, LPCTSTR 
 	}
 	
 	//filename
-	if (fileName!=NULL)
-	{
-		StringUtils::ReplaceAll(src, _T("{filename}"), fileName);
-		StringUtils::ReplaceAll(src, _T("{filetitle}"), BarbaUtils::GetFileTitleFromUrl(fileName));
-		StringUtils::ReplaceAll(src, _T("{fileextension}"), BarbaUtils::GetFileExtensionFromUrl(fileName));
-	}
+	StringUtils::ReplaceAll(src, _T("{filename}"), fileName);
+	StringUtils::ReplaceAll(src, _T("{filetitle}"), BarbaUtils::GetFileTitleFromUrl(fileName));
+	StringUtils::ReplaceAll(src, _T("{fileextension}"), BarbaUtils::GetFileExtensionFromUrl(fileName));
 
 	//fileSize
 	TCHAR fileSizeStr[20];

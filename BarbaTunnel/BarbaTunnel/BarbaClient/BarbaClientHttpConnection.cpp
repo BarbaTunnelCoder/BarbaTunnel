@@ -10,15 +10,10 @@ BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, 
 	this->SessionId = BarbaUtils::GetRandom(100000, UINT_MAX-1);
 	this->TunnelPort = tunnelPort;
 
-	BarbaCourierCreateStrcut cs = {0};
+	BarbaCourier::CreateStrcutBag cs = {0};
 	cs.HostName = config->ServerAddress;
 	cs.RequestDataKeyName = config->RequestDataKeyName;
 	cs.FakeFileMaxSize = config->FakeFileMaxSize;
-	cs.HttpGetTemplate = theClientApp->HttpGetTemplate;
-	cs.HttpPostTemplate = theClientApp->HttpPostTemplate;
-	cs.HttpGetTemplatePerPacket = theClientApp->HttpGetTemplatePerPacket;
-	cs.HttpPostTemplatePerPacket = theClientApp->HttpPostTemplatePerPacket;
-
 	cs.MaxConnection = config->MaxUserConnections;
 	cs.SessionId = this->SessionId;
 	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;

@@ -13,11 +13,15 @@ BarbaServerApp::BarbaServerApp(bool delayStart)
 	//Load Configs
 	BarbaServerConfig::LoadFolder(GetConfigFolder(), &this->Configs);
 	
-	//load fake files
-	_stprintf_s(file, _T("%s\\templates\\HTTP-GetReplyTemplate.txt"), GetAppFolder());
-	this->FakeHttpGetReplyTemplate = BarbaUtils::LoadFileToString(file);
-	_stprintf_s(file, _T("%s\\templates\\HTTP-PostReplyTemplate.txt"), GetAppFolder());
-	this->FakeHttpPostReplyTemplate = BarbaUtils::LoadFileToString(file);
+	//load template files
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\GetReply.txt"), GetAppFolder());
+	this->HttpGetReplyTemplate = BarbaUtils::PrepareHttpRequest( BarbaUtils::LoadFileToString(file) );
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\PostReply.txt"), GetAppFolder());
+	this->HttpPostReplyTemplate = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-PerPacket\\GetReply.txt"), GetAppFolder());
+	this->HttpGetReplyTemplatePerPacket = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-PerPacket\\PostReply.txt"), GetAppFolder());
+	this->HttpPostReplyTemplatePerPacket = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
 
 	//AutoStartDelay
 	this->AutoStartDelay = GetPrivateProfileInt(_T("Server"), _T("AutoStartDelay"), 0, GetSettingsFile());

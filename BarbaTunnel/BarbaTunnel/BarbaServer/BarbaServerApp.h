@@ -20,8 +20,10 @@ public:
 	BarbaServerHttpHost HttpHost;
 	std::vector<BarbaServerConfig> Configs;
 	BarbaServerConnectionManager ConnectionManager;
-	std::tstring FakeHttpGetReplyTemplate;
-	std::tstring FakeHttpPostReplyTemplate;
+	std::tstring HttpGetReplyTemplate;
+	std::tstring HttpGetReplyTemplatePerPacket;
+	std::tstring HttpPostReplyTemplate;
+	std::tstring HttpPostReplyTemplatePerPacket;
 	u_int AutoStartDelay;
 	IpRange VirtualIpRange;
 
