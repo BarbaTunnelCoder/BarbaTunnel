@@ -185,6 +185,8 @@ size_t BarbaSocket::Receive(BYTE* buf, size_t bufCount, bool waitAll)
 	_IsReceiving = false;
 	if (ret==SOCKET_ERROR)
 		ThrowSocketError();
+	if (ret==0)
+		throw new BarbaException("Connection has been gracefully closed!");
 	this->ReceivedBytesCount += ret;
 	this->LastReceivedTime = GetTickCount();
 	return ret;
