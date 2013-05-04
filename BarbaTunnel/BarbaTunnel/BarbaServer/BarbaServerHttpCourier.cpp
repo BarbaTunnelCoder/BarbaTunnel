@@ -4,7 +4,7 @@
 #include "BarbaServerApp.h"
 
 
-BarbaServerHttpCourier::BarbaServerHttpCourier(BarbaCourierCreateStrcut* cs, BarbaServerHttpConnection* httpConnection)
+BarbaServerHttpCourier::BarbaServerHttpCourier(BarbaCourier::CreateStrcutBag* cs, BarbaServerHttpConnection* httpConnection)
 	: HttpConnection(httpConnection)
 	, BarbaCourierServer(cs)
 {
@@ -53,3 +53,14 @@ void BarbaServerHttpCourier::GetFakeFile(TCHAR* filename, std::tstring* contentT
 	if (!theApp->GetFakeFile(&this->HttpConnection->GetConfigItem()->FakeFileTypes, this->CreateStruct.FakeFileMaxSize, filename, contentType, fileSize, fakeFileHeader, createNew))
 		BarbaCourierServer::GetFakeFile(filename, contentType, fileSize, fakeFileHeader, createNew);
 }
+
+std::tstring BarbaServerHttpCourier::GetHttpPostReplyRequest(bool bombardMode)
+{
+	return bombardMode ? theServerApp->HttpPostReplyTemplatePerPacket : theServerApp->HttpPostReplyTemplate;
+}
+
+std::tstring BarbaServerHttpCourier::GetHttpGetReplyRequest(bool bombardMode)
+{
+	return bombardMode ? theServerApp->HttpGetReplyTemplatePerPacket : theServerApp->HttpGetReplyTemplate;
+}
+

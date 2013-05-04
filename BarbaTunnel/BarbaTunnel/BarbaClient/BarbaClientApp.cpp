@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "BarbaClientApp.h"
+#include "BarbaClientApp.h"
 
 BarbaClientApp* theClientApp = NULL;
 BarbaClientApp::BarbaClientApp()
@@ -12,13 +13,13 @@ BarbaClientApp::BarbaClientApp()
 
 	//load template files
 	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\Get.txt"), GetAppFolder());
-	this->HttpGetTemplate = BarbaUtils::LoadFileToString(file);
+	this->HttpGetTemplate = BarbaUtils::PrepareHttpRequest( BarbaUtils::LoadFileToString(file) );
 	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\Post.txt"), GetAppFolder());
-	this->HttpPostTemplate = BarbaUtils::LoadFileToString(file);
+	this->HttpPostTemplate = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
 	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-PerPacket\\Get.txt"), GetAppFolder());
-	this->HttpGetTemplatePerPacket = BarbaUtils::LoadFileToString(file);
+	this->HttpGetTemplatePerPacket = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
 	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-PerPacket\\Post.txt"), GetAppFolder());
-	this->HttpPostTemplatePerPacket = BarbaUtils::LoadFileToString(file);
+	this->HttpPostTemplatePerPacket = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
 }
 
 BarbaClientApp::~BarbaClientApp()
@@ -103,4 +104,3 @@ bool BarbaClientApp::ProcessPacket(PacketHelper* packet, bool send)
 
 	return false;
 }
-

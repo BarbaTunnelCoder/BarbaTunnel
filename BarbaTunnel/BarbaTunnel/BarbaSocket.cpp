@@ -75,7 +75,7 @@ DWORD BarbaSocket::GetReceiveTimeOut()
 	//WINDOWS: Timeout value is a DWORD in milliseconds, address passed to setsockopt() is const char *
 	//LINUX: Timeout value is a struct timeval, address passed to setsockopt() is const void *
 	DWORD milisecond = 0;
-	int size = 0;
+	int size = sizeof(milisecond);
 	int res = getsockopt(this->_Socket, SOL_SOCKET, SO_RCVTIMEO, (char*)&milisecond, &size);
 	if (res==SOCKET_ERROR)
 		ThrowSocketError();
@@ -87,7 +87,7 @@ DWORD BarbaSocket::GetSendTimeOut()
 	//WINDOWS: Timeout value is a DWORD in milliseconds, address passed to setsockopt() is const char *
 	//LINUX: Timeout value is a struct timeval, address passed to setsockopt() is const void *
 	DWORD milisecond = 0;
-	int size = 0;
+	int size = sizeof(milisecond);
 	int res = getsockopt(this->_Socket, SOL_SOCKET, SO_SNDTIMEO, (char*)&milisecond, &size);
 	if (res==SOCKET_ERROR)
 		ThrowSocketError();

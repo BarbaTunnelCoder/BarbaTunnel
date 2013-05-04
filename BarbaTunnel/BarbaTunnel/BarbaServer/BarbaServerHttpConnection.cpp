@@ -9,12 +9,10 @@ BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfig* config, 
 	this->SessionId = sessionId;
 	this->TunnelPort = tunnelPort;
 
-	BarbaCourierCreateStrcut cs = {0};
+	BarbaCourier::CreateStrcutBag cs = {0};
 	cs.HostName = config->ServerAddress;
 	cs.FakeFileMaxSize = config->FakeFileMaxSize;
 	cs.RequestDataKeyName = config->RequestDataKeyName.data();
-	cs.HttpGetTemplate = theServerApp->FakeHttpGetReplyTemplate.data();
-	cs.HttpPostTemplate = theServerApp->FakeHttpPostReplyTemplate.data();
 	cs.MaxConnection = config->MaxUserConnections;
 	cs.AllowBombard = config->AllowRequestPerPacket;
 	cs.ConnectionTimeout = theApp->ConnectionTimeout;
@@ -48,6 +46,11 @@ bool BarbaServerHttpConnection::ProcessPacket(PacketHelper* packet, bool send)
 	}
 
 	return true;
+}
+
+void BarbaServerHttpConnection::Init(LPCTSTR requestData)
+{
+	return this->Courier->Init(requestData);
 }
 
 bool BarbaServerHttpConnection::AddSocket(BarbaSocket* Socket, LPCSTR httpRequest, bool isOutgoing)

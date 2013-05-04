@@ -130,7 +130,7 @@ void BarbaConfig::CheckMaxUserConnections()
 	{
 		Log(_T("Warning: Item specify %d MaxUserConnections! It strongly recommended to be 2 or more."), this->MaxUserConnections);
 	}
-	if (this->MaxUserConnections>20)
+	if (this->MaxUserConnections>BARBA_HttpMaxUserConnections)
 	{
 		Log(_T("Warning: Item specify %d MaxUserConnections! It could not be more than %d."), this->MaxUserConnections, BARBA_HttpMaxUserConnections);
 		this->MaxUserConnections = BARBA_HttpMaxUserConnections;

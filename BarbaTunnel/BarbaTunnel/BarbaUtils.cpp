@@ -390,6 +390,22 @@ void BarbaUtils::UpdateHttpRequest(std::tstring* httpRequest, std::tstring key, 
 	}
 }
 
+std::tstring BarbaUtils::PrepareHttpRequest(std::tstring request)
+{
+	std::tstring ret = request;
+	std::tstring req;
+	while (req.length()!=ret.length())
+	{
+		req = ret;
+		StringUtils::Trim(ret, ' ');
+		StringUtils::Trim(ret, '\n');
+	}
+	StringUtils::Trim(ret, '\n');
+	ret.append(_T("\n\n"));
+	StringUtils::ReplaceAll(ret, _T("\n"), _T("\r\n"));
+	return ret;
+}
+
 std::tstring BarbaUtils::ConvertIpToString(u_int ip)
 {
 	TCHAR buf[100];
