@@ -116,7 +116,7 @@ void BarbaCourier::Send(Message* message, bool highPriority)
 	if (message->GetCount()>BarbaCourier_MaxMessageLength)
 	{
 		delete message;
-		throw new BarbaException( _T("Message is too big to send! It should be greater than %u bytes."), BarbaCourier_MaxMessageLength);
+		throw new BarbaException( _T("Message is too big to send! It should not be greater than %u bytes."), BarbaCourier_MaxMessageLength);
 	}
 
 	if (this->IsDisposing())
