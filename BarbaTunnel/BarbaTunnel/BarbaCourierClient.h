@@ -23,6 +23,8 @@ protected:
 	virtual ~BarbaCourierClient();
 	void BeforeSendMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
 	void AfterSendMessage(BarbaSocket* barbaSocket) override;
+	void BeforeReceiveMessage(BarbaSocket* barbaSocket) override;
+	void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
 	
 private:
 	DWORD RemoteIp;
@@ -33,7 +35,7 @@ private:
 	void SendGetRequest(BarbaSocket* socket);
 	void SendGetRequestBombard(BarbaSocket* socket);
 	//@return count of byte that can be sent with this request
-	size_t SendPostRequest(BarbaSocket* socket);
+	size_t SendPostRequest(BarbaSocket* socket, bool initBombard);
 	size_t SendPostRequestBombard(BarbaSocket* socket, size_t dataLength);
 	void CheckKeepAlive();
 };

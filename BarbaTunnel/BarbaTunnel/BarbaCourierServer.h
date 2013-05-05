@@ -25,6 +25,8 @@ public:
 	bool IsServer() {return true;}
 
 protected:
+	void BeforeSendMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
+	void AfterSendMessage(BarbaSocket* barbaSocket) override;
 	void BeforeReceiveMessage(BarbaSocket* barbaSocket) override;
 	void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
 	virtual std::tstring GetHttpPostReplyRequest(bool bombardMode)=0;
@@ -35,5 +37,6 @@ private:
 	void SendPostReply(BarbaSocket* socket);
 	//@return the entire fake file size
 	size_t SendGetReply(BarbaSocket* socket, LPCTSTR httpRequest, BarbaBuffer* fakeFileHeader);
+	size_t SendGetReplyBombard(BarbaSocket* socket, size_t dataLength);
 	static unsigned int __stdcall ServerWorkerThread(void* serverThreadData);
 };
