@@ -28,9 +28,18 @@ void InitMemoryLeackReport(_HFILE fileHandle)
 	_CrtSetReportFile( _CRT_ASSERT, fileHandle );
 }
 
-int test()
+void test()
 {
-	return 0;
+	BarbaBuffer buf(50, 1);
+	printf("\nsize: %d, capacity:%d\n", buf.size(), buf.capacity());
+	for (int i=0; i<buf.size(); i++)
+		printf("%x,", buf[i]);
+
+	BarbaBuffer buf2(5, 2);
+	buf.assign(&buf2);
+	printf("\n\nsize: %d, capacity:%d\n", buf.size(), buf.capacity());
+	for (int i=0; i<buf.size(); i++)
+		printf("%x,", buf[i]);
 }
 
 int main(int argc, char* argv[])

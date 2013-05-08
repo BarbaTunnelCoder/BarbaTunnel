@@ -213,7 +213,7 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 	LPCTSTR requestMode = isOutgoing ? _T("POST") : _T("GET");
 	BarbaSocketClient* socket = NULL;
 	bool hasError = false;
-	DWORD retryTime = 1000;
+	DWORD retryTime = 10000;
 
 	while (!_this->IsDisposing())
 	{
