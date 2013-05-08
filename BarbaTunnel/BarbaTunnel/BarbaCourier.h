@@ -33,11 +33,11 @@ protected:
 		explicit Message() { }
 		explicit Message(BarbaBuffer* data)
 		{
-			this->Buffer.assign(data);
+			Buffer.assign(data);
 		}
 
-		BYTE* GetData() {return this->Buffer.data();}
-		size_t GetCount() {return this->Buffer.size();}
+		BYTE* GetData() {return Buffer.data();}
+		size_t GetDataSize() {return Buffer.size();}
 	
 	private:
 		BarbaBuffer Buffer;
@@ -67,9 +67,9 @@ private:
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
 	static unsigned int __stdcall DeleteThread(void* object);
 	size_t MaxMessageBuffer;
-	size_t SentBytesCount;
-	size_t ReceivedBytesCount;
 	SimpleEvent SendEvent;
+	SimpleCriticalSection SendEventCS;
+protected: //todo: make it private
 	SimpleSafeList<Message*> Messages;
 
 protected:
@@ -77,11 +77,16 @@ protected:
 	virtual void Dispose();
 	bool IsDisposing() { return this->DisposeEvent.IsSet(); }
 	virtual ~BarbaCourier(void);
+	virtual void Send(BarbaArray<Message*>& messages, bool highPriority=false);
 	virtual void Send(Message* message, bool highPriority=false);
 	void Sockets_Add(BarbaSocket* socket, bool isOutgoing);
 	void Sockets_Remove(BarbaSocket* socket, bool isOutgoing);
 	void ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);
+	size_t ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cryptIndex);
+	// @Note: This method will delete message
+	void ProcessOutgoingMessage(Message* message, size_t cryptIndex, size_t maxMessageSize, BarbaBuffer* buffer);
+	void ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet);
 	virtual void BeforeSendMessage(BarbaSocket* barbaSocket, size_t messageLength);
 	virtual void AfterSendMessage(BarbaSocket* barbaSocket);
 	virtual void BeforeReceiveMessage(BarbaSocket* barbaSocket);
@@ -91,6 +96,8 @@ protected:
 	void InitRequestVars(std::tstring& src, LPCTSTR filename, LPCTSTR contentType, size_t fileSize, size_t fileHeaderSize);
 	volatile DWORD LastReceivedTime;
 	volatile DWORD LastSentTime;
+	volatile size_t SentBytesCount;
+	volatile size_t ReceivedBytesCount;
 	bool IsBombardGet; 
 	bool IsBombardPost;  
 	bool IsBombardPostReply;  

@@ -178,6 +178,8 @@ void BarbaCourierServer::SendPostReply(BarbaSocket* socket)
 	std::tstring postReply = GetHttpPostReplyRequest(IsBombardPost);
 	InitRequestVars(postReply, NULL, NULL, 0, 0);
 	std::string postReplyA = postReply;
+	
+	size_t cnt = Messages.GetCount();
 	if (socket->Send((BYTE*)postReplyA.data(), postReplyA.size())!=(int)postReplyA.size())
 		throw new BarbaException(_T("Could not send post reply."));
 }
@@ -195,12 +197,12 @@ size_t BarbaCourierServer::SendGetReply(BarbaSocket* socket, LPCTSTR httpRequest
 	GetFakeFile(filename, &contentType, &fileSize, fileHeader, false);
 	size_t fakeFileHeaderSize = fileHeader!=NULL ? fileHeader->size() : 0;
 
-	std::tstring fakeReply = GetHttpGetReplyRequest(false);
-	InitRequestVars(fakeReply, filename, contentType.data(), fileSize, fakeFileHeaderSize);
+	std::tstring reply = GetHttpGetReplyRequest(false);
+	InitRequestVars(reply, filename, contentType.data(), fileSize, fakeFileHeaderSize);
 
 	Log(_T("Sending GET reply! File: %s (%u KB)."), filename, fileSize/1000, fakeFileHeaderSize);
 	std::string replyA = replyA;
-	if (socket->Send((BYTE*)replyA.data(), replyA.size())!=(int)replyA.size())
+	if (socket->Send((BYTE*)reply.data(), reply.size())!=(int)reply.size())
 		throw new BarbaException(_T("Could not send GET reply."));
 
 	return fileSize;
