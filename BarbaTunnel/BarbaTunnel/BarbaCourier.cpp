@@ -125,6 +125,11 @@ void BarbaCourier::Send(Message* message, bool highPriority)
 
 void BarbaCourier::Send(BarbaArray<Message*>& messages, bool highPriority)
 {
+	//check is any message
+	if (messages.size()==0)
+		return;
+
+	//check is disposing
 	if (this->IsDisposing())
 	{
 		for (int i=0; i<messages.size(); i++)
@@ -160,6 +165,22 @@ void BarbaCourier::Receive(BarbaBuffer* /*data*/)
 {
 }
 
+void BarbaCourier::GetMessages(BarbaArray<Message*>& messages)
+{
+	messages.reserve(this->Messages.GetCount());
+	Message* message = this->Messages.RemoveHead();
+	while (message!=NULL)
+	{
+		messages.append(message);
+		message = this->Messages.RemoveHead();
+	}
+}
+
+BarbaCourier::Message* BarbaCourier::GetMessage()
+{
+	return Messages.RemoveHead();
+}
+
 void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 {
 	Log(_T("HTTP connection is ready to send the actual data."));
@@ -178,23 +199,21 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 			break;
 
 		//post all message
-		Message* message = this->Messages.RemoveHead();
+		BarbaArray<Message*> messages;
+		GetMessages(messages);
 
 		//send KeepAlive from server to client
 		//if lastKeepAliveTime > this->LastReceivedTime it mean keepAlive already sent and it does not need more until next receive
-		if (IsServer() && message==NULL &&
+		if (IsServer() && messages.size()==0 &&
 			this->CreateStruct.KeepAliveInterval!=0 && 
 			barbaSocket->GetLastSentTime() < this->LastReceivedTime &&
 			GetTickCount() > (barbaSocket->GetLastSentTime() + this->CreateStruct.KeepAliveInterval) )
 		{
-			message = new Message();
+			messages.append(new Message());
 		}
 
-		while (message!=NULL)
+		while (messages.size()>0)
 		{
-			BarbaArray<Message*> messages;
-			messages.append(message);
-
 			try
 			{
 				//prepare packet
@@ -213,13 +232,17 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 				//recheck is transfer finish
 				transferFinish = sentBytes>=maxBytes;
 
-				//notify message sent
-				AfterSendMessage(barbaSocket);
-
 				//delete sent message and get next message
 				for (int i=0; i<messages.size(); i++)
 					delete messages[i];
-				message = transferFinish ? NULL : this->Messages.RemoveHead();
+				messages.clear();
+
+				//notify message sent
+				AfterSendMessage(barbaSocket);
+
+				//get next messages
+				if (transferFinish)
+					GetMessages(messages);
 			}
 			catch(...)
 			{
@@ -248,9 +271,10 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
 	while(!this->IsDisposing() && receivedBytes<maxBytes)
 	{
 		//notify receiving message
-		BeforeReceiveMessage(barbaSocket);
+		size_t chunkSize;
+		BeforeReceiveMessage(barbaSocket, &chunkSize);
 
-		size_t readedBytes = ProcessIncomingMessage(barbaSocket, receivedBytes);
+		size_t readedBytes = ProcessIncomingMessage(barbaSocket, receivedBytes, chunkSize);
 		receivedBytes += readedBytes;
 		this->ReceivedBytesCount += readedBytes;
 		this->LastReceivedTime = GetTickCount();
@@ -259,6 +283,20 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
 		AfterReceiveMessage(barbaSocket, readedBytes);
 	}
 }
+
+bool BarbaCourier::ProcessOutgoingMessages(size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet)
+{
+	//pump all messages
+	BarbaArray<Message*> messages;
+	Message* message = Messages.RemoveHead();
+	while (message!=NULL)
+		messages.append(message);
+	if (messages.size()==0)
+		return false;
+	ProcessOutgoingMessages(messages, cryptIndex, maxPacketSize, packet);
+	return true;
+}
+
 
 void BarbaCourier::ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet)
 {
@@ -318,38 +356,43 @@ void BarbaCourier::ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_
 	messages.assign(&includeMessages);
 }
 
-size_t BarbaCourier::ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cryptIndex)
+size_t BarbaCourier::ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cryptIndex, size_t chunkSize)
 {
 	size_t receivedBytes = 0;
+	if (chunkSize==0) chunkSize = 1; //run loop code just one time, i don't like do-while
 
-	//read message type; just ignore if zero
-	BYTE messageType = 0;
-	if (barbaSocket->Receive((BYTE*)&messageType, 1, true)!=1)
-		throw new BarbaException( _T("Out of sync while reading message length!") );
-	Crypt((BYTE*)&messageType, 1, cryptIndex + receivedBytes, false);
-	receivedBytes +=1;
-	if (messageType==0)
-		return receivedBytes;
-
-	//read message size
-	u_short messageLen = 0;
-	if (barbaSocket->Receive((BYTE*)&messageLen, 2, true)!=2)
-		throw new BarbaException( _T("Out of sync while reading message length!") );
-	Crypt((BYTE*)&messageLen, 2, cryptIndex + receivedBytes, false);
-	receivedBytes += 2; 	
-
-	//read message data
-	if (messageLen!=0)
+	while (receivedBytes<chunkSize)
 	{
-		BarbaBuffer messageBuf(messageLen);
-		size_t receiveCount = barbaSocket->Receive(messageBuf.data(), messageBuf.size(), true);
-		if (receiveCount!=messageBuf.size())
-			throw new BarbaException( _T("Out of sync while reading message!") );
-		Crypt(&messageBuf, cryptIndex + receivedBytes, false); 
-		receivedBytes += receiveCount;
 
-		//notify new message
-		this->Receive(&messageBuf);
+		//read message type; just ignore if zero
+		BYTE messageType = 0;
+		if (barbaSocket->Receive((BYTE*)&messageType, 1, true)!=1)
+			throw new BarbaException( _T("Out of sync while reading message length!") );
+		Crypt((BYTE*)&messageType, 1, cryptIndex + receivedBytes, false);
+		receivedBytes +=1;
+		if (messageType==0)
+			continue;
+
+		//read message size
+		u_short messageLen = 0;
+		if (barbaSocket->Receive((BYTE*)&messageLen, 2, true)!=2)
+			throw new BarbaException( _T("Out of sync while reading message length!") );
+		Crypt((BYTE*)&messageLen, 2, cryptIndex + receivedBytes, false);
+		receivedBytes += 2; 	
+
+		//read message data
+		if (messageLen!=0)
+		{
+			BarbaBuffer messageBuf(messageLen);
+			size_t receiveCount = barbaSocket->Receive(messageBuf.data(), messageBuf.size(), true);
+			if (receiveCount!=messageBuf.size())
+				throw new BarbaException( _T("Out of sync while reading message!") );
+			Crypt(&messageBuf, cryptIndex + receivedBytes, false); 
+			receivedBytes += receiveCount;
+
+			//notify new message
+			this->Receive(&messageBuf);
+		}
 	}
 
 	return receivedBytes;
@@ -358,7 +401,7 @@ size_t BarbaCourier::ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cry
 
 void BarbaCourier::BeforeSendMessage(BarbaSocket* /*barbaSocket*/, size_t /*messageLength*/) {}
 void BarbaCourier::AfterSendMessage(BarbaSocket* /*barbaSocket*/)  {}
-void BarbaCourier::BeforeReceiveMessage(BarbaSocket* /*barbaSocket*/)  {}
+void BarbaCourier::BeforeReceiveMessage(BarbaSocket* /*barbaSocket*/, size_t* /*chunkSize*/)  {}
 void BarbaCourier::AfterReceiveMessage(BarbaSocket* /*barbaSocket*/, size_t /*messageLength*/)  {}
 
 void BarbaCourier::Sockets_Add(BarbaSocket* socket, bool isOutgoing)
@@ -376,6 +419,7 @@ void BarbaCourier::Sockets_Add(BarbaSocket* socket, bool isOutgoing)
 
 	list->AddTail(socket);
 	socket->SetNoDelay(true);
+	//socket->SetBufferSize(0);
 
 	//Receive Timeout for in-comming 
 	if (this->CreateStruct.ConnectionTimeout!=0)
@@ -483,7 +527,7 @@ void BarbaCourier::InitRequestVars(std::tstring& src, LPCTSTR fileName, LPCTSTR 
 
 	//prepare RequestData: 
 	CHAR requestDataStr[2000]; //filesize=1234;fileheadersize=1234;session=1234;keepalive=1234;bombard=postreply;
-	sprintf_s(requestDataStr, "filesize=%u;fileheadersize=%u;session=%u;packetminsize=%u;keepalive=%u;bombardmode=%s", 
+	sprintf_s(requestDataStr, "filesize:%u;fileheadersize:%u;session:%u;packetminsize:%u;keepalive:%u;bombardmode:%s", 
 		fileSize, 
 		fileHeaderSize, 
 		this->CreateStruct.SessionId, 
@@ -500,7 +544,7 @@ void BarbaCourier::InitRequestVars(std::tstring& src, LPCTSTR fileName, LPCTSTR 
 	//RequestData
 	std::tstring data;
 	data.append(this->CreateStruct.RequestDataKeyName);
-	data.append(_T("="));
+	data.append(_T(":"));
 	data.append(requestData);
 	StringUtils::ReplaceAll(src, _T("{data}"), data);
 }

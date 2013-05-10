@@ -103,6 +103,13 @@ void BarbaSocket::SetNoDelay(bool value)
 		ThrowSocketError();
 }
 
+void BarbaSocket::SetBufferSize(int value)
+{
+	int res = setsockopt(this->_Socket, SOL_SOCKET, SO_SNDBUF, (char *) &value,  sizeof(int));
+	if (res==SOCKET_ERROR)
+		ThrowSocketError();
+}
+
 void BarbaSocket::SetKeepAlive(bool value)
 {
 	int flag = value ? 1 : 0;

@@ -154,15 +154,18 @@ void BarbaCourierServer::AfterSendMessage(BarbaSocket* barbaSocket)
 	}
 }
 
-void BarbaCourierServer::BeforeReceiveMessage(BarbaSocket* barbaSocket)
+void BarbaCourierServer::BeforeReceiveMessage(BarbaSocket* barbaSocket, size_t* chunkSize)
 {
 	if (IsBombardPost)
 	{
-		barbaSocket->ReadHttpRequest();
+		std::string header = barbaSocket->ReadHttpRequest();
+		if (header.empty())
+			throw new BarbaException( _T("Server does not accept request!") );
+		*chunkSize = BarbaUtils::GetKeyValueFromString(header.data(), _T("Content-Length"), 0);
 	}
 }
 
-void BarbaCourierServer::AfterReceiveMessage(BarbaSocket* barbaSocket, size_t /*messageLength*/)
+void BarbaCourierServer::AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength)
 {
 	if (IsBombardPostReply)
 	{
@@ -177,10 +180,7 @@ void BarbaCourierServer::SendPostReply(BarbaSocket* socket)
 
 	std::tstring postReply = GetHttpPostReplyRequest(IsBombardPost);
 	InitRequestVars(postReply, NULL, NULL, 0, 0);
-	std::string postReplyA = postReply;
-	
-	size_t cnt = Messages.GetCount();
-	if (socket->Send((BYTE*)postReplyA.data(), postReplyA.size())!=(int)postReplyA.size())
+	if (socket->Send((BYTE*)postReply.data(), postReply.size())!=(int)postReply.size())
 		throw new BarbaException(_T("Could not send post reply."));
 }
 

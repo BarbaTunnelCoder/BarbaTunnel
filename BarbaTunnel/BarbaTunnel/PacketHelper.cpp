@@ -4,6 +4,7 @@
 void PacketHelper::AllocIpBuffer(size_t ipLen)
 {
 	ipLen  = min(ipLen, 0xFFFF);
+	ipLen = max(ipLen, sizeof iphdr);
 	size_t size = ipLen + sizeof ether_header; 
 
 	//allocate new buffer

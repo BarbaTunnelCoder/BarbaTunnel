@@ -22,6 +22,7 @@ public:
 	void append(BarbaArray<T>* buffer) { append(buffer->data(), buffer->size()); }
 	void append(T value) {buf.push_back(value);}
 	bool empty() {return buf.empty();}
+	void clear() {return buf.clear();}
 	T operator[](int nIndex) const { return buf[nIndex]; }
 	T& operator[](int nIndex) { return buf[nIndex]; }
 
