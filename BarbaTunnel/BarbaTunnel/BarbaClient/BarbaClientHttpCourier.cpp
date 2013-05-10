@@ -40,7 +40,8 @@ void BarbaClientHttpCourier::Receive(BarbaBuffer* data)
 	PacketHelper packet((iphdr_ptr)data->data(), data->size());
 	if (!packet.IsValidChecksum())
 	{
-		Log(_T("Error: Invalid packet checksum received! Check your key."));
+		Log(_T("Error: Invalid packet checksum received! Check your key and version."));
+		return;
 	}
 	this->HttpConnection->ProcessPacket(&packet, false);
 }

@@ -331,7 +331,7 @@ std::tstring BarbaUtils::GetFileFolderFromUrl(LPCTSTR url)
 std::tstring BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key)
 {
 	CHAR phrase[BARBA_MaxKeyName+2];
-	_stprintf_s(phrase, "%s=", key);
+	_stprintf_s(phrase, "%s:", key);
 	const TCHAR* start = _tcsstr(httpRequest, key);
 	if (start==NULL)
 		return _T("");
@@ -345,7 +345,9 @@ std::tstring BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key)
 	TCHAR buffer[255];
 	size_t maxValueLen  = min(end-start, _countof(buffer)-1);
 	_tcsncpy_s(buffer, start, maxValueLen);
-	return buffer;
+	std::tstring ret = buffer;
+	StringUtils::Trim(ret);
+	return ret;
 }
 
 size_t BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key, size_t defValue)

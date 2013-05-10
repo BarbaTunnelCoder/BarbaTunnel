@@ -27,7 +27,7 @@ public:
 protected:
 	void BeforeSendMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
 	void AfterSendMessage(BarbaSocket* barbaSocket) override;
-	void BeforeReceiveMessage(BarbaSocket* barbaSocket) override;
+	void BeforeReceiveMessage(BarbaSocket* barbaSocket, size_t* chunkSize) override;
 	void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
 	virtual std::tstring GetHttpPostReplyRequest(bool bombardMode)=0;
 	virtual std::tstring GetHttpGetReplyRequest(bool bombardMode)=0;

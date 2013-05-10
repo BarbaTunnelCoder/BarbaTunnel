@@ -23,7 +23,7 @@ protected:
 	virtual ~BarbaCourierClient();
 	void BeforeSendMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
 	void AfterSendMessage(BarbaSocket* barbaSocket) override;
-	void BeforeReceiveMessage(BarbaSocket* barbaSocket) override;
+	void BeforeReceiveMessage(BarbaSocket* barbaSocket, size_t* chunkSize) override;
 	void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
 	
 private:

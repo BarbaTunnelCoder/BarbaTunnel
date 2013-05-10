@@ -69,8 +69,11 @@ private:
 	size_t MaxMessageBuffer;
 	SimpleEvent SendEvent;
 	SimpleCriticalSection SendEventCS;
-protected: //todo: make it private
 	SimpleSafeList<Message*> Messages;
+
+protected: 
+	void GetMessages(BarbaArray<Message*>& messages);
+	Message* GetMessage();
 
 protected:
 	void Log(LPCTSTR format, ...);
@@ -83,13 +86,13 @@ protected:
 	void Sockets_Remove(BarbaSocket* socket, bool isOutgoing);
 	void ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);
-	size_t ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cryptIndex);
-	// @Note: This method will delete message
-	void ProcessOutgoingMessage(Message* message, size_t cryptIndex, size_t maxMessageSize, BarbaBuffer* buffer);
+	size_t ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cryptIndex, size_t chunkSize);
+	//return false if there is not message to proceed
+	bool ProcessOutgoingMessages(size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet);
 	void ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet);
 	virtual void BeforeSendMessage(BarbaSocket* barbaSocket, size_t messageLength);
 	virtual void AfterSendMessage(BarbaSocket* barbaSocket);
-	virtual void BeforeReceiveMessage(BarbaSocket* barbaSocket);
+	virtual void BeforeReceiveMessage(BarbaSocket* barbaSocket, size_t* chunkSize);
 	virtual void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength);
 	void SendFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHeader);
 	void WaitForIncomingFileHeader(BarbaSocket* socket, size_t fileHeaderSize);

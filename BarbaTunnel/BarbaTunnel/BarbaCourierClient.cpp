@@ -152,18 +152,19 @@ void BarbaCourierClient::AfterSendMessage(BarbaSocket* barbaSocket)
 	}
 }
 
-void BarbaCourierClient::BeforeReceiveMessage(BarbaSocket* barbaSocket)
+void BarbaCourierClient::BeforeReceiveMessage(BarbaSocket* barbaSocket, size_t* chunkSize)
 {
 	if (IsBombardGet)
 	{
 		std::string header = barbaSocket->ReadHttpRequest();
 		if (header.empty())
 			throw new BarbaException( _T("Server does not accept request!") );
+		*chunkSize = BarbaUtils::GetKeyValueFromString(header.data(), _T("Content-Length"), 0);
 	}
 }
 
 
-void BarbaCourierClient::AfterReceiveMessage(BarbaSocket* barbaSocket, size_t /*messageLength*/)
+void BarbaCourierClient::AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength)
 {
 	if (IsBombardGet)
 	{
@@ -250,7 +251,6 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 				{
 					//report new connection
 					_this->Log(_T("HTTP POST added. Connections Count: %d."), _this->OutgoingSockets.GetCount());
-
 					size_t fileSize = _this->SendPostRequest(socket, false);
 
 					//process socket until socket closed or finish uploading fakeFileSize
