@@ -85,7 +85,7 @@ namespace BarbaTunnel.Monitor
 				IsProfileCreated = true;
 			}
 
-
+			Visibility = Visibility.Hidden;
 			Closed += MainWindow_Closed;
 			Loaded += MainWindow_Loaded;
 			_barbaComm.NotifyChanged += BarbaComm_Notified;
@@ -105,7 +105,7 @@ namespace BarbaTunnel.Monitor
 			_barbaNotify.AutoStartTunnelMenu.Checked = IsAutoStartTunnel;
 			InitializeComponent();
 			_barbaComm.Initialize();
-			VerboseCheckBox.IsChecked = _barbaComm.IsVerboseMode;
+			LogLevelBox.SelectedIndex = _barbaComm.LogLevel -1;
 
 			//StartTunnel when monitor start
 			if (_barbaComm.Status == BarbaStatus.Stopped && IsAutoStartTunnel)
@@ -305,9 +305,9 @@ namespace BarbaTunnel.Monitor
 			}
 		}
 
-		private void VerboseCheckBox_Click(object sender, RoutedEventArgs e)
+		private void LogLevelBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
 		{
-			_barbaComm.IsVerboseMode = VerboseCheckBox.IsChecked != null && VerboseCheckBox.IsChecked.Value;
+			_barbaComm.LogLevel = LogLevelBox.SelectedIndex + 1;
 		}
 	}
 }

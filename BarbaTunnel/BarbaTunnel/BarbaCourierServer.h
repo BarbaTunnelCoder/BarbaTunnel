@@ -25,7 +25,7 @@ public:
 	bool IsServer() {return true;}
 
 protected:
-	void BeforeSendMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
+	void BeforeSendMessage(BarbaSocket* barbaSocket, BarbaBuffer* messageBuffer) override;
 	void AfterSendMessage(BarbaSocket* barbaSocket) override;
 	void BeforeReceiveMessage(BarbaSocket* barbaSocket, size_t* chunkSize) override;
 	void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
@@ -35,8 +35,9 @@ protected:
 
 private:
 	void SendPostReply(BarbaSocket* socket);
+	void SendPostReply(BarbaSocket* socket, BarbaBuffer* content);
 	//@return the entire fake file size
 	size_t SendGetReply(BarbaSocket* socket, LPCTSTR httpRequest, BarbaBuffer* fakeFileHeader);
-	size_t SendGetReplyBombard(BarbaSocket* socket, size_t dataLength);
+	void GetGetReplyBombard(size_t dataLength, BarbaBuffer* requestBuffer);
 	static unsigned int __stdcall ServerWorkerThread(void* serverThreadData);
 };

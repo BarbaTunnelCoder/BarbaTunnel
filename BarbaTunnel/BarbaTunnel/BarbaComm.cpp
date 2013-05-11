@@ -180,28 +180,9 @@ BarbaComm::CommandEnum BarbaComm::GetCommand()
 	else return CommandNone;
 }
 
-void BarbaLog(LPCTSTR format, ...)
+void BarbaLogImpl(int level, LPCTSTR format, ...)
 {
-	va_list argp;
-	va_start(argp, format);
-	CHAR msg[5000];
-	_vstprintf_s(msg, format, argp);
-	va_end(argp);
-
-	if (theComm!=NULL)
-	{
-		theComm->Log(msg, false);
-	}
-	else
-	{
-		_tprintf_s(msg);
-		_tprintf_s(_T("\r\n"));
-	}
-}
-
-void BarbaLog2(LPCTSTR format, ...)
-{
-	if (theApp!=NULL && !theApp->VerboseMode)
+	if (theApp!=NULL && level>theApp->LogLevel)
 		return;
 
 	va_list argp;
@@ -212,26 +193,7 @@ void BarbaLog2(LPCTSTR format, ...)
 
 	if (theComm!=NULL)
 	{
-		theComm->Log(msg, false);
-	}
-	else
-	{
-		_tprintf_s(msg);
-		_tprintf_s(_T("\r\n"));
-	}
-}
-
-void BarbaNotify(LPCTSTR format, ...)
-{
-	va_list argp;
-	va_start(argp, format);
-	CHAR msg[10000];
-	_vstprintf_s(msg, format, argp);
-	va_end(argp);
-
-	if (theComm!=NULL)
-	{
-		theComm->Log(msg, true);
+		theComm->Log(msg, level==0);
 	}
 	else
 	{
