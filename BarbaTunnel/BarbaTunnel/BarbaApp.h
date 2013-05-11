@@ -31,7 +31,7 @@ public:
 	static LPCTSTR GetModuleFile();
 	BarbaFilterDriver* GetFilterDriver() { return this->FilterDriver; }
 	size_t GetAdapterIndex() {return _AdapterIndex;}
-	bool VerboseMode;
+	int LogLevel;
 	BarbaComm Comm;
 	u_int ConnectionTimeout;
 	std::vector<FakeFileHeader> FakeFileHeaders;

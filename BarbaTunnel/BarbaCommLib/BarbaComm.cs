@@ -201,17 +201,17 @@ namespace BarbaTunnel.CommLib
 			
 		}
 
-		public Boolean IsVerboseMode
+		public int LogLevel
 		{
 			get
 			{
-				return GetPrivateProfileInt("General", "VerboseMode", 0, SettingsFilePath) != 0;
+				return GetPrivateProfileInt("General", "LogLevel", 1, SettingsFilePath);
 			}
 			set
 			{
 				try
 				{
-					WritePrivateProfileString("General", "VerboseMode", value ? "1" : "0", SettingsFilePath);
+					WritePrivateProfileString("General", "LogLevel", value.ToString(), SettingsFilePath);
 					var res = OpenCommandEvent();
 					if (res != null)
 					{

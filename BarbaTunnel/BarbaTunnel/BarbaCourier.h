@@ -76,7 +76,8 @@ protected:
 	Message* GetMessage();
 
 protected:
-	void Log(LPCTSTR format, ...);
+	void Log2(LPCTSTR format, ...);
+	void Log3(LPCTSTR format, ...);
 	virtual void Dispose();
 	bool IsDisposing() { return this->DisposeEvent.IsSet(); }
 	virtual ~BarbaCourier(void);
@@ -87,10 +88,8 @@ protected:
 	void ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	void ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes=0);
 	size_t ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cryptIndex, size_t chunkSize);
-	//return false if there is not message to proceed
-	bool ProcessOutgoingMessages(size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet);
 	void ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet);
-	virtual void BeforeSendMessage(BarbaSocket* barbaSocket, size_t messageLength);
+	virtual void BeforeSendMessage(BarbaSocket* barbaSocket, BarbaBuffer* messageBuffer);
 	virtual void AfterSendMessage(BarbaSocket* barbaSocket);
 	virtual void BeforeReceiveMessage(BarbaSocket* barbaSocket, size_t* chunkSize);
 	virtual void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength);
@@ -102,8 +101,10 @@ protected:
 	volatile size_t SentBytesCount;
 	volatile size_t ReceivedBytesCount;
 	bool IsBombardGet; 
+	bool IsBombardGetPayload; 
 	bool IsBombardPost;  
 	bool IsBombardPostReply;  
+	bool IsBombardPostReplyPayload;  
 
 	SimpleSafeList<BarbaSocket*> IncomingSockets;
 	SimpleSafeList<BarbaSocket*> OutgoingSockets;

@@ -22,9 +22,14 @@ void BarbaCourier::RefreshParameters()
 	if (this->CreateStruct.KeepAliveInterval!=0 && this->CreateStruct.KeepAliveInterval<BARBA_HttpKeepAliveIntervalMin) this->CreateStruct.KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
 	if (this->CreateStruct.ThreadsStackSize==0) this->CreateStruct.ThreadsStackSize = BARBA_SocketThreadStackSize; 
 	if (this->CreateStruct.FakeFileMaxSize==0) this->CreateStruct.FakeFileMaxSize = BARBA_HttpFakeFileMaxSize; 
-	IsBombardGet = _tcsstr(this->CreateStruct.HttpBombardMode.data(), "get")!=NULL;
-	IsBombardPost = _tcsstr(this->CreateStruct.HttpBombardMode.data(), "post")!=NULL;
-	IsBombardPostReply = _tcsstr(this->CreateStruct.HttpBombardMode.data(), "reply")!=NULL;
+
+	std::string bombardMode = this->CreateStruct.HttpBombardMode;
+	bombardMode.append(_T(" "));
+	IsBombardGet = _tcsstr(bombardMode.data(), "/get")!=NULL;
+	IsBombardGetPayload = _tcsstr(bombardMode.data(), "/getpayload ")!=NULL;
+	IsBombardPost = _tcsstr(bombardMode.data(), "/post ")!=NULL;
+	IsBombardPostReply = _tcsstr(bombardMode.data(), "/reply ")!=NULL;
+	IsBombardPostReplyPayload = _tcsstr(bombardMode.data(), "/replypayload ")!=NULL;
 }
 
 unsigned BarbaCourier::DeleteThread(void* object) 
@@ -53,7 +58,7 @@ void BarbaCourier::CloseSocketsList(SimpleSafeList<BarbaSocket*>* list)
 	}
 }
 
-void BarbaCourier::Log(LPCTSTR format, ...)
+void BarbaCourier::Log2(LPCTSTR format, ...)
 {
 	va_list argp;
 	va_start(argp, format);
@@ -66,13 +71,26 @@ void BarbaCourier::Log(LPCTSTR format, ...)
 	BarbaLog2(msg2);
 }
 
+void BarbaCourier::Log3(LPCTSTR format, ...)
+{
+	va_list argp;
+	va_start(argp, format);
+	TCHAR msg[1000];
+	_vstprintf_s(msg, format, argp);
+	va_end(argp);
+
+	TCHAR msg2[1000];
+	_stprintf_s(msg2, _T("BarbaCourier: TID: %4x, SessionId: %x, %s"), GetCurrentThreadId(), this->CreateStruct.SessionId, msg);
+	BarbaLog3(msg2);
+}
+
 BarbaCourier::~BarbaCourier(void)
 {
 }
 
 HANDLE BarbaCourier::Delete()
 {
-	Log(_T("BarbaCourier disposing."));
+	Log2(_T("BarbaCourier disposing."));
 	DisposeEvent.Set();
 	return (HANDLE)_beginthreadex(0, this->CreateStruct.ThreadsStackSize, DeleteThread, (void*)this, 0, NULL);
 }
@@ -103,7 +121,7 @@ void BarbaCourier::Dispose()
 		CloseHandle(thread);
 		thread = this->Threads.RemoveHead();
 	}
-	Log(_T("BarbaCourier disposed."));
+	Log2(_T("BarbaCourier disposed."));
 }
 
 void BarbaCourier::Send(BarbaBuffer* data)
@@ -134,6 +152,7 @@ void BarbaCourier::Send(BarbaArray<Message*>& messages, bool highPriority)
 	{
 		for (int i=0; i<messages.size(); i++)
 			delete messages[i];
+		messages.clear();
 		return;
 	}
 
@@ -143,7 +162,7 @@ void BarbaCourier::Send(BarbaArray<Message*>& messages, bool highPriority)
 	for (int i=0; i<messages.size(); i++)
 	{
 		if (messages[i]->GetDataSize()>BarbaCourier_MaxMessageLength)
-			Log(_T("Message is too big to send! It should not be greater than %u bytes."), BarbaCourier_MaxMessageLength);
+			Log2(_T("Message is too big to send! It should not be greater than %u bytes."), BarbaCourier_MaxMessageLength);
 		else if (highPriority)
 			Messages.AddHead(messages[i]);
 		else
@@ -183,7 +202,7 @@ BarbaCourier::Message* BarbaCourier::GetMessage()
 
 void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 {
-	Log(_T("HTTP connection is ready to send the actual data."));
+	Log2(_T("HTTP connection is ready to send the actual data."));
 
 	size_t sentBytes = 0;
 	bool transferFinish = false;
@@ -219,14 +238,19 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 				//prepare packet
 				BarbaBuffer packet;
 				ProcessOutgoingMessages(messages, sentBytes, maxBytes-sentBytes, &packet);
+				
+				//save transfer count before BeforeSendMessage change packet
+				size_t transferCount = packet.size();
 
-				//Notify message sending
-				BeforeSendMessage(barbaSocket, packet.size());
+				//Notify message going to send
+				BeforeSendMessage(barbaSocket, &packet);
 
+				//sending buffer
+				barbaSocket->Send(packet.data(), packet.size());
+				
 				//calculate stats
-				size_t sentCount = barbaSocket->Send(packet.data(), packet.size());
-				this->SentBytesCount += sentCount; //courier bytes
-				sentBytes += sentCount; //current socket bytes
+				this->SentBytesCount += transferCount; //courier bytes
+				sentBytes += transferCount; //current socket bytes
 				this->LastSentTime = GetTickCount();
 
 				//recheck is transfer finish
@@ -262,7 +286,7 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 
 void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
 {
-	Log(_T("HTTP connection is ready to receive the actual data."));
+	Log2(_T("HTTP connection is ready to receive the actual data."));
 
 	size_t receivedBytes = 0;
 	if (maxBytes==0) maxBytes = (size_t)-1;
@@ -284,24 +308,15 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
 	}
 }
 
-bool BarbaCourier::ProcessOutgoingMessages(size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet)
-{
-	//pump all messages
-	BarbaArray<Message*> messages;
-	Message* message = Messages.RemoveHead();
-	while (message!=NULL)
-		messages.append(message);
-	if (messages.size()==0)
-		return false;
-	ProcessOutgoingMessages(messages, cryptIndex, maxPacketSize, packet);
-	return true;
-}
-
-
 void BarbaCourier::ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet)
 {
-	//Packet Format: MessageType|MessageSize|Message
+	// don't do anything if there is no message
+	if (messages.size()==0)
+		return;
+
 	//size_t orgMaxPacketSize = maxPacketSize;
+	if (maxPacketSize == 0) 
+		maxPacketSize = (size_t)-1;
 
 	//find packet that should send
 	size_t packetSize = 0;
@@ -336,6 +351,7 @@ void BarbaCourier::ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_
 	packetSize += fakeBuffer.size();
 
 	//prepare sending message
+	//Packet Format: MessageType|MessageSize|Message
 	packet->reserve(packetSize);
 	for (int i=0; i<includeMessages.size(); i++)
 	{
@@ -363,7 +379,6 @@ size_t BarbaCourier::ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cry
 
 	while (receivedBytes<chunkSize)
 	{
-
 		//read message type; just ignore if zero
 		BYTE messageType = 0;
 		if (barbaSocket->Receive((BYTE*)&messageType, 1, true)!=1)
@@ -399,7 +414,7 @@ size_t BarbaCourier::ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cry
 }
 
 
-void BarbaCourier::BeforeSendMessage(BarbaSocket* /*barbaSocket*/, size_t /*messageLength*/) {}
+void BarbaCourier::BeforeSendMessage(BarbaSocket* /*barbaSocket*/, BarbaBuffer* /*messageBuffer*/) {}
 void BarbaCourier::AfterSendMessage(BarbaSocket* /*barbaSocket*/)  {}
 void BarbaCourier::BeforeReceiveMessage(BarbaSocket* /*barbaSocket*/, size_t* /*chunkSize*/)  {}
 void BarbaCourier::AfterReceiveMessage(BarbaSocket* /*barbaSocket*/, size_t /*messageLength*/)  {}
@@ -441,12 +456,12 @@ void BarbaCourier::SendFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHead
 {
 	if (fakeFileHeader->empty())
 	{
-		Log(_T("Could not find fake file data. Fake file header ignored!"));
+		Log2(_T("Could not find fake file data. Fake file header ignored!"));
 		return;
 	}
 
 	//sending fake file header
-	Log(_T("Sending fake file header. HeaderSize: %u KB."), fakeFileHeader->size()/1000);
+	Log2(_T("Sending fake file header. HeaderSize: %u KB."), fakeFileHeader->size()/1000);
 	if (socket->Send(fakeFileHeader->data(), fakeFileHeader->size())!=(int)fakeFileHeader->size())
 		throw new BarbaException(_T("Fake file header does not send!"));
 }
@@ -455,7 +470,7 @@ void BarbaCourier::WaitForIncomingFileHeader(BarbaSocket* socket, size_t fileHea
 {
 	if (fileHeaderSize==0)
 	{
-		Log(_T("Request does not have fake file header."));
+		Log2(_T("Request does not have fake file header."));
 	} 
 	else if (fileHeaderSize>BarbaCourier_MaxFileHeaderSize)
 	{
@@ -463,7 +478,7 @@ void BarbaCourier::WaitForIncomingFileHeader(BarbaSocket* socket, size_t fileHea
 	}
 	else
 	{
-		Log(_T("Waiting for incoming fake file header. HeaderSize: %u KB."), fileHeaderSize/1000);
+		Log2(_T("Waiting for incoming fake file header. HeaderSize: %u KB."), fileHeaderSize/1000);
 
 		BarbaBuffer buffer(fileHeaderSize);
 		if (socket->Receive(buffer.data(), buffer.size(), true)!=(int)buffer.size())
@@ -526,14 +541,14 @@ void BarbaCourier::InitRequestVars(std::tstring& src, LPCTSTR fileName, LPCTSTR 
 	BarbaUtils::UpdateHttpRequest(&src, _T("Content-Type"), contentType);
 
 	//prepare RequestData: 
-	CHAR requestDataStr[2000]; //filesize=1234;fileheadersize=1234;session=1234;keepalive=1234;bombard=postreply;
+	CHAR requestDataStr[2000] = {0}; //filesize=1234;fileheadersize=1234;session=1234;keepalive=1234;bombardmode=postreply;
 	sprintf_s(requestDataStr, "filesize:%u;fileheadersize:%u;session:%u;packetminsize:%u;keepalive:%u;bombardmode:%s", 
 		fileSize, 
 		fileHeaderSize, 
 		this->CreateStruct.SessionId, 
 		this->CreateStruct.FakePacketMinSize, 
 		this->CreateStruct.KeepAliveInterval, 
-		this->CreateStruct.HttpBombardMode);
+		this->CreateStruct.HttpBombardMode.data());
 
 	//encrypt-data
 	BarbaBuffer rdataBuffer((BYTE*)requestDataStr, _tcslen(requestDataStr));
