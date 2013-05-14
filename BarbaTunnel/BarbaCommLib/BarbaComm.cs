@@ -333,7 +333,7 @@ namespace BarbaTunnel.CommLib
 			var log = "";
 			try
 			{
-				const int maxSize = 150 * 1000;
+				const int maxSize = 60 * 1000;
 				using (var fs = File.Open(LogFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 				{
 					var pos = Math.Max(fs.Length - maxSize, 0);

@@ -53,9 +53,9 @@ void BarbaServerHttpConnection::Init(LPCTSTR requestData)
 	return this->Courier->Init(requestData);
 }
 
-bool BarbaServerHttpConnection::AddSocket(BarbaSocket* Socket, LPCSTR httpRequest, bool isOutgoing)
+bool BarbaServerHttpConnection::AddSocket(BarbaSocket* Socket, LPCSTR httpRequest, LPCTSTR requestData, bool isOutgoing)
 {
-	return this->Courier->AddSocket(Socket, httpRequest, isOutgoing);
+	return this->Courier->AddSocket(Socket, httpRequest, requestData, isOutgoing);
 }
 
 bool BarbaServerHttpConnection::ShouldProcessPacket(PacketHelper* packet)

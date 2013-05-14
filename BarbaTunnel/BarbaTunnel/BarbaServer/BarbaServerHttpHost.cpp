@@ -97,16 +97,11 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 		_this->Log(_T("New incoming connection. ServerPort: %d, ClientIp: %s."), threadData->ServerPort, clientIp.data());
 		_this->Log(_T("Waiting for HTTP request."));
 		std::string httpRequest = socket->ReadHttpRequest();
-		bool isGet = httpRequest.size()>=3 && _strnicmp(httpRequest.data(), "GET", 3)==0;
-		bool isPost = httpRequest.size()>=4 && _strnicmp(httpRequest.data(), "POST", 4)==0;
-		if (!isGet && !isPost)
-			throw new BarbaException(_T("Could not find GET or POST from HTTP request!"));
-		bool isOutgoing = isGet;
 
 		//find session
 		std::tstring requestData = GetRequestDataFromHttpRequest(httpRequest.data(), threadData->Config->RequestDataKeyName.data(), &threadData->Config->Key);
-		std::tstring sessionIdStr = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("session"));
-		u_long sessionId = strtoul(sessionIdStr.data(), NULL, 0);
+		DWORD sessionId = (DWORD)BarbaUtils::GetKeyValueFromString(requestData.data(), _T("session"), 0); 
+		bool isOutgoing = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("outgoing"), 0)==0; 
 		if (sessionId==0)
 			throw new BarbaException( _T("Could not extract sessionId from HTTP request!") );
 
@@ -124,7 +119,7 @@ unsigned int BarbaServerHttpHost::AnswerThread(void* data)
 
 		//add socket to HTTP connection
 		if (conn!=NULL)
-			success = conn->AddSocket(socket, httpRequest.data(), isOutgoing);
+			success = conn->AddSocket(socket, httpRequest.data(), requestData.data(), isOutgoing);
 
 		//report connection added
 		if (success)

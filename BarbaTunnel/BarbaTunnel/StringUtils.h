@@ -56,7 +56,7 @@ public:
 
 	static void MakeLower( std::tstring& str )
 	{
-		for (int i=0; i<str.size(); i++)
+		for (int i=0; i<(int)str.size(); i++)
 			str[i] = (TCHAR)_totlower(str[i]);
 	}
 };

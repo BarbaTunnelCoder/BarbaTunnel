@@ -29,10 +29,11 @@ void InitWinDivertApi()
 
 	if (res == ERROR_SUCCESS)
 	{
-		if (!BarbaUtils::IsFileExists(sysPath) && _tcsclen(sysPath)!=0)
+		TCHAR myPath[MAX_PATH];
+		_stprintf_s(myPath, _T("\\??\\%s\\WinDivert.sys"), BarbaUtils::GetModuleFolder().data()); 
+		if (_tcsclen(sysPath)!=0 && _tcsicmp(myPath, sysPath)!=0)
 		{
-			_stprintf_s(sysPath, _T("\\??\\%s\\WinDivert.sys"), BarbaUtils::GetModuleFolder().data()); 
-			res = pRegSetKeyValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), REG_SZ, sysPath, (DWORD)_tcslen(sysPath)) ;
+			res = pRegSetKeyValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), REG_SZ, myPath, (DWORD)_tcslen(myPath)) ;
 			if (res != ERROR_SUCCESS )
 				throw _T("WinDivert.sys path is invalid and could not be fixed!");
 			theComm->Log(_T("WinDivert.sys path was invalid and fixed."), false);
