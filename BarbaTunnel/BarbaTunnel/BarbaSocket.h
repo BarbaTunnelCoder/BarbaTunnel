@@ -33,7 +33,8 @@ public:
 	std::string ReadHttpRequest(int maxlen=5000);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
 	size_t GetReceiveBytesCount() {return this->ReceivedBytesCount;}
-	void SetBufferSize(int value);
+	void SetSendBufferSize(int value);
+	int GetSendBufferSize();
 	void SetNoDelay(bool value);
 	void SetKeepAlive(bool value);
 	void SetReceiveTimeOut(DWORD milisecond);

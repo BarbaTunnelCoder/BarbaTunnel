@@ -17,9 +17,9 @@
 #include <WinIoctl.h>   // Compiling Win32 Applications Or DLL's
 #endif // _WINDOWS
 
-#define NDISRD_VERSION			0x00093000
+#define NDISRD_VERSION			0x01023000
 #define NDISRD_MAJOR_VERSION	0x0003
-#define NDISRD_MINOR_VERSION	0x0009
+#define NDISRD_MINOR_VERSION	0x0102
 
 // Common strings set
 #define DRIVER_NAME_A "NDISRD"
@@ -104,6 +104,8 @@ struct _INTERMEDIATE_BUFFER
 	ULONG			m_Length;
 	ULONG			m_Flags; // NDIS_PACKET flags
 	ULONG			m_8021q; // 802.1q info
+	ULONG			m_FilterID;
+	ULONG			m_Reserved[4];
 	UCHAR			m_IBuffer [MAX_ETHER_FRAME];
 	
 } INTERMEDIATE_BUFFER, *PINTERMEDIATE_BUFFER;
@@ -116,6 +118,8 @@ struct _INTERMEDIATE_BUFFER_WOW64
 	ULONG			m_Length;
 	ULONG			m_Flags; // NDIS_PACKET flags
 	ULONG			m_8021q; // 802.1q tag
+	ULONG			m_FilterID;
+	ULONG			m_Reserved[4];
 	UCHAR			m_IBuffer [MAX_ETHER_FRAME];
 	
 } INTERMEDIATE_BUFFER_WOW64, *PINTERMEDIATE_BUFFER_WOW64;

@@ -14,7 +14,7 @@ public:
 	virtual u_short GetTunnelPort() {return this->TunnelPort;}
 	virtual u_long GetSessionId() {return this->SessionId;}
 	void Init(LPCTSTR requestData);
-	bool AddSocket(BarbaSocket* Socket, LPCSTR httpRequest, bool isOutgoing);
+	bool AddSocket(BarbaSocket* Socket, LPCSTR httpRequest, LPCTSTR requestData, bool isOutgoing);
 
 private:
 	BarbaServerHttpCourier* Courier;

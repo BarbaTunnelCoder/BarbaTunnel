@@ -15,10 +15,10 @@ BarbaCourierServer::~BarbaCourierServer(void)
 void BarbaCourierServer::Init(LPCTSTR requestData)
 {
 	//set fakePacketMinSize
-	this->CreateStruct.FakePacketMinSize = (u_short)BarbaUtils::GetKeyValueFromString(requestData, _T("packetminsize"), 0);
+	this->CreateStruct.FakePacketMinSize = (u_short)BarbaUtils::GetKeyValueFromString(requestData, _T("packetMinSize"), 0);
 
 	//set fakePacketMinSize
-	this->CreateStruct.HttpBombardMode = BarbaUtils::GetKeyValueFromString(requestData, _T("bombardmode"));
+	this->CreateStruct.HttpBombardMode = BarbaUtils::GetKeyValueFromString(requestData, _T("bombardMode"));
 	if (!this->CreateStruct.AllowBombard && !this->CreateStruct.HttpBombardMode.empty())
 		throw new BarbaException(_T("RequestPerPacket does not allowed by server!"));
 
@@ -29,7 +29,7 @@ void BarbaCourierServer::Init(LPCTSTR requestData)
 	RefreshParameters();
 }
 
-bool BarbaCourierServer::AddSocket(BarbaSocket* barbaSocket, LPCSTR httpRequest, bool isOutgoing)
+bool BarbaCourierServer::AddSocket(BarbaSocket* barbaSocket, LPCSTR httpRequest, LPCTSTR requestData, bool isOutgoing)
 {
 	if (this->IsDisposing())
 		throw new BarbaException(_T("Could not add to disposing object!"));
@@ -38,7 +38,7 @@ bool BarbaCourierServer::AddSocket(BarbaSocket* barbaSocket, LPCSTR httpRequest,
 	Sockets_Add(barbaSocket, isOutgoing);
 
 	//start threads
-	ServerThreadData* threadData = new ServerThreadData(this, barbaSocket, httpRequest, isOutgoing);
+	ServerThreadData* threadData = new ServerThreadData(this, barbaSocket, httpRequest, requestData, isOutgoing);
 	Threads.AddTail( (HANDLE)_beginthreadex(NULL, this->CreateStruct.ThreadsStackSize, ServerWorkerThread, (void*)threadData, 0, NULL) );
 	return true;
 }
@@ -50,7 +50,8 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 	BarbaCourierServer* _this = (BarbaCourierServer*)threadData->Courier;
 	BarbaSocket* socket = (BarbaSocket*)threadData->Socket;
 	bool isOutgoing = threadData->IsOutgoing;
-
+	size_t transferSize = BarbaUtils::GetKeyValueFromString(threadData->RequestData.data(), _T("transferSize"), 0);
+	
 	try
 	{
 		if (isOutgoing)
@@ -60,8 +61,11 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 				//report new connection
 				_this->Log2(_T("HTTP Bombard GET added. Connections Count: %d."), _this->OutgoingSockets.GetCount());
 
-				//process socket until socket closed
-				_this->ProcessOutgoing(socket, 0);
+				//process socket until filesize transfered
+				_this->ProcessOutgoing(socket, transferSize);
+
+				//finish current connection
+				_this->Log2(_T("HTTP Bombard GET Transfer Completed."));
 			}
 			else
 			{
@@ -70,7 +74,8 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 
 				//send file header
 				BarbaBuffer fileHeader;
-				size_t remainBytes = _this->SendGetReply(socket, threadData->HttpRequest.data(), &fileHeader);
+				std::tstring requestUrl = BarbaUtils::GetFileUrlFromHttpRequest(threadData->HttpRequest.data());
+				size_t remainBytes = _this->SendGetReply(socket, requestUrl.data(), transferSize, &fileHeader);
 
 				//sending fake file header
 				_this->SendFileHeader(socket, &fileHeader);
@@ -80,7 +85,7 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 				_this->ProcessOutgoing(socket, remainBytes);
 
 				//report
-				_this->Log2(_T("Finish Sending file."));
+				_this->Log2(_T("File Sent."));
 			}
 		}
 		else
@@ -94,7 +99,10 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 				_this->SendPostReply(socket);
 
 				//process socket until socket closed
-				_this->ProcessIncoming(socket, 0);
+				_this->ProcessIncoming(socket, transferSize);
+
+				//finish current connection
+				_this->Log2(_T("HTTP Bombard POST Transfer Completed."));
 			}
 			else
 			{
@@ -102,21 +110,21 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 				_this->Log2(_T("HTTP POST added. Connections Count: %d."), _this->IncomingSockets.GetCount());
 
 				//Get Initial data
-				std::tstring requestData = _this->GetRequestDataFromHttpRequest(threadData->HttpRequest.data());
-				size_t fileLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("filesize"), 0);
-				size_t fileHeaderLen = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("fileheadersize"), 0);
+				size_t fileHeaderSize = BarbaUtils::GetKeyValueFromString(threadData->RequestData.data(), _T("fileHeaderSize"), 0);
 
 				//wait for incoming fake file header
-				_this->Log2(_T("Receiving file %u KB."), fileLen/1000);
-				_this->WaitForIncomingFileHeader(socket, fileHeaderLen);
+				_this->Log2(_T("Receiving file %u KB."), transferSize/1000);
+				_this->WaitForIncomingFileHeader(socket, fileHeaderSize);
 
 				//process socket until socket closed or file transfered
-				_this->ProcessIncoming(socket, fileLen-fileHeaderLen);
+				_this->ProcessIncoming(socket, transferSize-fileHeaderSize);
 
 				//Send POST Reply that file downloaded
 				_this->Log2(_T("Sending POST reply!"));
 				_this->SendPostReply(socket);
-				_this->Log2(_T("Finish Receiving file."));
+
+				//File received.
+				_this->Log2(_T("File received."));
 			}
 		}
 	}
@@ -153,10 +161,10 @@ void BarbaCourierServer::BeforeSendMessage(BarbaSocket* /*barbaSocket*/, BarbaBu
 	}
 }
 
-void BarbaCourierServer::AfterSendMessage(BarbaSocket* barbaSocket)
+void BarbaCourierServer::AfterSendMessage(BarbaSocket* barbaSocket, bool isTransferFinished)
 {
 	//waiting for another get request in GET bombard mode
-	if (IsBombardGet)
+	if (IsBombardGet && !isTransferFinished)
 	{
 		std::string header = barbaSocket->ReadHttpRequest();
 		size_t contentLength = BarbaUtils::GetKeyValueFromString(header.data(), _T("Content-Length"), 0);
@@ -180,9 +188,9 @@ void BarbaCourierServer::BeforeReceiveMessage(BarbaSocket* barbaSocket, size_t* 
 	}
 }
 
-void BarbaCourierServer::AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength)
+void BarbaCourierServer::AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength, bool isTransferFinished)
 {
-	if (IsBombardPostReply)
+	if (IsBombardPostReply && !isTransferFinished)
 	{
 		BarbaArray<Message*> messages;
 		try
@@ -205,7 +213,7 @@ void BarbaCourierServer::AfterReceiveMessage(BarbaSocket* barbaSocket, size_t me
 			SendPostReply(barbaSocket, &buffer);
 
 			//delete sent message
-			for (int i=0; i<messages.size(); i++)
+			for (int i=0; i<(int)messages.size(); i++)
 				delete messages[i];
 			messages.clear();
 		}
@@ -234,7 +242,7 @@ void BarbaCourierServer::SendPostReply(BarbaSocket* socket, BarbaBuffer* content
 
 	//process replyPayload
 	std::tstring postReply = GetHttpPostReplyRequest(IsBombardPost);
-	InitRequestVars(postReply, NULL, NULL, content->size(), 0);
+	InitRequestVars(postReply, NULL, NULL, content->size(), 0, true);
 
 	//send buffer
 	BarbaBuffer buffer;
@@ -246,21 +254,19 @@ void BarbaCourierServer::SendPostReply(BarbaSocket* socket, BarbaBuffer* content
 		throw new BarbaException(_T("Could not send post reply."));
 }
 
-size_t BarbaCourierServer::SendGetReply(BarbaSocket* socket, LPCTSTR httpRequest, BarbaBuffer* fileHeader)
+size_t BarbaCourierServer::SendGetReply(BarbaSocket* socket, LPCTSTR fileUrl, size_t fileSize, BarbaBuffer* fileHeader)
 {
 	if ( IsDisposing() ) throw new BarbaException(_T("Could not send request while disposing!"));
-	std::tstring requestUrl = BarbaUtils::GetFileUrlFromHttpRequest(httpRequest);
-	std::tstring requestFile = BarbaUtils::GetFileNameFromUrl(requestUrl.data());
+	std::tstring requestFile = BarbaUtils::GetFileNameFromUrl(fileUrl);
 
-	size_t fileSize;
 	TCHAR filename[MAX_PATH];
 	_tcscpy_s(filename, requestFile .data());
 	std::tstring contentType;
-	GetFakeFile(filename, &contentType, &fileSize, fileHeader, false);
+	GetFakeFile(filename, &contentType, NULL, fileHeader, false);
 	size_t fakeFileHeaderSize = fileHeader!=NULL ? fileHeader->size() : 0;
 
 	std::tstring reply = GetHttpGetReplyRequest(false);
-	InitRequestVars(reply, filename, contentType.data(), fileSize, fakeFileHeaderSize);
+	InitRequestVars(reply, filename, contentType.data(), fileSize, fakeFileHeaderSize, true);
 
 	Log2(_T("Sending GET reply! File: %s (%u KB)."), filename, fileSize/1000, fakeFileHeaderSize);
 	std::string replyA = replyA;
@@ -273,7 +279,7 @@ size_t BarbaCourierServer::SendGetReply(BarbaSocket* socket, LPCTSTR httpRequest
 void BarbaCourierServer::GetGetReplyBombard(size_t dataLength, BarbaBuffer* requestBuffer)
 {
 	std::tstring reply = GetHttpGetReplyRequest(true);
-	InitRequestVars(reply, NULL, NULL, dataLength, 0);
+	InitRequestVars(reply, NULL, NULL, dataLength, 0, true);
 	requestBuffer->append((char*)reply.data(), reply.size());
 }
 

@@ -22,9 +22,9 @@ protected:
 	virtual std::tstring GetHttpGetTemplate(bool bombardMode)=0;
 	virtual ~BarbaCourierClient();
 	void BeforeSendMessage(BarbaSocket* barbaSocket, BarbaBuffer* messageBuffer) override;
-	void AfterSendMessage(BarbaSocket* barbaSocket) override;
+	void AfterSendMessage(BarbaSocket* barbaSocket, bool isTransferFinished) override;
 	void BeforeReceiveMessage(BarbaSocket* barbaSocket, size_t* chunkSize) override;
-	void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength) override;
+	void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength, bool isTransferFinished) override;
 	
 private:
 	DWORD RemoteIp;
@@ -32,7 +32,7 @@ private:
 	static unsigned int __stdcall ClientWorkerThread(void* clientThreadData);
 	static unsigned int __stdcall CheckKeepAliveThread(void* BarbaCourier);
 	void WaitForAcceptPostRequest(BarbaSocket* socket);
-	void SendGetRequest(BarbaSocket* socket);
+	size_t SendGetRequest(BarbaSocket* socket);
 	void SendGetRequestBombard(BarbaSocket* socket, BarbaBuffer* content);
 	//@return count of byte that can be sent with this request
 	size_t SendPostRequest(BarbaSocket* socket, bool initBombard);

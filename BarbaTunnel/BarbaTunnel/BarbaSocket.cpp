@@ -103,12 +103,23 @@ void BarbaSocket::SetNoDelay(bool value)
 		ThrowSocketError();
 }
 
-void BarbaSocket::SetBufferSize(int value)
+void BarbaSocket::SetSendBufferSize(int value)
 {
 	int res = setsockopt(this->_Socket, SOL_SOCKET, SO_SNDBUF, (char *) &value,  sizeof(int));
 	if (res==SOCKET_ERROR)
 		ThrowSocketError();
 }
+
+int BarbaSocket::GetSendBufferSize()
+{
+	int value = 0;
+	int size = sizeof(value);
+	int res = getsockopt(this->_Socket, SOL_SOCKET, SO_SNDBUF, (char *) &value, &size);
+	if (res==SOCKET_ERROR)
+		ThrowSocketError();
+	return value;
+}
+
 
 void BarbaSocket::SetKeepAlive(bool value)
 {

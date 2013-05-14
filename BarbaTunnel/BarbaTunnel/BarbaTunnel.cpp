@@ -32,13 +32,13 @@ void test()
 {
 	BarbaBuffer buf(50, 1);
 	printf("\nsize: %d, capacity:%d\n", buf.size(), buf.capacity());
-	for (int i=0; i<buf.size(); i++)
+	for (int i=0; i<(int)buf.size(); i++)
 		printf("%x,", buf[i]);
 
 	BarbaBuffer buf2(5, 2);
 	buf.assign(&buf2);
 	printf("\n\nsize: %d, capacity:%d\n", buf.size(), buf.capacity());
-	for (int i=0; i<buf.size(); i++)
+	for (int i=0; i<(int)buf.size(); i++)
 		printf("%x,", buf[i]);
 }
 

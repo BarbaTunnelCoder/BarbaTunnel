@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 using System.Threading;
@@ -309,5 +310,12 @@ namespace BarbaTunnel.Monitor
 		{
 			_barbaComm.LogLevel = LogLevelBox.SelectedIndex + 1;
 		}
+
+        private void OpenLogFile_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo("notepad.exe", _barbaComm.LogFilePath));
+            e.Handled = true;
+
+        }
 	}
 }

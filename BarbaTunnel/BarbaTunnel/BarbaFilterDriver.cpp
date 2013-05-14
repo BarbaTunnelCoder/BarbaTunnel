@@ -3,7 +3,7 @@
 #include "BarbaClient\BarbaClientApp.h"
 #include "BarbaFilterDriver.h"
 
-#define RouteFinderIp "173.194.34.48"
+#define RouteFinderIp "127.0.0.2"
 
 BarbaFilterDriver::BarbaFilterDriver(size_t maxCaptureMessageQueue)
 	: StopEvent(true, false)
