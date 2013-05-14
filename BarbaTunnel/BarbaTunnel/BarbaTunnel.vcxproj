@@ -219,6 +219,7 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <ClInclude Include="BarbaCrypt.h" />
     <ClInclude Include="BarbaException.h" />
     <ClInclude Include="BarbaFilterDriver.h" />
+    <ClInclude Include="BarbaCourierHttp.h" />
     <ClInclude Include="WinDivertFilterDriver.h" />
     <ClInclude Include="WinDivert\divert.h" />
     <ClInclude Include="WinDivert\WinDivertApi.h" />
@@ -269,6 +270,7 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <ClCompile Include="BarbaCourierServer.cpp" />
     <ClCompile Include="BarbaCrypt.cpp" />
     <ClCompile Include="BarbaFilterDriver.cpp" />
+    <ClCompile Include="BarbaCourierHttp.cpp" />
     <ClCompile Include="WinDivertFilterDriver.cpp" />
     <ClCompile Include="WinpkFilterDriver.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerConnectionManager.cpp" />

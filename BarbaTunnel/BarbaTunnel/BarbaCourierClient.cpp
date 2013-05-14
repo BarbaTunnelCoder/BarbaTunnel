@@ -4,7 +4,7 @@
 
 
 BarbaCourierClient::BarbaCourierClient(BarbaCourier::CreateStrcutBag* cs, DWORD remoteIp, u_short remotePort)
-	: BarbaCourier(cs)
+	: BarbaCourierHttp(cs)
 {
 	this->RemoteIp = remoteIp;
 	this->RemotePort = remotePort;

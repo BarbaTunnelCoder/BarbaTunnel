@@ -75,10 +75,10 @@ struct BarbaHeader
 BarbaModeEnum BarbaMode_FromString(LPCTSTR mode);
 LPCTSTR BarbaMode_ToString(BarbaModeEnum mode);
 u_char BarbaMode_GetProtocol(BarbaModeEnum mode);
-void BarbaLogImpl(int level, LPCTSTR msg, ...);
-#define BarbaLog(msg, ...) BarbaLogImpl(1, msg, __VA_ARGS__)
-#define BarbaLog1(msg, ...) BarbaLogImpl(1, msg, __VA_ARGS__)
-#define BarbaLog2(msg, ...) BarbaLogImpl(2, msg, __VA_ARGS__)
-#define BarbaLog3(msg, ...) BarbaLogImpl(3, msg, __VA_ARGS__)
-#define BarbaNotify(msg, ...) BarbaLogImpl(0, msg, __VA_ARGS__)
+void BarbaLogImpl(int level, LPCTSTR msg, va_list _ArgList);
+void BarbaLog(LPCTSTR msg, ...);
+void BarbaLog1(LPCTSTR msg, ...);
+void BarbaLog2(LPCTSTR msg, ...);
+void BarbaLog3(LPCTSTR msg, ...);
+void BarbaNotify(LPCTSTR msg, ...);
 
