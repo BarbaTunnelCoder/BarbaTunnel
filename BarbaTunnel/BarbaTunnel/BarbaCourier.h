@@ -46,13 +46,11 @@ protected:
 public:
 	//@maxConnenction number of simultaneous connection for each outgoing and incoming, eg: 2 mean 2 connection for send and 2 connection for receive so the total will be 4
 	explicit BarbaCourier(CreateStrcutBag* cs);
-	void RefreshParameters();
+	virtual void RefreshParameters();
 	virtual void Send(BarbaBuffer* data);
 	virtual void Receive(BarbaBuffer* data);
-	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* fakeFileHeader, bool createNew);
 	virtual void Crypt(BYTE* data, size_t dataSize, size_t index, bool encrypt);
 	virtual bool IsServer()=0;
-	std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
 	size_t GetReceiveBytesCount() {return this->ReceivedBytesCount;}
 		
@@ -62,7 +60,6 @@ public:
 	HANDLE Delete();
 	
 private:
-	void Crypt(BarbaBuffer* data, size_t index, bool encrypt);
 	//@return false if max connection reached
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
 	static unsigned int __stdcall DeleteThread(void* object);
@@ -72,10 +69,12 @@ private:
 	SimpleSafeList<Message*> Messages;
 
 protected: 
+	void Crypt(BarbaBuffer* data, size_t index, bool encrypt);
 	void GetMessages(BarbaArray<Message*>& messages);
 	Message* GetMessage();
 
 protected:
+	void LogImpl(int level, LPCTSTR format, va_list _ArgList);
 	void Log2(LPCTSTR format, ...);
 	void Log3(LPCTSTR format, ...);
 	virtual void Dispose();
@@ -93,18 +92,11 @@ protected:
 	virtual void AfterSendMessage(BarbaSocket* barbaSocket, bool isTransferFinished);
 	virtual void BeforeReceiveMessage(BarbaSocket* barbaSocket, size_t* chunkSize);
 	virtual void AfterReceiveMessage(BarbaSocket* barbaSocket, size_t messageLength, bool isTransferFinished);
-	void SendFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHeader);
-	void WaitForIncomingFileHeader(BarbaSocket* socket, size_t fileHeaderSize);
-	void InitRequestVars(std::tstring& src, LPCTSTR filename, LPCTSTR contentType, size_t transferSize, size_t fileHeaderSize, bool outgoing);
+	std::tstring CreateRequestParam(size_t transferSize, bool outgoing, LPCTSTR other);
 	volatile DWORD LastReceivedTime;
 	volatile DWORD LastSentTime;
 	volatile size_t SentBytesCount;
 	volatile size_t ReceivedBytesCount;
-	bool IsBombardGet; 
-	bool IsBombardGetPayload; 
-	bool IsBombardPost;  
-	bool IsBombardPostReply;  
-	bool IsBombardPostReplyPayload;  
 
 	SimpleSafeList<BarbaSocket*> IncomingSockets;
 	SimpleSafeList<BarbaSocket*> OutgoingSockets;

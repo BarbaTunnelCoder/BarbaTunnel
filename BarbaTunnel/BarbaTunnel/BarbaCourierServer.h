@@ -1,8 +1,8 @@
 #pragma once
-#include "barbacourier.h"
+#include "BarbaCourierHttp.h"
 
 //BarbaCourierServer
-class BarbaCourierServer : public BarbaCourier
+class BarbaCourierServer : public BarbaCourierHttp
 {
 private:
 	//used to pass data to created thread

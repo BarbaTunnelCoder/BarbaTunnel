@@ -18,18 +18,9 @@ BarbaCourier::BarbaCourier(BarbaCourier::CreateStrcutBag* cs)
 
 void BarbaCourier::RefreshParameters()
 {
-	StringUtils::MakeLower( this->CreateStruct.HttpBombardMode );
 	if (this->CreateStruct.KeepAliveInterval!=0 && this->CreateStruct.KeepAliveInterval<BARBA_HttpKeepAliveIntervalMin) this->CreateStruct.KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
 	if (this->CreateStruct.ThreadsStackSize==0) this->CreateStruct.ThreadsStackSize = BARBA_SocketThreadStackSize; 
 	if (this->CreateStruct.FakeFileMaxSize==0) this->CreateStruct.FakeFileMaxSize = BARBA_HttpFakeFileMaxSize; 
-
-	std::string bombardMode = this->CreateStruct.HttpBombardMode;
-	bombardMode.append(_T(" "));
-	IsBombardGet = _tcsstr(bombardMode.data(), "/get")!=NULL;
-	IsBombardGetPayload = _tcsstr(bombardMode.data(), "/getpayload ")!=NULL;
-	IsBombardPost = _tcsstr(bombardMode.data(), "/post ")!=NULL;
-	IsBombardPostReply = _tcsstr(bombardMode.data(), "/reply ")!=NULL;
-	IsBombardPostReplyPayload = _tcsstr(bombardMode.data(), "/replypayload ")!=NULL;
 }
 
 unsigned BarbaCourier::DeleteThread(void* object) 
@@ -58,31 +49,22 @@ void BarbaCourier::CloseSocketsList(SimpleSafeList<BarbaSocket*>* list)
 	}
 }
 
-void BarbaCourier::Log2(LPCTSTR format, ...)
+void BarbaCourier::LogImpl(int level, LPCTSTR format, va_list _ArgList)
 {
-	va_list argp;
-	va_start(argp, format);
-	TCHAR msg[1000];
-	_vstprintf_s(msg, format, argp);
-	va_end(argp);
+	TCHAR* msg = new TCHAR[1000];
+	_vstprintf_s(msg, 1000, format, _ArgList);
+	
+	TCHAR* msg2 = new TCHAR[1000];
+	_stprintf_s(msg2, 1000, _T("BarbaCourier: TID: %4x, SessionId: %x, %s"), GetCurrentThreadId(), this->CreateStruct.SessionId, msg);
 
-	TCHAR msg2[1000];
-	_stprintf_s(msg2, _T("BarbaCourier: TID: %4x, SessionId: %x, %s"), GetCurrentThreadId(), this->CreateStruct.SessionId, msg);
-	BarbaLog2(msg2);
+	va_list emptyList = {0};
+	BarbaLogImpl(level, msg2, emptyList);
+	delete msg;
+	delete msg2;
 }
 
-void BarbaCourier::Log3(LPCTSTR format, ...)
-{
-	va_list argp;
-	va_start(argp, format);
-	TCHAR msg[1000];
-	_vstprintf_s(msg, format, argp);
-	va_end(argp);
-
-	TCHAR msg2[1000];
-	_stprintf_s(msg2, _T("BarbaCourier: TID: %4x, SessionId: %x, %s"), GetCurrentThreadId(), this->CreateStruct.SessionId, msg);
-	BarbaLog3(msg2);
-}
+void BarbaCourier::Log2(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(2, format, argp); va_end(argp); }
+void BarbaCourier::Log3(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(3, format, argp); va_end(argp); }
 
 BarbaCourier::~BarbaCourier(void)
 {
@@ -453,54 +435,6 @@ void BarbaCourier::Sockets_Remove(BarbaSocket* socket, bool isOutgoing)
 	delete socket;
 }
 
-void BarbaCourier::SendFileHeader(BarbaSocket* socket, BarbaBuffer* fakeFileHeader)
-{
-	if (fakeFileHeader->empty())
-	{
-		Log2(_T("Could not find fake file data. Fake file header ignored!"));
-		return;
-	}
-
-	//sending fake file header
-	Log2(_T("Sending fake file header. HeaderSize: %u KB."), fakeFileHeader->size()/1000);
-	if (socket->Send(fakeFileHeader->data(), fakeFileHeader->size())!=(int)fakeFileHeader->size())
-		throw new BarbaException(_T("Fake file header does not send!"));
-}
-
-void BarbaCourier::WaitForIncomingFileHeader(BarbaSocket* socket, size_t fileHeaderSize)
-{
-	if (fileHeaderSize==0)
-	{
-		Log2(_T("Request does not have fake file header."));
-	} 
-	else if (fileHeaderSize>BarbaCourier_MaxFileHeaderSize)
-	{
-		throw new BarbaException(_T("Fake file header could not be more than %u size! Requested Size: %u."), BarbaCourier_MaxFileHeaderSize, fileHeaderSize);
-	}
-	else
-	{
-		Log2(_T("Waiting for incoming fake file header. HeaderSize: %u KB."), fileHeaderSize/1000);
-
-		BarbaBuffer buffer(fileHeaderSize);
-		if (socket->Receive(buffer.data(), buffer.size(), true)!=(int)buffer.size())
-			throw new BarbaException(_T("Could not receive fake file header."));
-	}
-}
-
-void BarbaCourier::GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* /*fakeFileHeader*/, bool createNew)
-{
-	if (fileSize!=NULL)
-		*fileSize = BarbaUtils::GetRandom(this->CreateStruct.FakeFileMaxSize/2, this->CreateStruct.FakeFileMaxSize); 
-
-	if (createNew)
-	{
-		u_int fileNameId = BarbaUtils::GetRandom(1, UINT_MAX);
-		_ltot_s(fileNameId, filename, MAX_PATH, 32);
-	}
-	*contentType = BarbaUtils::GetFileExtensionFromUrl(filename);
-
-}
-
 void BarbaCourier::Crypt(BarbaBuffer* data, size_t index, bool encrypt)
 {
 	Crypt(data->data(), data->size(), index, encrypt);
@@ -510,83 +444,32 @@ void BarbaCourier::Crypt(BYTE* /*data*/, size_t /*dataSize*/, size_t /*index*/, 
 {
 }
 
-
-void BarbaCourier::InitRequestVars(std::tstring& src, LPCTSTR fileName, LPCTSTR contentType, size_t transferSize, size_t fileHeaderSize, bool outgoing)
+std::tstring BarbaCourier::CreateRequestParam(size_t transferSize, bool outgoing, LPCTSTR other)
 {
-	if (fileName==NULL) fileName = _T("");
-	if (contentType==NULL) contentType = _T("");
-
-	//host
-	if (!this->CreateStruct.HostName.empty())
-	{
-		BarbaUtils::UpdateHttpRequest(&src, _T("Host"), this->CreateStruct.HostName);
-		BarbaUtils::UpdateHttpRequest(&src, _T("Origin"), this->CreateStruct.HostName);
-	}
-
-	//filename
-	StringUtils::ReplaceAll(src, _T("{filename}"), fileName);
-	StringUtils::ReplaceAll(src, _T("{filetitle}"), BarbaUtils::GetFileTitleFromUrl(fileName));
-	StringUtils::ReplaceAll(src, _T("{fileextension}"), BarbaUtils::GetFileExtensionFromUrl(fileName));
-
-	//fileSize
-	TCHAR fileSizeStr[20];
-	_ltot_s((long)transferSize, fileSizeStr, 10);
-	BarbaUtils::UpdateHttpRequest(&src, _T("Content-Length"), fileSizeStr);
-
-	//time
-	std::tstring curTime = BarbaUtils::FormatTimeForHttp();
-	BarbaUtils::UpdateHttpRequest(&src, _T("Date"), curTime);
-	BarbaUtils::UpdateHttpRequest(&src, _T("Last-Modified"), curTime);
-
-	//contentType
-	BarbaUtils::UpdateHttpRequest(&src, _T("Content-Type"), contentType);
-
 	//prepare RequestData: 
-	CHAR requestDataStr[2000] = {0}; //filesize=1234;fileheadersize=1234;session=1234;keepalive=1234;bombardmode=postreply;
-	sprintf_s(requestDataStr, "transferSize:%u;fileHeaderSize:%u;session:%u;packetMinSize:%u;keepalive:%u;bombardMode:%s,outgoing=%d", 
+	CHAR* requestDataStr = new CHAR[2000]; //filesize=1234;fileheadersize=1234;session=1234;keepalive=1234;bombardmode=postreply;
+	sprintf_s(requestDataStr, 2000, "transferSize:%u;session:%u;packetMinSize:%u;keepalive:%u;bombardMode:%s,outgoing=%d;%s;", 
 		transferSize, 
-		fileHeaderSize, 
 		this->CreateStruct.SessionId, 
 		this->CreateStruct.FakePacketMinSize, 
 		this->CreateStruct.KeepAliveInterval, 
 		this->CreateStruct.HttpBombardMode.data(),
-		(int)outgoing);
+		(int)outgoing,
+		other);
 
 	//encrypt-data
 	BarbaBuffer rdataBuffer((BYTE*)requestDataStr, _tcslen(requestDataStr));
 	Crypt(&rdataBuffer, 0, true);
+	
 	//convert to base64
 	std::tstring requestData = Base64::encode(rdataBuffer.data(), rdataBuffer.size());
 
-	//RequestData
+	//return RequestData
 	std::tstring data;
 	data.append(this->CreateStruct.RequestDataKeyName);
 	data.append(_T(":"));
 	data.append(requestData);
-	StringUtils::ReplaceAll(src, _T("{data}"), data);
+
+	delete requestDataStr;
+	return data;
 }
-
-std::tstring BarbaCourier::GetRequestDataFromHttpRequest(LPCTSTR httpRequest)
-{
-	try
-	{
-		std::tstring requestDataEnc = BarbaUtils::GetKeyValueFromString(httpRequest, this->CreateStruct.RequestDataKeyName.data());
-		if (requestDataEnc.empty())
-			return _T("");
-
-		std::vector<BYTE> decodeBuffer;
-		Base64::decode(requestDataEnc, decodeBuffer);
-		BarbaBuffer requestDataBuf(decodeBuffer.data(), decodeBuffer.size());
-		this->Crypt(&requestDataBuf, 0, false);
-		requestDataBuf.append((BYTE)0);
-		requestDataBuf.append((BYTE)0);
-		std::string ret = (char*)requestDataBuf.data(); //should be ANSI
-		return ret;
-	}
-	catch (...)
-	{
-	}
-
-	return _T("");
-}
-

@@ -180,16 +180,13 @@ BarbaComm::CommandEnum BarbaComm::GetCommand()
 	else return CommandNone;
 }
 
-void BarbaLogImpl(int level, LPCTSTR format, ...)
+void BarbaLogImpl(int level, LPCTSTR format, va_list _ArgList)
 {
 	if (theApp!=NULL && level>theApp->LogLevel)
 		return;
 
-	va_list argp;
-	va_start(argp, format);
-	CHAR msg[4000];
-	_vstprintf_s(msg, format, argp);
-	va_end(argp);
+	CHAR* msg = new CHAR[2000];
+	_vstprintf_s(msg, 2000, format, _ArgList);
 
 	if (theComm!=NULL)
 	{
@@ -200,4 +197,12 @@ void BarbaLogImpl(int level, LPCTSTR format, ...)
 		_tprintf_s(msg);
 		_tprintf_s(_T("\r\n"));
 	}
+	delete msg;
 }
+
+void BarbaLog(LPCTSTR format, ...) { va_list argp; va_start(argp, format); BarbaLogImpl(1, format, argp); va_end(argp); }
+void BarbaLog1(LPCTSTR format, ...) { va_list argp; va_start(argp, format); BarbaLogImpl(1, format, argp); va_end(argp); }
+void BarbaLog2(LPCTSTR format, ...) { va_list argp; va_start(argp, format); BarbaLogImpl(2, format, argp); va_end(argp); }
+void BarbaLog3(LPCTSTR format, ...) { va_list argp; va_start(argp, format); BarbaLogImpl(3, format, argp); va_end(argp); }
+void BarbaNotify(LPCTSTR format, ...) { 	va_list argp; va_start(argp, format); BarbaLogImpl(0, format, argp); va_end(argp); }
+

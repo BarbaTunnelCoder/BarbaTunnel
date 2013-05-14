@@ -3,7 +3,7 @@
 #include "BarbaUtils.h"
 
 BarbaCourierServer::BarbaCourierServer(BarbaCourier::CreateStrcutBag* cs)
-	: BarbaCourier(cs)
+	: BarbaCourierHttp(cs)
 {
 }
 
@@ -26,7 +26,7 @@ void BarbaCourierServer::Init(LPCTSTR requestData)
 	this->CreateStruct.KeepAliveInterval = (u_short)BarbaUtils::GetKeyValueFromString(requestData, _T("keepalive"), 0);
 
 	//Validate Paramters
-	RefreshParameters();
+	RefreshParameters(); //Warning: Calling virtual function in constructor will not call overrided one 
 }
 
 bool BarbaCourierServer::AddSocket(BarbaSocket* barbaSocket, LPCSTR httpRequest, LPCTSTR requestData, bool isOutgoing)
