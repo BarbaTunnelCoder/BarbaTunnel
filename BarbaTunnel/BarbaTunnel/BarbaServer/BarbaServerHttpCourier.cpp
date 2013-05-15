@@ -56,11 +56,11 @@ void BarbaServerHttpCourier::GetFakeFile(TCHAR* filename, std::tstring* contentT
 
 std::tstring BarbaServerHttpCourier::GetHttpPostReplyRequest(bool bombardMode)
 {
-	return bombardMode ? theServerApp->HttpPostReplyTemplatePerPacket : theServerApp->HttpPostReplyTemplate;
+	return bombardMode ? theServerApp->HttpPostReplyTemplateBombard : theServerApp->HttpPostReplyTemplate;
 }
 
 std::tstring BarbaServerHttpCourier::GetHttpGetReplyRequest(bool bombardMode)
 {
-	return bombardMode ? theServerApp->HttpGetReplyTemplatePerPacket : theServerApp->HttpGetReplyTemplate;
+	return bombardMode ? theServerApp->HttpGetReplyTemplateBombard : theServerApp->HttpGetReplyTemplate;
 }
 
