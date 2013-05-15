@@ -5,7 +5,7 @@
 
 BarbaConfig::BarbaConfig()
 {
-	this->ServerIp = 0;
+	this->ServerIp = INADDR_ANY;
 	this->Mode = BarbaModeNone;
 	this->Enabled = true;
 	this->RealPort = 0;
@@ -56,10 +56,21 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 	TCHAR serverAddress[1000];
 	GetPrivateProfileString(_T("General"), _T("ServerAddress"), _T("*"), serverAddress, _countof(serverAddress), file);
 	this->ServerAddress = serverAddress;
+	StringUtils::Trim(this->ServerAddress);
 	if (this->ServerAddress.empty() || this->ServerAddress.compare(_T("*"))==0)
+	{
 		this->ServerAddress = _T("*");
-	hostent *he = gethostbyname(serverAddress);
-	this->ServerIp = he!=NULL ?  ((in_addr *)he->h_addr)->S_un.S_addr : 0;
+	}
+	else
+	{
+		hostent *he = gethostbyname(serverAddress);
+		if (he==NULL)
+		{
+			Log(_T("Error: Could not resolve server address! %s"), serverAddress);
+			return false;
+		}
+		this->ServerIp = ((in_addr *)he->h_addr)->S_un.S_addr;
+	}
 
 	//fail if not enabled
 	this->Enabled = GetPrivateProfileInt(_T("General"), _T("Enabled"), 1, file)!=0;
