@@ -219,7 +219,7 @@ void BarbaCourierClient::AfterReceiveMessage(BarbaSocket* barbaSocket, size_t me
 		}
 		catch (...)
 		{
-			Send(messages);
+			Send(messages, true);
 			throw;
 		}
 	}

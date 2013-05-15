@@ -19,8 +19,8 @@ public:
 	BarbaClientConnectionManager ConnectionManager;
 	std::string HttpGetTemplate;
 	std::string HttpPostTemplate;
-	std::string HttpGetTemplatePerPacket;
-	std::string HttpPostTemplatePerPacket;
+	std::string HttpGetTemplateBombard;
+	std::string HttpPostTemplateBombard;
 
 private:
 	BarbaClientConfig* ShouldGrabPacket(PacketHelper* packet);

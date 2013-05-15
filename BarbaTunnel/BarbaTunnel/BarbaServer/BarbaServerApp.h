@@ -21,9 +21,9 @@ public:
 	std::vector<BarbaServerConfig> Configs;
 	BarbaServerConnectionManager ConnectionManager;
 	std::tstring HttpGetReplyTemplate;
-	std::tstring HttpGetReplyTemplatePerPacket;
+	std::tstring HttpGetReplyTemplateBombard;
 	std::tstring HttpPostReplyTemplate;
-	std::tstring HttpPostReplyTemplatePerPacket;
+	std::tstring HttpPostReplyTemplateBombard;
 	u_int AutoStartDelay;
 	IpRange VirtualIpRange;
 

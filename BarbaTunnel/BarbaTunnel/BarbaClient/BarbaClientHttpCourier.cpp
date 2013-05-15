@@ -17,12 +17,12 @@ BarbaClientHttpCourier::~BarbaClientHttpCourier(void)
 
 std::tstring BarbaClientHttpCourier::GetHttpPostTemplate(bool bombardMode)
 {
-	return bombardMode ? theClientApp->HttpPostTemplatePerPacket : theClientApp->HttpPostTemplate;
+	return bombardMode ? theClientApp->HttpPostTemplateBombard : theClientApp->HttpPostTemplate;
 }
 
 std::tstring BarbaClientHttpCourier::GetHttpGetTemplate(bool bombardMode)
 {
-	return bombardMode ? theClientApp->HttpGetTemplatePerPacket : theClientApp->HttpGetTemplate;
+	return bombardMode ? theClientApp->HttpGetTemplateBombard : theClientApp->HttpGetTemplate;
 }
 
 void BarbaClientHttpCourier::Crypt(BYTE* data, size_t dataSize, size_t index, bool encrypt)

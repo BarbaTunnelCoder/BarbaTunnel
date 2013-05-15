@@ -20,7 +20,7 @@ void BarbaCourierServer::Init(LPCTSTR requestData)
 	//set fakePacketMinSize
 	this->CreateStruct.HttpBombardMode = BarbaUtils::GetKeyValueFromString(requestData, _T("bombardMode"));
 	if (!this->CreateStruct.AllowBombard && !this->CreateStruct.HttpBombardMode.empty())
-		throw new BarbaException(_T("RequestPerPacket does not allowed by server!"));
+		throw new BarbaException(_T("RequestBombard does not allowed by server!"));
 
 	//set KeepAliveInterval
 	this->CreateStruct.KeepAliveInterval = (u_short)BarbaUtils::GetKeyValueFromString(requestData, _T("keepalive"), 0);
@@ -219,7 +219,7 @@ void BarbaCourierServer::AfterReceiveMessage(BarbaSocket* barbaSocket, size_t me
 		}
 		catch (...)
 		{
-			Send(messages);
+			Send(messages, true);
 			throw;
 		}
 	}
