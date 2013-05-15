@@ -65,6 +65,10 @@ size_t BarbaCourierClient::SendPostRequest(BarbaSocket* socket, bool initBombard
 	std::tstring request = GetHttpPostTemplate(false);
 	InitRequestVars(request, filename, contentType.data(), fileSize, fileHeader.size(), true);
 
+	//reset contents-length for initBombard; transferSize should be set in InitRequestVars but in init step BombardMode Content-Length should be zero
+	if (initBombard)
+		BarbaUtils::UpdateHttpRequest(&request, _T("Content-Length"), _T("0"));
+
 	//send request
 	if (socket->Send((BYTE*)request.data(), request.length())!=(int)request.length())
 		throw new BarbaException(_T("Could not send POST request!"));
