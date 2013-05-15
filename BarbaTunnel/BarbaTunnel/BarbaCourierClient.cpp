@@ -378,7 +378,7 @@ unsigned int BarbaCourierClient::ClientWorkerThread(void* clientThreadData)
 		{
 			//remove socket from store
 			_this->Sockets_Remove(socket, isOutgoing);
-			_this->Log2(_T("HTTP %s connection removed.  Connections Count: %d."), requestMode, isOutgoing ? _this->OutgoingSockets.GetCount() : _this->IncomingSockets.GetCount());
+			_this->Log2(_T("HTTP %s connection removed. Connections Count: %d."), requestMode, isOutgoing ? _this->OutgoingSockets.GetCount() : _this->IncomingSockets.GetCount());
 		}
 
 		//wait for next connection if isProccessed not set;

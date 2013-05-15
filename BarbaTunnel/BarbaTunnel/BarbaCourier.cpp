@@ -276,7 +276,7 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
 	while(!this->IsDisposing() && !isTransferFinished)
 	{
 		//notify receiving message
-		size_t chunkSize;
+		size_t chunkSize = 0;
 		BeforeReceiveMessage(barbaSocket, &chunkSize);
 
 		size_t readedBytes = ProcessIncomingMessage(barbaSocket, receivedBytes, chunkSize);
