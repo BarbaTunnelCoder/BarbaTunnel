@@ -49,9 +49,9 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	}
 
 	//Http-Bombard
-	TCHAR requestPerPacket[1000] = {0};
-	GetPrivateProfileString(_T("General"), _T("RequestPerPacket"), _T(""), requestPerPacket, _countof(requestPerPacket), file);
-	this->RequestPerPacket = requestPerPacket;
+	TCHAR requestBombard[1000] = {0};
+	GetPrivateProfileString(_T("General"), _T("RequestBombard"), _T(""), requestBombard, _countof(requestBombard), file);
+	this->RequestBombard = requestBombard;
 
 	return true;
 }

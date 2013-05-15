@@ -20,7 +20,7 @@ BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config, 
 	cs.ConnectionTimeout = theApp->ConnectionTimeout;
 	cs.FakePacketMinSize = config->FakePacketMinSize;
 	cs.KeepAliveInterval = config->KeepAliveInterval;
-	cs.HttpBombardMode = config->RequestPerPacket;
+	cs.HttpBombardMode = config->RequestBombard;
 	this->Courier = new BarbaClientHttpCourier(&cs, config->ServerIp, tunnelPort, this);
 }
 

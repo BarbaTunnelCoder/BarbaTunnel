@@ -16,10 +16,10 @@ BarbaClientApp::BarbaClientApp()
 	this->HttpGetTemplate = BarbaUtils::PrepareHttpRequest( BarbaUtils::LoadFileToString(file) );
 	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\Post.txt"), GetAppFolder());
 	this->HttpPostTemplate = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-PerPacket\\Get.txt"), GetAppFolder());
-	this->HttpGetTemplatePerPacket = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-PerPacket\\Post.txt"), GetAppFolder());
-	this->HttpPostTemplatePerPacket = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-Bombard\\Get.txt"), GetAppFolder());
+	this->HttpGetTemplateBombard = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-Bombard\\Post.txt"), GetAppFolder());
+	this->HttpPostTemplateBombard = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
 }
 
 BarbaClientApp::~BarbaClientApp()

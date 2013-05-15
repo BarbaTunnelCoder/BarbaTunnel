@@ -8,5 +8,5 @@ public:
 	virtual ~BarbaServerConfig(){}
 	virtual bool LoadFile(LPCTSTR file);
 	static void LoadFolder(LPCTSTR folder, std::vector<BarbaServerConfig>* configs);
-	bool AllowRequestPerPacket;
+	bool AllowRequestBombard;
 };
