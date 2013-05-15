@@ -85,7 +85,7 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 				_this->ProcessOutgoing(socket, remainBytes);
 
 				//report
-				_this->Log2(_T("File Sent."));
+				_this->Log2(_T("HTTP GET completed. File sent."));
 			}
 		}
 		else
@@ -124,7 +124,7 @@ unsigned int BarbaCourierServer::ServerWorkerThread(void* serverThreadData)
 				_this->SendPostReply(socket);
 
 				//File received.
-				_this->Log2(_T("File received."));
+				_this->Log2(_T("HTTP POST completed. File received."));
 			}
 		}
 	}
