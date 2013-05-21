@@ -9,25 +9,10 @@ BarbaConfig::BarbaConfig()
 	this->Mode = BarbaModeNone;
 	this->Enabled = true;
 	this->RealPort = 0;
-	this->_TotalTunnelPortsCount = 0;
-	this->MaxUserConnections = BARBA_HttpMaxUserConnection;
-	this->FakeFileMaxSize = BARBA_HttpFakeFileMaxSize;
+	this->MaxUserConnections = BARBA_HttpMaxUserConnections;
+	this->MaxTransferSize = BARBA_HttpFakeFileMaxSize;
 }
 
-
-size_t BarbaConfig::GetTotalTunnelPortsCount()
-{
-	if (_TotalTunnelPortsCount==0)
-	{
-		for (size_t i=0; i<this->TunnelPorts.size(); i++)
-		{
-			int count = TunnelPorts[i].EndPort - TunnelPorts[i].StartPort + 1;
-			if (count>0)
-				_TotalTunnelPortsCount += count;
-		}
-	}
-	return _TotalTunnelPortsCount;
-}
 
 std::tstring BarbaConfig::GetNameFromFileName(LPCTSTR fileName)
 {
@@ -82,14 +67,8 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 	int res = GetPrivateProfileString(_T("General"), _T("Mode"), _T(""), modeString, _countof(modeString), file);
 	if (res==0)
 		return false; //could not find item
-
 	this->Mode = BarbaMode_FromString(modeString);
-	if (this->Mode==BarbaModeTcpTunnel)
-	{
-		Log(_T("TCP-Tunnel suppressed by HTTP-Tunnel. HTTP-Tunnel is used as an advanced TCP-Tunnel."));
-		this->Mode = BarbaModeHttpTunnel;
-	}
-
+	
 	//Key
 	TCHAR hexKey[2000];
 	GetPrivateProfileString(_T("General"), _T("Key"), _T(""), hexKey, _countof(hexKey), file);
@@ -98,20 +77,20 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 	//TunnelPorts
 	TCHAR tunnelPorts[2000];
 	GetPrivateProfileString(_T("General"), _T("TunnelPorts"), _T(""), tunnelPorts, _countof(tunnelPorts), file);
-	BarbaUtils::ParsePortRanges(tunnelPorts, &this->TunnelPorts);
-	if (this->GetTotalTunnelPortsCount()==0)
+	TunnelPorts.Parse(tunnelPorts);
+	if (TunnelPorts.GetPortsCount()==0)
 	{
 		Log(_T("Error: Item does not specify any tunnel port!"));
 		return false;
 	}
 
 	//MaxUserConnections
-	this->MaxUserConnections = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxUserConnections"), this->MaxUserConnections, file);
+	this->MaxUserConnections = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxUserConnections"), MaxUserConnections, file);
 	CheckMaxUserConnections();
 
-	//FakeFileMaxSize
-	this->FakeFileMaxSize = (u_short)GetPrivateProfileInt(_T("General"), _T("FakeFileMaxSize"), this->FakeFileMaxSize/1000, file) * 1000;
-	if (this->FakeFileMaxSize==0) this->FakeFileMaxSize = BARBA_HttpFakeFileMaxSize;
+	//MaxTransferSize
+	this->MaxTransferSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxTransferSize"), MaxTransferSize/1000, file) * 1000;
+	if (MaxTransferSize==0) this->MaxTransferSize = BARBA_HttpFakeFileMaxSize;
 
 	TCHAR keyName[BARBA_MaxKeyName];
 	keyName[0] = 0;

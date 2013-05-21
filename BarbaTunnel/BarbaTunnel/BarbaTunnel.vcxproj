@@ -78,7 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)BarbaCourier;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\x64\</OutDir>
     <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\x64\</IntDir>
   </PropertyGroup>
@@ -90,7 +90,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)BarbaCourier;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\x64\</OutDir>
     <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\x64\</IntDir>
   </PropertyGroup>
@@ -201,10 +201,11 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
   <ItemGroup>
     <ClInclude Include="BarbaApp.h" />
     <ClInclude Include="BarbaBuffer.h" />
-    <ClInclude Include="BarbaClient\BarbaClientHttpCourier.h" />
     <ClInclude Include="BarbaClient\BarbaClientHttpConnection.h" />
+    <ClInclude Include="BarbaClient\BarbaClientTcpConnection.h" />
     <ClInclude Include="BarbaClient\BarbaClientConnectionManager.h" />
     <ClInclude Include="BarbaClient\BarbaClientRedirectConnection.h" />
+    <ClInclude Include="BarbaClient\BarbaClientTcpConnectionBase.h" />
     <ClInclude Include="BarbaClient\BarbaClientUdpConnection.h" />
     <ClInclude Include="BarbaClient\BarbaClientApp.h" />
     <ClInclude Include="BarbaClient\BarbaClientConfig.h" />
@@ -213,23 +214,27 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <ClInclude Include="BarbaConfig.h" />
     <ClInclude Include="BarbaConnection.h" />
     <ClInclude Include="BarbaConnectionManager.h" />
-    <ClInclude Include="BarbaCourier.h" />
-    <ClInclude Include="BarbaCourierClient.h" />
-    <ClInclude Include="BarbaCourierServer.h" />
+    <ClInclude Include="BarbaCourier\BarbaCourier.h" />
+    <ClInclude Include="BarbaCourier\BarbaCourierHttpClient.h" />
+    <ClInclude Include="BarbaCourier\BarbaCourierHttpServer.h" />
+    <ClInclude Include="BarbaCourier\BarbaCourierTcpClient.h" />
+    <ClInclude Include="BarbaCourier\BarbaCourierTcpServer.h" />
     <ClInclude Include="BarbaCrypt.h" />
     <ClInclude Include="BarbaException.h" />
     <ClInclude Include="BarbaFilterDriver.h" />
-    <ClInclude Include="BarbaCourierHttp.h" />
+    <ClInclude Include="BarbaCourier\BarbaCourierRequestMode.h" />
+    <ClInclude Include="BarbaPortRange.h" />
+    <ClInclude Include="BarbaServer\BarbaServerHttpConnection.h" />
+    <ClInclude Include="BarbaServer\BarbaServerTcpConnectionBase.h" />
     <ClInclude Include="WinDivertFilterDriver.h" />
     <ClInclude Include="WinDivert\divert.h" />
     <ClInclude Include="WinDivert\WinDivertApi.h" />
     <ClInclude Include="WinpkFilterDriver.h" />
     <ClInclude Include="BarbaServer\BarbaServerConnectionManager.h" />
-    <ClInclude Include="BarbaServer\BarbaServerHttpHost.h" />
+    <ClInclude Include="BarbaServer\BarbaServerTcpHost.h" />
     <ClInclude Include="BarbaServer\BarbaServerRedirectConnection.h" />
     <ClInclude Include="BarbaServer\BarbaServerUdpConnection.h" />
-    <ClInclude Include="BarbaServer\BarbaServerHttpConnection.h" />
-    <ClInclude Include="BarbaServer\BarbaServerHttpCourier.h" />
+    <ClInclude Include="BarbaServer\BarbaServerTcpConnection.h" />
     <ClInclude Include="BarbaServer\BarbaServerApp.h" />
     <ClInclude Include="BarbaServer\BarbaServerConnection.h" />
     <ClInclude Include="BarbaSocket.h" />
@@ -253,10 +258,11 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BarbaApp.cpp" />
-    <ClCompile Include="BarbaClient\BarbaClientHttpCourier.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientHttpConnection.cpp" />
+    <ClCompile Include="BarbaClient\BarbaClientTcpConnection.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientConnectionManager.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientRedirectConnection.cpp" />
+    <ClCompile Include="BarbaClient\BarbaClientTcpConnectionBase.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientUdpConnection.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientApp.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientConfig.cpp" />
@@ -265,20 +271,24 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <ClCompile Include="BarbaConfig.cpp" />
     <ClCompile Include="BarbaConnection.cpp" />
     <ClCompile Include="BarbaConnectionManager.cpp" />
-    <ClCompile Include="BarbaCourier.cpp" />
-    <ClCompile Include="BarbaCourierClient.cpp" />
-    <ClCompile Include="BarbaCourierServer.cpp" />
+    <ClCompile Include="BarbaCourier\BarbaCourier.cpp" />
+    <ClCompile Include="BarbaCourier\BarbaCourierHttpClient.cpp" />
+    <ClCompile Include="BarbaCourier\BarbaCourierHttpServer.cpp" />
+    <ClCompile Include="BarbaCourier\BarbaCourierTcpClient.cpp" />
+    <ClCompile Include="BarbaCourier\BarbaCourierTcpServer.cpp" />
     <ClCompile Include="BarbaCrypt.cpp" />
     <ClCompile Include="BarbaFilterDriver.cpp" />
-    <ClCompile Include="BarbaCourierHttp.cpp" />
+    <ClCompile Include="BarbaCourier\BarbaCourierRequestMode.cpp" />
+    <ClCompile Include="BarbaPortRange.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerHttpConnection.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerTcpConnectionBase.cpp" />
     <ClCompile Include="WinDivertFilterDriver.cpp" />
     <ClCompile Include="WinpkFilterDriver.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerConnectionManager.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerRedirectConnection.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerUdpConnection.cpp" />
-    <ClCompile Include="BarbaServer\BarbaServerHttpConnection.cpp" />
-    <ClCompile Include="BarbaServer\BarbaServerHttpHost.cpp" />
-    <ClCompile Include="BarbaServer\BarbaServerHttpCourier.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerTcpConnection.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerTcpHost.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerApp.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerConfig.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerConnection.cpp" />

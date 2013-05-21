@@ -49,6 +49,7 @@ public:
 	static void UninitializeLib(); 
 	void SendTo(DWORD ip, BYTE* buffer, size_t bufferLen);
 	SOCKET GetSocket() {return this->_Socket;}
+	u_short GetLocalPort();
 
 protected:
 	volatile u_long LastReceivedTime;
@@ -73,6 +74,10 @@ class BarbaSocketClient : public BarbaSocket
 public:
 	explicit BarbaSocketClient(u_long serverIp, u_short port);
 	virtual ~BarbaSocketClient(){}
+	u_long GetRemotePort() { return RemotePort;}
+
+private:
+	u_long RemotePort;
 };
 
 
@@ -83,8 +88,4 @@ public:
 	explicit BarbaSocketServer(u_short port, DWORD ipAddress=0);
 	virtual ~BarbaSocketServer(){}
 	BarbaSocket* Accept();
-	u_short GetListenPort() {return this->ListenPort;}
-
-private:
-	u_short ListenPort;
 };

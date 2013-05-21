@@ -126,27 +126,6 @@ bool BarbaUtils::SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine, int n
 	return ret;
 }
 
-void BarbaUtils::ParsePortRanges(LPCTSTR value, std::vector<PortRange>* portRanges)
-{
-	BarbaBuffer sbuffer((BYTE*)value, _tcslen(value)*2+2);
-	std::tstring buffer = value;
-	if (buffer.empty())
-		return;
-
-	TCHAR* currentPos = NULL;
-	LPCTSTR token = _tcstok_s(&buffer.front(), _T(","), &currentPos);
-		
-	while (token!=NULL)
-	{
-		PortRange portRange;
-		if (BarbaUtils::GetPortRange(token, &portRange.StartPort, &portRange.EndPort))
-		{
-			portRanges->push_back(portRange);
-		}
-		token = _tcstok_s(NULL, _T(","), &currentPos);
-	}
-}
-
 bool BarbaUtils::IsThreadAlive(const HANDLE hThread, bool* alive)
 {
 	DWORD dwExitCode = 0;
@@ -328,11 +307,11 @@ std::tstring BarbaUtils::GetFileFolderFromUrl(LPCTSTR url)
 	return fileTitle;
 }
 
-std::tstring BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key)
+std::tstring BarbaUtils::GetKeyValueFromString(LPCTSTR str, LPCTSTR key)
 {
 	CHAR phrase[BARBA_MaxKeyName+2];
 	_stprintf_s(phrase, "%s:", key);
-	const TCHAR* start = _tcsstr(httpRequest, key);
+	const TCHAR* start = _tcsstr(str, key);
 	if (start==NULL)
 		return _T("");
 	start = start + _tcslen(phrase);
@@ -340,7 +319,7 @@ std::tstring BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key)
 	const TCHAR* end = _tcsstr(start, ";");
 	if (end==NULL) end = _tcsstr(start, "\r");
 	if (end==NULL) end = _tcsstr(start, "\n");
-	if (end==NULL) end = httpRequest + _tcslen(httpRequest);
+	if (end==NULL) end = str + _tcslen(str);
 
 	TCHAR buffer[255];
 	size_t maxValueLen  = min(end-start, _countof(buffer)-1);
@@ -350,13 +329,28 @@ std::tstring BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key)
 	return ret;
 }
 
-size_t BarbaUtils::GetKeyValueFromString(LPCTSTR httpRequest, LPCTSTR key, size_t defValue)
+int BarbaUtils::GetKeyValueFromString(LPCTSTR str, LPCTSTR key, int defValue)
 {
-	std::tstring valueStr = BarbaUtils::GetKeyValueFromString(httpRequest,key);
-	size_t fileSize = valueStr.empty() ? defValue : _tcstoul(valueStr.data(), 0, 0);
-	return fileSize;
+	std::tstring valueStr = BarbaUtils::GetKeyValueFromString(str, key);
+	int ret = valueStr.empty() ? defValue : _tcstoul(valueStr.data(), 0, 0);
+	return ret;
 }
 
+void BarbaUtils::SetKeyValue(std::tstring* str, LPCTSTR key, LPCTSTR value)
+{
+	str->reserve(str->size() + _tcslen(value) + 5);
+	str->append(key);
+	str->append(_T("="));
+	str->append(value);
+	str->append(_T(";"));
+}
+
+void BarbaUtils::SetKeyValue(std::tstring* str, LPCTSTR key, int value)
+{
+	TCHAR buffer[50];
+	_stprintf_s(buffer, _T("%d"), value);
+	SetKeyValue(str, key, buffer);	
+}
 
 std::tstring BarbaUtils::FormatTimeForHttp()
 {
@@ -392,7 +386,39 @@ void BarbaUtils::UpdateHttpRequest(std::tstring* httpRequest, std::tstring key, 
 	}
 }
 
-std::tstring BarbaUtils::PrepareHttpRequest(std::tstring request)
+void BarbaUtils::UpdateHttpRequest(std::tstring* httpRequest, LPCTSTR host, LPCTSTR fileName, LPCTSTR contentType, size_t contentLength, LPCTSTR data)
+{
+	if (fileName==NULL) fileName = _T("");
+	if (contentType==NULL) contentType = _T("");
+	if (host==NULL) host = _T("");
+
+	//host
+	BarbaUtils::UpdateHttpRequest(httpRequest, _T("Host"), host);
+	BarbaUtils::UpdateHttpRequest(httpRequest, _T("Origin"), host);
+
+	//filename
+	StringUtils::ReplaceAll(*httpRequest, _T("{filename}"), fileName);
+	StringUtils::ReplaceAll(*httpRequest, _T("{filetitle}"), BarbaUtils::GetFileTitleFromUrl(fileName));
+	StringUtils::ReplaceAll(*httpRequest, _T("{fileextension}"), BarbaUtils::GetFileExtensionFromUrl(fileName));
+
+	//fileSize
+	TCHAR contentLengthStr[20];
+	_ltot_s((long)contentLength, contentLengthStr, 10);
+	BarbaUtils::UpdateHttpRequest(httpRequest, _T("Content-Length"), contentLengthStr);
+
+	//time
+	std::tstring curTime = BarbaUtils::FormatTimeForHttp();
+	BarbaUtils::UpdateHttpRequest(httpRequest, _T("Date"), curTime);
+	BarbaUtils::UpdateHttpRequest(httpRequest, _T("Last-Modified"), curTime);
+
+	//contentType
+	BarbaUtils::UpdateHttpRequest(httpRequest, _T("Content-Type"), contentType);
+
+	if (data!=NULL)
+		StringUtils::ReplaceAll(*httpRequest, _T("{data}"), data);
+}
+
+std::string BarbaUtils::PrepareHttpRequest(std::tstring request)
 {
 	std::tstring ret = request;
 	std::tstring req;

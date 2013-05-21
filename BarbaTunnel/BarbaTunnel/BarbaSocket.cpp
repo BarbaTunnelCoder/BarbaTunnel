@@ -215,6 +215,8 @@ size_t BarbaSocket::Send(BYTE* buf, size_t bufCount)
 	int ret = send(_Socket, (char*)buf, (int)bufCount, 0);
 	if (ret==SOCKET_ERROR)
 		ThrowSocketError();
+	if (ret!=bufCount)
+		throw new BarbaException(_T("Could not sent all data successfully!"));
 	this->SentBytesCount += ret;
 	this->LastSentTime = GetTickCount();
 	return ret;
@@ -259,14 +261,14 @@ BarbaSocketClient::BarbaSocketClient(u_long serverIp, u_short port)
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	addr.sin_addr.S_un.S_addr = serverIp;
-	this->RemoteIp = serverIp;
+	RemoteIp = serverIp;
+	RemotePort = port;
 	if (::connect(_Socket, (sockaddr*)&addr, sizeof sockaddr)==SOCKET_ERROR)
 		ThrowSocketError();
 }
 
 BarbaSocketServer::BarbaSocketServer(u_short port, DWORD ipAddress) 
 {
-	this->ListenPort = port;
 	sockaddr_in sa = {0};
 	sa.sin_addr.S_un.S_addr = ipAddress;
 	sa.sin_family = PF_INET;             
@@ -295,4 +297,13 @@ BarbaSocket* BarbaSocketServer::Accept()
 
 	BarbaSocket* ret = new BarbaSocket(newSocket, addr_in.sin_addr.S_un.S_addr);
 	return ret;
+}
+
+u_short BarbaSocket::GetLocalPort()
+{
+	struct sockaddr_in sin;
+	int len = sizeof(sin);
+	if (getsockname(_Socket, (struct sockaddr *)&sin, &len)==SOCKET_ERROR)
+		ThrowSocketError();
+	return ntohs(sin.sin_port);
 }
