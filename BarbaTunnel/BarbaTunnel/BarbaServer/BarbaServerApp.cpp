@@ -84,9 +84,9 @@ bool BarbaServerApp::ShouldGrabPacket(PacketHelper* packet, BarbaServerConfig* c
 
 	//check port
 	u_short port = packet->GetDesPort();
-	for (size_t j=0; j<config->TunnelPorts.size(); j++)
+	for (size_t j=0; j<config->TunnelPorts.Items.size(); j++)
 	{
-		if (port>=config->TunnelPorts[j].StartPort && port<=config->TunnelPorts[j].EndPort)
+		if (port>=config->TunnelPorts.Items[j].StartPort && port<=config->TunnelPorts.Items[j].EndPort)
 			return true;
 	}
 

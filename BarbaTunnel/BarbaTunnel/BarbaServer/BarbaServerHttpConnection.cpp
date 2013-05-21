@@ -2,64 +2,70 @@
 #include "BarbaServerHttpConnection.h"
 #include "BarbaServerApp.h"
 
-BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfig* config, u_long clientVirtualIp, u_long clientIp, u_short tunnelPort, u_long sessionId)
-	: BarbaServerConnection(config, clientVirtualIp, clientIp)
+BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfig* config, u_long clientVirtualIp, u_long clientIp)
+	: BarbaServerTcpConnectionBase(config, clientVirtualIp, clientIp)
 {
-	this->ClientLocalIp = 0;
-	this->SessionId = sessionId;
-	this->TunnelPort = tunnelPort;
-
-	BarbaCourier::CreateStrcutBag cs = {0};
-	cs.HostName = config->ServerAddress;
-	cs.FakeFileMaxSize = config->FakeFileMaxSize;
-	cs.RequestDataKeyName = config->RequestDataKeyName.data();
-	cs.MaxConnection = config->MaxUserConnections;
-	cs.AllowBombard = config->AllowRequestBombard;
-	cs.ConnectionTimeout = theApp->ConnectionTimeout;
-	cs.SessionId = sessionId;
-	cs.ThreadsStackSize = BARBA_SocketThreadStackSize;
-	this->Courier = new BarbaServerHttpCourier(&cs , this);
-}
-
-BarbaServerHttpConnection::~BarbaServerHttpConnection(void)
-{
-	theApp->AddThread(this->Courier->Delete());
-}
-
-bool BarbaServerHttpConnection::ProcessPacket(PacketHelper* packet, bool send)
-{
-	if (send)
-	{
-		packet->SetDesIp(this->ClientLocalIp);
-		packet->RecalculateChecksum();
-		this->SetWorkingState(packet->GetIpLen(), true);
-		this->Courier->SendPacket(packet);
-	}
-	else
-	{
-		//Initialize First Attempt
-		if (this->ClientLocalIp==0)
-			this->ClientLocalIp = packet->GetSrcIp();
-
-		packet->SetSrcIp(this->ClientVirtualIp);
-		SendPacketToInbound(packet);
-	}
-
-	return true;
 }
 
 void BarbaServerHttpConnection::Init(LPCTSTR requestData)
 {
-	return this->Courier->Init(requestData);
+	BarbaCourierHttpServer::CreateStrcutHttp* cs = new BarbaCourierHttpServer::CreateStrcutHttp();
+	InitHelper(cs, requestData);
+	_Courier = new Courier(cs , this);
+	_Courier->Init(requestData);
 }
 
-bool BarbaServerHttpConnection::AddSocket(BarbaSocket* Socket, LPCSTR httpRequest, LPCTSTR requestData, bool isOutgoing)
+BarbaServerHttpConnection::~BarbaServerHttpConnection(void)
 {
-	return this->Courier->AddSocket(Socket, httpRequest, requestData, isOutgoing);
 }
 
-bool BarbaServerHttpConnection::ShouldProcessPacket(PacketHelper* packet)
+//--------------------------- Courier
+BarbaServerHttpConnection::Courier::Courier(CreateStrcutHttp* cs, BarbaServerHttpConnection* connection)
+	: BarbaCourierHttpServer(cs)
+	, _Connection(connection)
 {
-	//just process outgoing packets
-	return packet->GetDesIp()==this->GetClientVirtualIp();
+}
+
+BarbaServerHttpConnection::Courier::~Courier(void)
+{
+}
+
+void BarbaServerHttpConnection::Courier::Crypt(BYTE* data, size_t dataSize, size_t index, bool encrypt)
+{
+	if (IsDisposing()) 
+		return; 
+
+	_Connection->CryptData(data, dataSize, index, encrypt);
+}
+
+void BarbaServerHttpConnection::Courier::Receive(BarbaBuffer* data)
+{
+	if (IsDisposing()) 
+		return; 
+
+	PacketHelper packet((iphdr_ptr)data->data(), data->size());
+	if (!packet.IsValidChecksum())
+	{
+		Log2(_T("Error: Invalid packet checksum received! Check your key."));
+		return;
+	}
+	_Connection->ProcessPacket(&packet, false);
+}
+
+void BarbaServerHttpConnection::Courier::GetFakeFile(TCHAR* filename, std::tstring* contentType, BarbaBuffer* fakeFileHeader)
+{
+	if (IsDisposing()) 
+		return; 
+
+	theApp->GetFakeFile(&_Connection->GetConfigItem()->FakeFileTypes, 0, filename, contentType, 0, fakeFileHeader, false);
+}
+
+std::tstring BarbaServerHttpConnection::Courier::GetHttpPostReplyRequest(bool bombardMode)
+{
+	return bombardMode ? theServerApp->HttpPostReplyTemplateBombard : theServerApp->HttpPostReplyTemplate;
+}
+
+std::tstring BarbaServerHttpConnection::Courier::GetHttpGetReplyRequest(bool bombardMode)
+{
+	return bombardMode ? theServerApp->HttpGetReplyTemplateBombard : theServerApp->HttpGetReplyTemplate;
 }

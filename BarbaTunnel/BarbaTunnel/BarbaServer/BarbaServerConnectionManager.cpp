@@ -3,6 +3,8 @@
 #include "BarbaServerUdpConnection.h"
 #include "BarbaServerRedirectConnection.h"
 #include "BarbaServerApp.h"
+#include "BarbaServerTcpConnection.h"
+#include "BarbaServerHttpConnection.h"
 
 
 BarbaServerConnectionManager::BarbaServerConnectionManager(void)
@@ -42,7 +44,7 @@ BarbaServerConnection* BarbaServerConnectionManager::FindByVirtualIp(DWORD ip)
 	return ret;
 }
 
-BarbaServerConnection* BarbaServerConnectionManager::FindBySessionId(DWORD sessionId)
+BarbaServerConnection* BarbaServerConnectionManager::FindBySessionId(u_long sessionId)
 {
 	BarbaServerConnection* ret = NULL;
 	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&this->Connections);
@@ -78,9 +80,18 @@ BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelp
 	return conn;
 }
 
-BarbaServerHttpConnection* BarbaServerConnectionManager::CreateHttpConnection(BarbaServerConfig* config, u_long clientIp, u_short tunnelPort, u_long sessionId)
+BarbaServerTcpConnectionBase* BarbaServerConnectionManager::CreateTcpConnection(BarbaServerConfig* config, u_long clientIp, LPCTSTR requestData)
 {
-	BarbaServerHttpConnection* conn = new BarbaServerHttpConnection(config, this->VirtualIpManager.GetNewIp(), clientIp, tunnelPort, sessionId);
+	BarbaCourierRequestMode requestMode;
+	requestMode.Parse(BarbaUtils::GetKeyValueFromString(requestData, _T("HttpRequestMode")));
+	if (requestMode.Mode==BarbaCourierRequestMode::ModeNone && !config->AllowHttpRequestNone) throw new BarbaException("Server does not accept Simple TCP connection!");
+	if (requestMode.Mode==BarbaCourierRequestMode::ModeNormal && !config->AllowHttpRequestNormal) throw new BarbaException("Server does not accept Normal HTTP connection!");
+	if (requestMode.Mode==BarbaCourierRequestMode::ModeBombard && !config->AllowHttpRequestBombard) throw new BarbaException("Server does not accept Bombard HTTP connection!");
+
+	BarbaServerTcpConnectionBase* conn =  requestMode.Mode == BarbaCourierRequestMode::ModeNone
+		? (BarbaServerTcpConnectionBase*)new BarbaServerTcpConnection(config, this->VirtualIpManager.GetNewIp(), clientIp)
+		: (BarbaServerTcpConnectionBase*)new BarbaServerHttpConnection(config, this->VirtualIpManager.GetNewIp(), clientIp);
+	conn->Init(requestData);
 	AddConnection(conn);
 	return conn;
 
