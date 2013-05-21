@@ -3,7 +3,7 @@
 #include "BarbaServerVirtualIpManager.h"
 #include "BarbaServerConnection.h"
 #include "BarbaConnectionManager.h"
-#include "BarbaServerHttpConnection.h"
+#include "BarbaServerTcpConnectionBase.h"
 
 class BarbaServerConnectionManager : public BarbaConnectionManager
 {
@@ -13,9 +13,9 @@ public:
 	virtual void RemoveConnection(BarbaConnection* conn);
 	void Initialize(IpRange* virtualIpRange);
 	BarbaServerConnection* FindByVirtualIp(DWORD ip);
-	BarbaServerConnection* FindBySessionId(DWORD sessionId);
+	BarbaServerConnection* FindBySessionId(u_long sessionId);
 	BarbaServerConnection* CreateConnection(PacketHelper* packet, BarbaServerConfig* config);
-	BarbaServerHttpConnection* CreateHttpConnection(BarbaServerConfig* config, u_long clientIp, u_short tunnelPort, u_long sessionId);
+	BarbaServerTcpConnectionBase* CreateTcpConnection(BarbaServerConfig* config, u_long clientIp, LPCTSTR requestData);
 
 private:
 	BarbaServerVirtualIpManager VirtualIpManager;

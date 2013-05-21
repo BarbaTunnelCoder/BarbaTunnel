@@ -2,7 +2,7 @@
 #include "BarbaApp.h"
 #include "BarbaServerConfig.h"
 #include "BarbaServerConnectionManager.h"
-#include "BarbaServerHttpHost.h"
+#include "BarbaServerTcpHost.h"
 
 class BarbaServerApp : public BarbaApp
 {
@@ -17,7 +17,7 @@ public:
 	virtual LPCTSTR GetName() {return _T("Barba Server");}
 	static bool ShouldGrabPacket(PacketHelper* packet, BarbaServerConfig* config);
 
-	BarbaServerHttpHost HttpHost;
+	BarbaServerTcpHost HttpHost;
 	std::vector<BarbaServerConfig> Configs;
 	BarbaServerConnectionManager ConnectionManager;
 	std::tstring HttpGetReplyTemplate;
