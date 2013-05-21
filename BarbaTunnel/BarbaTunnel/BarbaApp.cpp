@@ -12,7 +12,7 @@ BarbaApp::BarbaApp(void)
 	this->IsRestartCommand = false;
 	this->_IsDisposed = false;
 	this->FilterDriver = NULL;
-	srand((UINT)time(0));
+	srand( (UINT)time(0) );
 
 	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetAppFolder());
 	this->_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetSettingsFile());
