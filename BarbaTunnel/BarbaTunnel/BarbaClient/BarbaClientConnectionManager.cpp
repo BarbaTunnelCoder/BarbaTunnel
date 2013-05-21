@@ -2,6 +2,7 @@
 #include "BarbaClientConnectionManager.h"
 #include "BarbaClientRedirectConnection.h"
 #include "BarbaClientUdpConnection.h"
+#include "BarbaClientTcpConnection.h"
 #include "BarbaClientHttpConnection.h"
 
 
@@ -19,15 +20,23 @@ BarbaClientConnection* BarbaClientConnectionManager::CreateConnection(PacketHelp
 	BarbaClientConnection* conn = NULL;
 	if (config->Mode==BarbaModeTcpRedirect || config->Mode==BarbaModeUdpRedirect)
 	{
-		conn = new BarbaClientRedirectConnection(config, packet->GetSrcPort(), config->GetNewTunnelPort());
+		conn = new BarbaClientRedirectConnection(config, packet->GetSrcPort(), config->TunnelPorts.GetRandomPort());
 	}
 	else if (config->Mode==BarbaModeUdpTunnel)
 	{
-		conn = new BarbaClientUdpConnection(config, packet->GetSrcPort(), config->GetNewTunnelPort());
+		conn = new BarbaClientUdpConnection(config, packet->GetSrcPort(), config->TunnelPorts.GetRandomPort());
+	}
+	else if (config->Mode==BarbaModeTcpTunnel)
+	{
+		BarbaClientTcpConnection* tcpConn = new BarbaClientTcpConnection(config);
+		tcpConn->Init();
+		conn = tcpConn;
 	}
 	else if (config->Mode==BarbaModeHttpTunnel)
 	{
-		conn = new BarbaClientHttpConnection(config, config->GetNewTunnelPort());
+		BarbaClientHttpConnection* httpConn = new BarbaClientHttpConnection(config);
+		httpConn->Init();
+		conn = httpConn;
 	}
 	else
 	{
