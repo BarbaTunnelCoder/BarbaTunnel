@@ -229,8 +229,8 @@ void BarbaFilterDriver::AddClientFilters(void* filter, std::vector<BarbaClientCo
 
 		//filter only tunnel packet that come from server except http-tunnel that use socket
 		if (config->Mode!=BarbaModeHttpTunnel) 
-			for (size_t i=0; i<config->TunnelPorts.size(); i++)
-				AddFilter(filter, false, config->ServerIp, 0, 0, 0, config->GetTunnelProtocol(), config->TunnelPorts[i].StartPort, config->TunnelPorts[i].EndPort, 0, 0);
+			for (size_t i=0; i<config->TunnelPorts.Items.size(); i++)
+				AddFilter(filter, false, config->ServerIp, 0, 0, 0, config->GetTunnelProtocol(), config->TunnelPorts.Items[i].StartPort, config->TunnelPorts.Items[i].EndPort, 0, 0);
 	}
 }
 
@@ -245,8 +245,8 @@ void BarbaFilterDriver::AddServerFilters(void* filter, std::vector<BarbaServerCo
 
 		//filter only tunnel packet that come from server except http-tunnel that use socket
 		if (config->Mode!=BarbaModeHttpTunnel) 
-			for (size_t i=0; i<config->TunnelPorts.size(); i++)
-				AddFilter(filter, false, 0, 0, config->ServerIp, 0, config->GetTunnelProtocol(), 0, 0, config->TunnelPorts[i].StartPort, config->TunnelPorts[i].EndPort);
+			for (size_t i=0; i<config->TunnelPorts.Items.size(); i++)
+				AddFilter(filter, false, 0, 0, config->ServerIp, 0, config->GetTunnelProtocol(), 0, 0, config->TunnelPorts.Items[i].StartPort, config->TunnelPorts.Items[i].EndPort);
 
 		//filter ICMP for debug mode
 		if (theApp->IsDebugMode())

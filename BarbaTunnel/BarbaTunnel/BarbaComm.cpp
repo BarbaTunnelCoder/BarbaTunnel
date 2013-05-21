@@ -185,7 +185,7 @@ void BarbaLogImpl(int level, LPCTSTR format, va_list _ArgList)
 	if (theApp!=NULL && level>theApp->LogLevel)
 		return;
 
-	CHAR* msg = new CHAR[2000];
+	TCHAR* msg = new TCHAR[2000];
 	_vstprintf_s(msg, 2000, format, _ArgList);
 
 	if (theComm!=NULL)
