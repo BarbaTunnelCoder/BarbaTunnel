@@ -1,38 +1,38 @@
 /*
- * BarbaServerHttpHost class
+ * BarbaServerTcpHost class
  * this class just used for HTTP-Tunneling
  */
 
 #pragma once
 #include "General.h"
 #include "BarbaServerConfig.h"
-#include "BarbaServerHttpCourier.h"
+#include "BarbaSocket.h"
 
-class BarbaServerHttpHost
+class BarbaServerTcpHost
 {
 private:
 	//used to pass data to created thread
-	struct ListenerThreadData
+	struct ListenerWorkerData
 	{
-		ListenerThreadData(BarbaServerHttpHost* httpHost, BarbaSocketServer* socketServer, BarbaServerConfig* config) { this->HttpHost=httpHost; this->SocketServer=socketServer; this->Config = config;}
-		BarbaServerHttpHost* HttpHost;
+		ListenerWorkerData(BarbaServerTcpHost* httpHost, BarbaSocketServer* socketServer, BarbaServerConfig* config) { HttpHost=httpHost; SocketServer=socketServer; Config = config;}
+		BarbaServerTcpHost* HttpHost;
 		BarbaSocketServer* SocketServer;
 		BarbaServerConfig* Config;
 	};
 
 	//used to pass data to created thread
-	struct AnswerThreadData
+	struct AnswerWorkerData
 	{
-		AnswerThreadData(BarbaServerHttpHost* httpHost, BarbaSocket* socket, BarbaServerConfig* config, u_short serverPort) { this->HttpHost=httpHost; this->Socket=socket; this->Config = config; this->ServerPort = serverPort;}
-		BarbaServerHttpHost* HttpHost;
+		AnswerWorkerData(BarbaServerTcpHost* httpHost, BarbaSocket* socket, BarbaServerConfig* config, u_short serverPort) { this->HttpHost=httpHost; this->Socket=socket; this->Config = config; this->ServerPort = serverPort;}
+		BarbaServerTcpHost* HttpHost;
 		u_short ServerPort;
 		BarbaSocket* Socket;
 		BarbaServerConfig* Config;
 	};
 
 public:
-	explicit BarbaServerHttpHost();
-	virtual ~BarbaServerHttpHost(void);
+	explicit BarbaServerTcpHost();
+	virtual ~BarbaServerTcpHost(void);
 	virtual void Dispose();
 	void Start();
 
@@ -44,6 +44,8 @@ private:
 	bool IsDisposing() { return this->DisposeEvent.IsSet(); }
 	SimpleEvent DisposeEvent;
 
+	void AnswerWorker(AnswerWorkerData* workerData);
+	void ListenerWorker(ListenerWorkerData* workerData);
 	static unsigned int __stdcall AnswerThread(void* answerThreadData);
 	static unsigned int __stdcall ListenerThread(void* listenerThreadData);
 	SimpleSafeList<BarbaSocket*> ListenerSockets;
