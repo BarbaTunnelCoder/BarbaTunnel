@@ -6,22 +6,6 @@ BarbaClientConfig::BarbaClientConfig()
 {
 }
 
-u_short BarbaClientConfig::GetNewTunnelPort()
-{
-	int newPortIndex = (rand()*rand() % GetTotalTunnelPortsCount());
-	for (size_t i=0; i<this->TunnelPorts.size(); i++)
-	{
-		int count = TunnelPorts[i].EndPort - TunnelPorts[i].StartPort + 1;
-		if (newPortIndex<count)
-		{
-			return (u_short)(TunnelPorts[i].StartPort + newPortIndex);
-		}
-		newPortIndex -= count;
-	}
-
-	return 0;
-}
-
 bool BarbaClientConfig::LoadFile(LPCTSTR file)
 {
 	if (!BarbaConfig::LoadFile(file))
@@ -33,11 +17,11 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	BarbaUtils::GetProtocolAndPortArray(grabProtocols, &this->GrabProtocols);
 
 	//FakePacketMinSize
-	this->FakePacketMinSize = (u_short)GetPrivateProfileInt(_T("General"), _T("FakePacketMinSize"), 0, file);
-	if (this->FakePacketMinSize>BARBA_HttpFakePacketMaxSize)
+	this->MinPacketSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MinPacketSize"), 0, file);
+	if (this->MinPacketSize > BARBA_HttpMaxPacketSize)
 	{
-		this->Log(_T("FakePacketMinSize could not be more than %d!"), BARBA_HttpFakePacketMaxSize);
-		this->FakePacketMinSize = BARBA_HttpFakePacketMaxSize;
+		this->Log(_T("MinPacketSize could not be more than %d!"), BARBA_HttpMaxPacketSize);
+		this->MinPacketSize = BARBA_HttpMaxPacketSize;
 	}
 
 	//KeepAliveInterval
@@ -49,9 +33,12 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	}
 
 	//Http-Bombard
-	TCHAR requestBombard[1000] = {0};
-	GetPrivateProfileString(_T("General"), _T("RequestBombard"), _T(""), requestBombard, _countof(requestBombard), file);
-	this->RequestBombard = requestBombard;
+	TCHAR httpRequestMode[1000] = {0};
+	GetPrivateProfileString(_T("General"), _T("HttpRequestMode"), _T(""), httpRequestMode, _countof(httpRequestMode), file);
+	std::tstring strRequest = httpRequestMode;
+	StringUtils::Trim(strRequest);
+	if (strRequest.empty()) strRequest = (Mode == BarbaModeHttpTunnel) ? _T("Normal") : _T("None");
+	HttpRequestMode.Parse(strRequest);
 
 	return true;
 }
