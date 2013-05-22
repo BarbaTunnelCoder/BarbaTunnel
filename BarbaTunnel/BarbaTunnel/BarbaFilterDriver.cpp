@@ -3,8 +3,6 @@
 #include "BarbaClient\BarbaClientApp.h"
 #include "BarbaFilterDriver.h"
 
-#define RouteFinderIp "127.0.0.2"
-
 BarbaFilterDriver::BarbaFilterDriver(size_t maxCaptureMessageQueue)
 	: StopEvent(true, false)
 	, RouteFinderSocket(AF_INET, SOCK_RAW, IPPROTO_NONE)
@@ -17,7 +15,7 @@ BarbaFilterDriver::BarbaFilterDriver(size_t maxCaptureMessageQueue)
 
 	//initialize RouteFinderPacket
 	this->RouteFinderPacket.SetSrcIp( inet_addr("127.0.0.1") );
-	this->RouteFinderPacket.SetDesIp( inet_addr(RouteFinderIp) );
+	this->RouteFinderPacket.SetDesIp( inet_addr("127.0.0.2") );
 	this->RouteFinderPacket.RecalculateChecksum();
 }
 

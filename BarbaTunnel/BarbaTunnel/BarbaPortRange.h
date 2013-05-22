@@ -20,8 +20,9 @@ public:
 	void GetAllPorts(BarbaArray<u_short>* ports);
 	//@param value: StartPort-EndPort,StartPort-EndPort,StartPort-EndPort
 	void Parse(LPCTSTR value);
+	std::tstring ToString();
 	static bool ParsePortRangeItem(LPCTSTR value, u_short* startPort, u_short* endPort);
 
-	std::vector<PortRangeItem> Items;
+	BarbaArray<PortRangeItem> Items;
 };
 

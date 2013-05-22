@@ -31,7 +31,7 @@ BarbaApp::BarbaApp(void)
 
 	//FilterDriver
 	TCHAR filterDriverName[200] = {0};
-	GetPrivateProfileString(_T("General"), _T("FilterDriver"), _T("WinDivert"), filterDriverName, _countof(filterDriverName), GetSettingsFile());
+	GetPrivateProfileString(_T("General"), _T("FilterDriver"), _T(""), filterDriverName, _countof(filterDriverName), GetSettingsFile());
 	if (_tcslen(filterDriverName)==0)
 		_tcscpy_s(filterDriverName, _T("WinDivert"));
 	this->FilterDriver = CreateFilterDriverByName(filterDriverName);

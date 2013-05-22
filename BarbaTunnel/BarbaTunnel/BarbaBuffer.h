@@ -34,31 +34,3 @@ protected:
 
 typedef BarbaArray<BYTE> BarbaBuffer;
 
-class BarbaBuffer2
-{
-public:
-	explicit BarbaBuffer2(void){}
-	explicit BarbaBuffer2(size_t size) {assign(size);}
-	explicit BarbaBuffer2(void* data, size_t size) { append(data, size); }
-	explicit BarbaBuffer2(BarbaBuffer* buffer) { append(buffer); }
-	explicit BarbaBuffer2(std::vector<BYTE>* data) { append(data); }
-	~BarbaBuffer2(void){}
-	size_t size() { return buf.size(); }
-	size_t capacity() { return buf.capacity(); }
-	void resize(size_t size) { buf.resize(size); }
-	BYTE* data() { return buf.data(); }
-	void assign(size_t size) {buf.assign(size, 0);} 
-	void assign(size_t size, BYTE value) {buf.assign(size, value);}
-	void assign(BYTE* data, size_t size) {resize(0); append(data, size); }
-	void assign(BarbaBuffer* buffer) {resize(0); append(buffer); }
-	void reserve(size_t size) {buf.reserve(size);}
-	void append(void* data, size_t size) { size_t oldSize = this->size(); resize(oldSize + size); memcpy_s(this->data() + oldSize, this->size()-oldSize, data, size);}	
-	void append(BarbaBuffer* buffer) { append(buffer->data(), buffer->size()); }
-	void append(std::vector<BYTE>* data) { append(data->data(), data->size()); }
-	void append(BYTE value) {buf.push_back(value);}
-	bool empty() {return buf.empty();}
-
-private:
-	std::vector<BYTE> buf;
-};
-
