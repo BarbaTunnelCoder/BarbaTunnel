@@ -31,11 +31,11 @@ std::tstring BarbaCourierRequestMode::ToString()
 	if (Mode==ModeNormal) return _T("Normal");
 	if (IsFullBombard()) return _T("Bombard");
 
-	if (BombardGet) ret += _T(" /BombardGet");
-	if (BombardGetPayload) ret += _T(" /BombardGetPayload");
-	if (BombardPost) ret += _T(" /BombardPost");
-	if (BombardPostReply) ret += _T(" /BombardPostReply");
-	if (BombardPostReplyPayload) ret += _T(" /BombardPostReplyPayload");
+	if (BombardGet) ret += _T(" /get");
+	if (BombardGetPayload) ret += _T(" /getPayload");
+	if (BombardPost) ret += _T(" /post");
+	if (BombardPostReply) ret += _T(" /postReply");
+	if (BombardPostReplyPayload) ret += _T(" /postReplyPayload");
 	StringUtils::Trim(ret);
 	return ret;
 }
@@ -56,11 +56,11 @@ void BarbaCourierRequestMode::Parse(std::tstring valueParam)
 	}
 	else
 	{
-		BombardGet = _tcsstr(value, "/get")!=NULL || _tcsstr(value, "/bombardget")!=NULL;
-		BombardGetPayload = _tcsstr(value, "/getpayload ")!=NULL || _tcsstr(value, "/bombardgetpayload")!=NULL;
-		BombardPost = _tcsstr(value, "/post ")!=NULL || _tcsstr(value, "/bombardpost")!=NULL;
-		BombardPostReply = _tcsstr(value, "/reply ")!=NULL || _tcsstr(value, "/bombardreply")!=NULL;
-		BombardPostReplyPayload = _tcsstr(value, "/replypayload ")!=NULL || _tcsstr(value, "/bombardreplypayload")!=NULL;
+		BombardGet = _tcsstr(value, "/get")!=NULL;
+		BombardGetPayload = _tcsstr(value, "/getpayload ")!=NULL;
+		BombardPost = _tcsstr(value, "/post ")!=NULL;
+		BombardPostReply = _tcsstr(value, "/postreply ")!=NULL;
+		BombardPostReplyPayload = _tcsstr(value, "/postreplypayload ")!=NULL;
 	}
 	
 	if (BombardGet || BombardGetPayload || BombardPost || BombardPostReply || BombardPostReplyPayload) 

@@ -32,7 +32,7 @@ public:
 		}
 	}
 
-	static void Tokenize(LPCTSTR text, LPCTSTR delimiter, std::vector<std::tstring>* tokens)
+	static void Tokenize(LPCTSTR text, LPCTSTR delimiter, BarbaArray<std::tstring>* tokens)
 	{
 		std::string s;
 		
@@ -47,7 +47,7 @@ public:
 			std::tstring item = token;
 			Trim(item);
 			if (item.size()>0)
-				tokens->push_back(item);
+				tokens->append(item);
 			token = _tcstok_s(NULL, delimiter, &currentPos);
 		}
 

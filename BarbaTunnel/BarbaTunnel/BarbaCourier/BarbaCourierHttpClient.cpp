@@ -239,13 +239,14 @@ void BarbaCourierHttpClient::WaitForIncomingFileHeader(BarbaSocket* socket, size
 
 void BarbaCourierHttpClient::ClientWorker(ClientWorkerData* clientWorkerData)
 {
-	BarbaSocketClient* socket = NULL;
 	bool hasError = false;
 	bool isOutgoing = clientWorkerData->IsOutgoing;
 	DWORD retryTime = 10000;
 
 	while (!IsDisposing())
 	{
+		BarbaSocketClient* socket = NULL;
+
 		try
 		{
 			hasError = false;

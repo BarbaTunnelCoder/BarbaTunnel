@@ -23,6 +23,8 @@ public:
 	void append(T value) {buf.push_back(value);}
 	bool empty() {return buf.empty();}
 	void clear() {return buf.clear();}
+	T at(size_t nIndex) const { return buf.at(nIndex); }
+	T& at(size_t nIndex) { return buf.at(nIndex); }
 	T operator[](size_t nIndex) const { return buf[nIndex]; }
 	T& operator[](size_t nIndex) { return buf[nIndex]; }
 

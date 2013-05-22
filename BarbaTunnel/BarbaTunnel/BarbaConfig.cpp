@@ -5,12 +5,11 @@
 
 BarbaConfig::BarbaConfig()
 {
-	this->ServerIp = INADDR_ANY;
-	this->Mode = BarbaModeNone;
-	this->Enabled = true;
-	this->RealPort = 0;
-	this->MaxUserConnections = BARBA_HttpMaxUserConnections;
-	this->MaxTransferSize = BARBA_HttpFakeFileMaxSize;
+	ServerIp = INADDR_ANY;
+	Mode = BarbaModeNone;
+	Enabled = true;
+	RealPort = 0;
+	MaxUserConnections = BARBA_HttpDefaultUserConnections;
 }
 
 
@@ -34,17 +33,17 @@ std::tstring BarbaConfig::GetNameFromFileName(LPCTSTR fileName)
 
 bool BarbaConfig::LoadFile(LPCTSTR file)
 {
-	this->FileName = BarbaUtils::GetFileNameFromUrl(file);
-	this->Name = GetNameFromFileName(file);
+	FileName = BarbaUtils::GetFileNameFromUrl(file);
+	Name = GetNameFromFileName(file);
 
 	//ServerIp
 	TCHAR serverAddress[1000];
 	GetPrivateProfileString(_T("General"), _T("ServerAddress"), _T("*"), serverAddress, _countof(serverAddress), file);
-	this->ServerAddress = serverAddress;
-	StringUtils::Trim(this->ServerAddress);
-	if (this->ServerAddress.empty() || this->ServerAddress.compare(_T("*"))==0)
+	ServerAddress = serverAddress;
+	StringUtils::Trim(ServerAddress);
+	if (ServerAddress.empty() || ServerAddress.compare(_T("*"))==0)
 	{
-		this->ServerAddress = _T("*");
+		ServerAddress = _T("*");
 	}
 	else
 	{
@@ -54,12 +53,12 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 			Log(_T("Error: Could not resolve server address! %s"), serverAddress);
 			return false;
 		}
-		this->ServerIp = ((in_addr *)he->h_addr)->S_un.S_addr;
+		ServerIp = ((in_addr *)he->h_addr)->S_un.S_addr;
 	}
 
 	//fail if not enabled
-	this->Enabled = GetPrivateProfileInt(_T("General"), _T("Enabled"), 1, file)!=0;
-	if (!this->Enabled)
+	Enabled = GetPrivateProfileInt(_T("General"), _T("Enabled"), 1, file)!=0;
+	if (!Enabled)
 		return false;
 
 	//mode
@@ -67,12 +66,12 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 	int res = GetPrivateProfileString(_T("General"), _T("Mode"), _T(""), modeString, _countof(modeString), file);
 	if (res==0)
 		return false; //could not find item
-	this->Mode = BarbaMode_FromString(modeString);
+	Mode = BarbaMode_FromString(modeString);
 	
 	//Key
 	TCHAR hexKey[2000];
 	GetPrivateProfileString(_T("General"), _T("Key"), _T(""), hexKey, _countof(hexKey), file);
-	BarbaUtils::ConvertHexStringToBuffer(hexKey, &this->Key);
+	BarbaUtils::ConvertHexStringToBuffer(hexKey, &Key);
 
 	//TunnelPorts
 	TCHAR tunnelPorts[2000];
@@ -85,45 +84,37 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 	}
 
 	//MaxUserConnections
-	this->MaxUserConnections = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxUserConnections"), MaxUserConnections, file);
+	MaxUserConnections = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxUserConnections"), MaxUserConnections, file);
 	CheckMaxUserConnections();
 
-	//MaxTransferSize
-	this->MaxTransferSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxTransferSize"), MaxTransferSize/1000, file) * 1000;
-	if (MaxTransferSize==0) this->MaxTransferSize = BARBA_HttpFakeFileMaxSize;
-
+	//RequestDataKeyName
 	TCHAR keyName[BARBA_MaxKeyName];
 	keyName[0] = 0;
 	GetPrivateProfileString(_T("General"), _T("RequestDataKeyName"), _T(""), keyName, _countof(keyName), file);
-	this->RequestDataKeyName = keyName;
-	if (this->RequestDataKeyName.empty())
-		this->RequestDataKeyName = CreateRequestDataKeyName(&this->Key);
-
-	//FakeFileTypes
-	TCHAR fakeFileTypes[1000] = {0};
-	GetPrivateProfileString(_T("General"), _T("FakeFileTypes"), _T(""), fakeFileTypes, _countof(fakeFileTypes), file);
-	StringUtils::Tokenize(fakeFileTypes, _T(","), &this->FakeFileTypes);
+	RequestDataKeyName = keyName;
+	if (RequestDataKeyName.empty())
+		RequestDataKeyName = CreateRequestDataKeyName(&Key);
 
 	//RealPort
-	this->RealPort = (u_short)GetPrivateProfileInt(_T("General"), _T("RealPort"), 0, file);
+	RealPort = (u_short)GetPrivateProfileInt(_T("General"), _T("RealPort"), 0, file);
 	return true;
 }
 
 void BarbaConfig::CheckMaxUserConnections()
 {
-	if (this->MaxUserConnections==0)
+	if (MaxUserConnections==0)
 	{
-		Log(_T("Warning: Item specify %d MaxUserConnections! It should be 2 or more."), this->MaxUserConnections);
-		this->MaxUserConnections = 2;
+		Log(_T("Warning: Item specify %d MaxUserConnections! It should be 2 or more."), MaxUserConnections);
+		MaxUserConnections = 2;
 	}
-	if (this->MaxUserConnections==1)
+	if (MaxUserConnections==1)
 	{
-		Log(_T("Warning: Item specify %d MaxUserConnections! It strongly recommended to be 2 or more."), this->MaxUserConnections);
+		Log(_T("Warning: Item specify %d MaxUserConnections! It strongly recommended to be 2 or more."), MaxUserConnections);
 	}
-	if (this->MaxUserConnections>BARBA_HttpMaxUserConnections)
+	if (MaxUserConnections>BARBA_HttpMaxUserConnections)
 	{
-		Log(_T("Warning: Item specify %d MaxUserConnections! It could not be more than %d."), this->MaxUserConnections, BARBA_HttpMaxUserConnections);
-		this->MaxUserConnections = BARBA_HttpMaxUserConnections;
+		Log(_T("Warning: Item specify %d MaxUserConnections! It could not be more than %d."), MaxUserConnections, BARBA_HttpMaxUserConnections);
+		MaxUserConnections = BARBA_HttpMaxUserConnections;
 	}
 }
 
@@ -136,7 +127,7 @@ void BarbaConfig::Log(LPCTSTR format, ...)
 	va_end(argp);
 
 	TCHAR msg2[1000];
-	_stprintf_s(msg2, _T("ConfigLoader: %s: %s"), this->FileName.data(), msg);
+	_stprintf_s(msg2, _T("ConfigLoader: %s: %s"), FileName.data(), msg);
 	BarbaLog2(msg2);
 }
 

@@ -57,7 +57,7 @@ void BarbaServerHttpConnection::Courier::GetFakeFile(TCHAR* filename, std::tstri
 	if (IsDisposing()) 
 		return; 
 
-	theApp->GetFakeFile(&_Connection->GetConfigItem()->FakeFileTypes, 0, filename, contentType, 0, fakeFileHeader, false);
+	theApp->GetFakeFile(NULL, 0, filename, contentType, 0, fakeFileHeader, false);
 }
 
 std::tstring BarbaServerHttpConnection::Courier::GetHttpPostReplyRequest(bool bombardMode)

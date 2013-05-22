@@ -4,6 +4,8 @@
 
 BarbaClientConfig::BarbaClientConfig()
 {
+	MaxTransferSize = BARBA_HttpFakeFileMaxSize;
+	KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
 }
 
 bool BarbaClientConfig::LoadFile(LPCTSTR file)
@@ -14,22 +16,22 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	//grabProtocols
 	TCHAR grabProtocols[1000];
 	GetPrivateProfileString(_T("General"), _T("GrabProtocols"), _T(""), grabProtocols, _countof(grabProtocols), file);
-	BarbaUtils::GetProtocolAndPortArray(grabProtocols, &this->GrabProtocols);
+	BarbaUtils::GetProtocolAndPortArray(grabProtocols, &GrabProtocols);
 
 	//FakePacketMinSize
-	this->MinPacketSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MinPacketSize"), 0, file);
-	if (this->MinPacketSize > BARBA_HttpMaxPacketSize)
+	MinPacketSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MinPacketSize"), 0, file);
+	if (MinPacketSize > BARBA_HttpMaxPacketSize)
 	{
-		this->Log(_T("MinPacketSize could not be more than %d!"), BARBA_HttpMaxPacketSize);
-		this->MinPacketSize = BARBA_HttpMaxPacketSize;
+		Log(_T("MinPacketSize could not be more than %d!"), BARBA_HttpMaxPacketSize);
+		MinPacketSize = BARBA_HttpMaxPacketSize;
 	}
 
 	//KeepAliveInterval
-	this->KeepAliveInterval = (size_t)GetPrivateProfileInt(_T("General"), _T("KeepAliveInterval"), BARBA_HttpKeepAliveInterval/1000, file) * 1000;
-	if (this->KeepAliveInterval!=0 && this->KeepAliveInterval<BARBA_HttpKeepAliveIntervalMin)
+	KeepAliveInterval = (size_t)GetPrivateProfileInt(_T("General"), _T("KeepAliveInterval"), BARBA_HttpKeepAliveInterval/1000, file) * 1000;
+	if (KeepAliveInterval!=0 && KeepAliveInterval<BARBA_HttpKeepAliveIntervalMin)
 	{
-		this->Log(_T("KeepAliveInterval could not be less than %d!"), BARBA_HttpKeepAliveIntervalMin/1000);
-		this->KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
+		Log(_T("KeepAliveInterval could not be less than %d!"), BARBA_HttpKeepAliveIntervalMin/1000);
+		KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
 	}
 
 	//Http-Bombard
@@ -39,6 +41,26 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	StringUtils::Trim(strRequest);
 	if (strRequest.empty()) strRequest = (Mode == BarbaModeHttpTunnel) ? _T("Normal") : _T("None");
 	HttpRequestMode.Parse(strRequest);
+
+	//validate tunnel mode and httpRequest
+	if (Mode==BarbaModeHttpTunnel && HttpRequestMode.Mode == BarbaCourierRequestMode::ModeNone)
+	{
+		Log(_T("Invalid HttpRequestMode for HTTP-Tunnel, HttpRequestMode treat as Normal!"));
+		HttpRequestMode.Mode = BarbaCourierRequestMode::ModeNormal;
+	}
+	if (Mode==BarbaModeTcpTunnel && HttpRequestMode.Mode != BarbaCourierRequestMode::ModeNone)
+	{
+		Mode = BarbaModeHttpTunnel;
+	}
+
+	//MaxTransferSize
+	MaxTransferSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxTransferSize"), MaxTransferSize/1000, file) * 1000;
+	if (MaxTransferSize==0) MaxTransferSize = BARBA_HttpFakeFileMaxSize;
+
+	//FakeFileTypes
+	TCHAR fakeFileTypes[1000] = {0};
+	GetPrivateProfileString(_T("General"), _T("FakeFileTypes"), _T(""), fakeFileTypes, _countof(fakeFileTypes), file);
+	StringUtils::Tokenize(fakeFileTypes, _T(","), &FakeFileTypes);
 
 	return true;
 }
