@@ -69,12 +69,13 @@ unsigned int BarbaCourierTcpClient::ClientWorkerThread(void* clientWorkerThreadD
 void BarbaCourierTcpClient::ClientWorker(ClientWorkerData* clientWorkerData)
 {
 	bool isOutgoing = clientWorkerData->IsOutgoing;
-	BarbaSocketClient* socket = NULL;
 	bool hasError = false;
 	DWORD retryTime = 5000;
 
 	while (!IsDisposing())
 	{
+		BarbaSocketClient* socket = NULL;
+
 		try
 		{
 			hasError = false;

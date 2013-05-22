@@ -249,7 +249,7 @@ std::tstring BarbaUtils::GetFileUrlFromHttpRequest(LPCTSTR httpRequest)
 	StringUtils::ReplaceAll(request, _T("\r"), _T(" "));
 	StringUtils::ReplaceAll(request, _T("\n"), _T(" "));
 
-	std::vector<std::tstring> tokenize;
+	BarbaArray<std::tstring> tokenize;
 	StringUtils::Tokenize(request.data(), _T(" "), &tokenize);
 	return tokenize.size()>=2 ? tokenize[1] : _T("");	
 }

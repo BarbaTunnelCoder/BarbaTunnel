@@ -19,8 +19,6 @@ public:
 	BarbaPortRange TunnelPorts;
 	u_short RealPort; //valid when mode is UDP-Redirect or TCP-Redirect mode
 	u_short MaxUserConnections; //use by HTTP-Tunnel
-	std::vector<std::tstring> FakeFileTypes; //use by HTTP-Tunnel
-	u_int MaxTransferSize; //use by HTTP-Tunnel
 	std::tstring RequestDataKeyName; //use by HTTP-Tunnel
 
 private:

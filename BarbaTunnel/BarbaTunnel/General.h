@@ -17,6 +17,7 @@
 #define BARBA_MaxKeyName 1000
 #define BARBA_ConnectionTimeout (15 * 60*1000) //15 min
 #define BARBA_HttpMaxUserConnections 100
+#define BARBA_HttpDefaultUserConnections 5
 #define BARBA_HttpFakeFileMaxSize (15 * 1000000) //15 MB
 #define BARBA_HttpMaxPacketSize 1450 //1450 bytes
 #define BARBA_HttpKeepAliveIntervalMin (10 * 1000) //10 second

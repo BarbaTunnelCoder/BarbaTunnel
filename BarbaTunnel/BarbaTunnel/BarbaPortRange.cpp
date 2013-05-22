@@ -48,16 +48,16 @@ bool BarbaPortRange::IsPortInRange(u_short port)
 
 u_short BarbaPortRange::GetRandomPort()
 {
-	int newPortIndex = BarbaUtils::GetRandom(0, GetPortsCount()-1);
+	u_int newPortIndex = BarbaUtils::GetRandom(0, (u_int)GetPortsCount()-1);
 	for (size_t i=0; i<Items.size(); i++)
 	{
-		int count = Items[i].EndPort - Items[i].StartPort + 1;
+		u_int count = Items[i].EndPort - Items[i].StartPort + 1;
 		if (newPortIndex<count)
 			return (u_short)(Items[i].StartPort + newPortIndex);
 		newPortIndex -= count;
 	}
 
-	return 0;
+	throw new BarbaException(_T("Could not find any port!"));
 }
 
 void BarbaPortRange::Parse(LPCTSTR value)
