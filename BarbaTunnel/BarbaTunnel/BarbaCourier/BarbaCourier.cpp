@@ -366,7 +366,7 @@ void BarbaCourier::ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_
 	Send(excludeMessages, true);
 
 	//add fake message to reach minumum size
-	size_t minPacketSize = min(BARBA_HttpMaxPacketSize, GetCreateStruct()->MinPacketSize);
+	size_t minPacketSize = min(BARBA_MinPacketSizeLimit, GetCreateStruct()->MinPacketSize);
 	//if no packet fit in maxPacketSize then fill rest of buffer with 0 byte
 	if (includeMessages.size()==0 && messages.size()!=0 && maxPacketSize<2000) minPacketSize = maxPacketSize; 
 	//allocate fakeBuffer with zero value

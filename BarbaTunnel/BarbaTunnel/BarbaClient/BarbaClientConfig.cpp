@@ -4,8 +4,8 @@
 
 BarbaClientConfig::BarbaClientConfig()
 {
-	MaxTransferSize = BARBA_HttpFakeFileMaxSize;
-	KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
+	MaxTransferSize = BARBA_MaxTransferSize;
+	KeepAliveInterval = BARBA_KeepAliveIntervalMin;
 }
 
 bool BarbaClientConfig::LoadFile(LPCTSTR file)
@@ -20,18 +20,18 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 
 	//FakePacketMinSize
 	MinPacketSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MinPacketSize"), 0, file);
-	if (MinPacketSize > BARBA_HttpMaxPacketSize)
+	if (MinPacketSize > BARBA_MinPacketSizeLimit)
 	{
-		Log(_T("MinPacketSize could not be more than %d!"), BARBA_HttpMaxPacketSize);
-		MinPacketSize = BARBA_HttpMaxPacketSize;
+		Log(_T("MinPacketSize could not be more than %d!"), BARBA_MinPacketSizeLimit);
+		MinPacketSize = BARBA_MinPacketSizeLimit;
 	}
 
 	//KeepAliveInterval
-	KeepAliveInterval = (size_t)GetPrivateProfileInt(_T("General"), _T("KeepAliveInterval"), BARBA_HttpKeepAliveInterval/1000, file) * 1000;
-	if (KeepAliveInterval!=0 && KeepAliveInterval<BARBA_HttpKeepAliveIntervalMin)
+	KeepAliveInterval = (size_t)GetPrivateProfileInt(_T("General"), _T("KeepAliveInterval"), BARBA_KeepAliveIntervalDefault/1000, file) * 1000;
+	if (KeepAliveInterval!=0 && KeepAliveInterval<BARBA_KeepAliveIntervalMin)
 	{
-		Log(_T("KeepAliveInterval could not be less than %d!"), BARBA_HttpKeepAliveIntervalMin/1000);
-		KeepAliveInterval = BARBA_HttpKeepAliveIntervalMin;
+		Log(_T("KeepAliveInterval could not be less than %d!"), BARBA_KeepAliveIntervalMin/1000);
+		KeepAliveInterval = BARBA_KeepAliveIntervalMin;
 	}
 
 	//Http-Bombard
@@ -55,7 +55,7 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 
 	//MaxTransferSize
 	MaxTransferSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxTransferSize"), MaxTransferSize/1000, file) * 1000;
-	if (MaxTransferSize==0) MaxTransferSize = BARBA_HttpFakeFileMaxSize;
+	if (MaxTransferSize==0) MaxTransferSize = BARBA_MaxTransferSize;
 
 	//FakeFileTypes
 	TCHAR fakeFileTypes[1000] = {0};

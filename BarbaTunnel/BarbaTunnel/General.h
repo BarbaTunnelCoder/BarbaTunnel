@@ -16,12 +16,12 @@
 #define BARBA_SocketThreadStackSize (8*1000)
 #define BARBA_MaxKeyName 1000
 #define BARBA_ConnectionTimeout (15 * 60*1000) //15 min
-#define BARBA_HttpMaxUserConnections 100
-#define BARBA_HttpDefaultUserConnections 5
-#define BARBA_HttpFakeFileMaxSize (15 * 1000000) //15 MB
-#define BARBA_HttpMaxPacketSize 1450 //1450 bytes
-#define BARBA_HttpKeepAliveIntervalMin (10 * 1000) //10 second
-#define BARBA_HttpKeepAliveInterval (60 * 1000) //60 second
+#define BARBA_MaxUserConnections 100
+#define BARBA_MaxUserConnectionsDefault 5
+#define BARBA_MaxTransferSize (15 * 1000000) //15 MB
+#define BARBA_MinPacketSizeLimit 1450 //1450 bytes
+#define BARBA_KeepAliveIntervalMin (10 * 1000) //10 second
+#define BARBA_KeepAliveIntervalDefault (60 * 1000) //60 second
 #define BARBA_ConfigFolderName _T("config")
 
 //BarbaModeEnum
