@@ -215,7 +215,7 @@ size_t BarbaSocket::Send(BYTE* buf, size_t bufCount)
 	int ret = send(_Socket, (char*)buf, (int)bufCount, 0);
 	if (ret==SOCKET_ERROR)
 		ThrowSocketError();
-	if (ret!=bufCount)
+	if (ret!=(int)bufCount)
 		throw new BarbaException(_T("Could not sent all data successfully!"));
 	this->SentBytesCount += ret;
 	this->LastSentTime = GetTickCount();

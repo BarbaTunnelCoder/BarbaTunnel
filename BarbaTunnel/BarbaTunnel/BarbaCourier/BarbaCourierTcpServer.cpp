@@ -7,6 +7,15 @@ BarbaCourierTcpServer::BarbaCourierTcpServer(CreateStrcutTcp* cs)
 {
 }
 
+void BarbaCourierTcpServer::Init(LPCTSTR requestData)
+{
+	BarbaCourier::Init();
+	GetCreateStruct()->MinPacketSize = BarbaUtils::GetKeyValueFromString(requestData, _T("MinPacketSize"), 0);
+	GetCreateStruct()->KeepAliveInterval = BarbaUtils::GetKeyValueFromString(requestData, _T("KeepAliveInterval"), 0);
+	GetCreateStruct()->SessionId = BarbaUtils::GetKeyValueFromString(requestData, _T("SessionId"), 0);
+}
+
+
 void BarbaCourierTcpServer::AddSocket(BarbaSocket* barbaSocket, LPCTSTR requestString, LPCTSTR requestData)
 {
 	if (this->IsDisposing())
@@ -44,13 +53,6 @@ unsigned int BarbaCourierTcpServer::ServerWorkerThread(void* serverWorkerData)
 
 BarbaCourierTcpServer::~BarbaCourierTcpServer(void)
 {
-}
-
-void BarbaCourierTcpServer::Init(LPCTSTR requestData)
-{
-	GetCreateStruct()->MinPacketSize = BarbaUtils::GetKeyValueFromString(requestData, _T("MinPacketSize"), 0);
-	GetCreateStruct()->KeepAliveInterval = BarbaUtils::GetKeyValueFromString(requestData, _T("KeepAliveInterval"), 0);
-	GetCreateStruct()->SessionId = BarbaUtils::GetKeyValueFromString(requestData, _T("SessionId"), 0);
 }
 
 void BarbaCourierTcpServer::ServerWorker(ServerWorkerData* workerData)

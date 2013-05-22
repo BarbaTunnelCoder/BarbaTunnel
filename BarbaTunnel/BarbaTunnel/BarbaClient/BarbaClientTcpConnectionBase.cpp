@@ -13,7 +13,6 @@ BarbaClientTcpConnectionBase::BarbaClientTcpConnectionBase(BarbaClientConfig* co
 void BarbaClientTcpConnectionBase::InitHelper(BarbaCourierTcpClient::CreateStrcutTcp* cs)
 {
 	cs->HostName = Config->ServerAddress;
-	cs->RequestDataKeyName = Config->RequestDataKeyName;
 	cs->MaxTransferSize = Config->MaxTransferSize;
 	cs->MaxConnections = Config->MaxUserConnections;
 	cs->SessionId = SessionId;

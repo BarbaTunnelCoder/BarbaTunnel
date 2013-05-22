@@ -20,7 +20,6 @@ public:
 		u_long KeepAliveInterval;
 		size_t MaxConnections;
 		size_t MinPacketSize;
-		std::tstring RequestDataKeyName;
 		std::tstring HostName;
 	};
 
@@ -47,6 +46,7 @@ public:
 	virtual void Send(BarbaBuffer* data);
 	virtual void Receive(BarbaBuffer* data);
 	virtual bool IsServer()=0;
+	virtual void Init();
 	void Crypt(BarbaBuffer* data, size_t index, bool encrypt);
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
 	size_t GetReceiveBytesCount() {return this->ReceivedBytesCount;}
@@ -61,11 +61,12 @@ private:
 	//@return false if max connection reached
 	static void CloseSocketsList(SimpleSafeList<BarbaSocket*>* list);
 	static unsigned int __stdcall DeleteThread(void* object);
+	std::tstring CreateRequestDataKeyName();
 	size_t MaxMessageBuffer;
 	SimpleEvent SendEvent;
 	SimpleCriticalSection SendEventCS;
 	SimpleSafeList<Message*> Messages;
-
+	std::tstring RequestDataKeyName;
 protected: 
 	virtual void Dispose();
 	virtual void Crypt(BYTE* data, size_t dataSize, size_t index, bool encrypt);

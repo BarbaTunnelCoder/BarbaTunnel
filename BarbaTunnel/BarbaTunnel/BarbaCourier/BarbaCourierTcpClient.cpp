@@ -14,6 +14,7 @@ BarbaCourierTcpClient::~BarbaCourierTcpClient()
 
 void BarbaCourierTcpClient::Init()
 {
+	BarbaCourier::Init();
 	StartClientThreads();
 }
 

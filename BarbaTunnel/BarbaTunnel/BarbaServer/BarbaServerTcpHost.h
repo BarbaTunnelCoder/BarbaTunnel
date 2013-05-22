@@ -37,6 +37,7 @@ public:
 	void Start();
 
 private:
+	static std::tstring BarbaServerTcpHost::CreateRequestDataKeyName(BarbaBuffer* key);
 	static std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest, LPCTSTR keyName, BarbaBuffer* key);
 	void AddListenerPort(BarbaServerConfig* config, u_short port);
 	void Log(LPCTSTR format, ...);
