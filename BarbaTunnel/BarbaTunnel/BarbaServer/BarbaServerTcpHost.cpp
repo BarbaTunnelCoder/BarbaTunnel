@@ -58,6 +58,17 @@ void BarbaServerTcpHost::Dispose()
 	}
 }
 
+std::tstring BarbaServerTcpHost::CreateRequestDataKeyName(BarbaBuffer* key)
+{
+	std::string keyName = "RequestDataKey";
+	BarbaBuffer keyBuffer((BYTE*)keyName.data(), keyName.size());
+	BarbaCrypt::Crypt(&keyBuffer, key, 0, true);
+	std::tstring ret = Base64::encode(keyBuffer.data(), keyBuffer.size());
+	StringUtils::ReplaceAll(ret, "=", "");
+	StringUtils::ReplaceAll(ret, "/", "");
+	return ret;
+
+}
 std::tstring BarbaServerTcpHost::GetRequestDataFromHttpRequest(LPCTSTR httpRequest, LPCTSTR keyName, BarbaBuffer* key)
 {
 	try
@@ -113,7 +124,8 @@ void BarbaServerTcpHost::AnswerWorker(AnswerWorkerData* workerData)
 		std::string requestString = socket->ReadHttpRequest();
 
 		//find session
-		std::tstring requestData = GetRequestDataFromHttpRequest(requestString.data(), workerData->Config->RequestDataKeyName.data(), &workerData->Config->Key);
+		std::tstring requestDataKeyName = CreateRequestDataKeyName(&workerData->Config->Key);
+		std::tstring requestData = GetRequestDataFromHttpRequest(requestString.data(), requestDataKeyName.data(), &workerData->Config->Key);
 		Log(_T("Request recieved. RequestData: %s"), requestData.data());
 		u_long sessionId = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("SessionId"), 0);
 		if (sessionId==0)

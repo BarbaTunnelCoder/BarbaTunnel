@@ -19,11 +19,9 @@ public:
 	BarbaPortRange TunnelPorts;
 	u_short RealPort; //valid when mode is UDP-Redirect or TCP-Redirect mode
 	u_short MaxUserConnections; //use by HTTP-Tunnel
-	std::tstring RequestDataKeyName; //use by HTTP-Tunnel
 
 private:
 	static std::tstring GetNameFromFileName(LPCTSTR fileName);
-	static std::tstring CreateRequestDataKeyName(BarbaBuffer* key);
 	void CheckMaxUserConnections();
 	std::tstring FileName; //used for report
 };

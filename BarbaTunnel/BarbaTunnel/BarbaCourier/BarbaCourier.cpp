@@ -16,6 +16,11 @@ BarbaCourier::BarbaCourier(BarbaCourier::CreateStrcut* cs)
 	LastSentTime = 0;
 }
 
+void BarbaCourier::Init()
+{
+	RequestDataKeyName = CreateRequestDataKeyName();
+}
+
 BarbaCourier::~BarbaCourier(void)
 {
 	delete _CreateStruct;
@@ -503,7 +508,7 @@ std::tstring BarbaCourier::RequestData_ToString(std::tstring requestData)
 
 	//return RequestData
 	std::tstring data;
-	data.append(this->GetCreateStruct()->RequestDataKeyName);
+	data.append(RequestDataKeyName);
 	data.append(_T(":"));
 	data.append(requestDataEnc);
 
@@ -512,9 +517,9 @@ std::tstring BarbaCourier::RequestData_ToString(std::tstring requestData)
 
 std::tstring BarbaCourier::RequestData_FromString(std::tstring requestString)
 {
-		try
+	try
 	{
-		std::tstring requestDataEnc = BarbaUtils::GetKeyValueFromString(requestString.data(), GetCreateStruct()->RequestDataKeyName.data());
+		std::tstring requestDataEnc = BarbaUtils::GetKeyValueFromString(requestString.data(), RequestDataKeyName.data());
 		if (requestDataEnc.empty())
 			return _T("");
 
@@ -532,5 +537,15 @@ std::tstring BarbaCourier::RequestData_FromString(std::tstring requestString)
 	}
 
 	return _T("");
+}
 
+std::tstring BarbaCourier::CreateRequestDataKeyName()
+{
+	std::string keyName = "RequestDataKey";
+	BarbaBuffer keyBuffer((BYTE*)keyName.data(), keyName.size());
+	Crypt(&keyBuffer, 0, true);
+	std::tstring ret = Base64::encode(keyBuffer.data(), keyBuffer.size());
+	StringUtils::ReplaceAll(ret, "=", "");
+	StringUtils::ReplaceAll(ret, "/", "");
+	return ret;
 }

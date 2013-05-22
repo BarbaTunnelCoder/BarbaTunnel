@@ -87,14 +87,6 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 	MaxUserConnections = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxUserConnections"), MaxUserConnections, file);
 	CheckMaxUserConnections();
 
-	//RequestDataKeyName
-	TCHAR keyName[BARBA_MaxKeyName];
-	keyName[0] = 0;
-	GetPrivateProfileString(_T("General"), _T("RequestDataKeyName"), _T(""), keyName, _countof(keyName), file);
-	RequestDataKeyName = keyName;
-	if (RequestDataKeyName.empty())
-		RequestDataKeyName = CreateRequestDataKeyName(&Key);
-
 	//RealPort
 	RealPort = (u_short)GetPrivateProfileInt(_T("General"), _T("RealPort"), 0, file);
 	return true;
@@ -129,21 +121,4 @@ void BarbaConfig::Log(LPCTSTR format, ...)
 	TCHAR msg2[1000];
 	_stprintf_s(msg2, _T("ConfigLoader: %s: %s"), FileName.data(), msg);
 	BarbaLog2(msg2);
-}
-
-
-std::tstring BarbaConfig::CreateRequestDataKeyName(BarbaBuffer* key)
-{
-	std::string keyName = "BData";
-	//add some 'A' to change they KeyName size depending to key len
-	for (size_t i=0; i<key->size()/2; i++)
-		keyName.push_back( 'A' );
-
-	BarbaBuffer keyBuffer((BYTE*)keyName.data(), keyName.size());
-	BarbaCrypt::Crypt(&keyBuffer, key, 0, true);
-	std::tstring ret = Base64::encode(keyBuffer.data(), keyBuffer.size());
-	StringUtils::ReplaceAll(ret, "=", "");
-	StringUtils::ReplaceAll(ret, "/", "");
-	return ret;
-
 }
