@@ -9,7 +9,7 @@ BarbaConfig::BarbaConfig()
 	Mode = BarbaModeNone;
 	Enabled = true;
 	RealPort = 0;
-	MaxUserConnections = BARBA_HttpDefaultUserConnections;
+	MaxUserConnections = BARBA_MaxUserConnectionsDefault;
 }
 
 
@@ -103,10 +103,10 @@ void BarbaConfig::CheckMaxUserConnections()
 	{
 		Log(_T("Warning: Item specify %d MaxUserConnections! It strongly recommended to be 2 or more."), MaxUserConnections);
 	}
-	if (MaxUserConnections>BARBA_HttpMaxUserConnections)
+	if (MaxUserConnections>BARBA_MaxUserConnections)
 	{
-		Log(_T("Warning: Item specify %d MaxUserConnections! It could not be more than %d."), MaxUserConnections, BARBA_HttpMaxUserConnections);
-		MaxUserConnections = BARBA_HttpMaxUserConnections;
+		Log(_T("Warning: Item specify %d MaxUserConnections! It could not be more than %d."), MaxUserConnections, BARBA_MaxUserConnections);
+		MaxUserConnections = BARBA_MaxUserConnections;
 	}
 }
 
