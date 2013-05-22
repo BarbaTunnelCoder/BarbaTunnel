@@ -60,6 +60,29 @@ u_short BarbaPortRange::GetRandomPort()
 	throw new BarbaException(_T("Could not find any port!"));
 }
 
+std::tstring BarbaPortRange::ToString()
+{
+	std::tstring ret;
+	ret.reserve(100);
+	for (size_t i=0; i<Items.size(); i++)
+	{
+		if (!ret.empty())
+			ret.append(_T(","));
+
+		TCHAR buf[50];
+		_itot_s(Items[i].StartPort, buf, 10);
+		ret.append(buf);
+		if (Items[i].EndPort>Items[i].StartPort)
+		{
+			_itot_s(Items[i].EndPort, buf, 10);
+			ret.append(_T("-"));
+			ret.append(buf);
+		}
+	}
+
+	return ret;
+}
+
 void BarbaPortRange::Parse(LPCTSTR value)
 {
 	BarbaBuffer sbuffer((BYTE*)value, _tcslen(value)*2+2);
@@ -74,7 +97,7 @@ void BarbaPortRange::Parse(LPCTSTR value)
 	{
 		PortRangeItem portRangeItem;
 		if (ParsePortRangeItem(token, &portRangeItem.StartPort, &portRangeItem.EndPort))
-			Items.push_back(portRangeItem);
+			Items.append(portRangeItem);
 		token = _tcstok_s(NULL, _T(","), &currentPos);
 	}
 }

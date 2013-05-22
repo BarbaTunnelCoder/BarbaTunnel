@@ -143,6 +143,39 @@ void WinpkFilterDriver::AddFilter(void* filter, bool send, u_long srcIpStart, u_
 	filters->push_back(staticFilter);
 }
 
+void WinpkFilterDriver::GetBestInternetAdapter(std::string* adapterName, BarbaBuffer* address)
+{
+	//Get System Adapter infos
+	ULONG size = 0;
+	GetAdaptersInfo(NULL, &size);
+	IP_ADAPTER_INFO* adapterInfos = (IP_ADAPTER_INFO*)new BYTE[size];
+	if (GetAdaptersInfo(adapterInfos, &size)!=NO_ERROR)
+	{
+		delete adapterInfos;
+		return;
+	}
+	
+	DWORD bestIfaceIndex = 0;
+	if (GetBestInterface( inet_addr("8.8.8.8"), &bestIfaceIndex)!=NO_ERROR)
+	{
+		delete adapterInfos;
+		return;
+	}
+	
+	IP_ADAPTER_INFO* info = adapterInfos;
+	while (info!=NULL)
+	{
+		if (info->ComboIndex==bestIfaceIndex)
+		{
+			adapterName->append(info->AdapterName);
+			address->assign(info->Address, info->AddressLength);
+			break;
+		}
+		info = info->Next;
+	}
+	delete adapterInfos;
+}
+
 
 size_t WinpkFilterDriver::FindAdapterIndex()
 {
@@ -158,30 +191,35 @@ size_t WinpkFilterDriver::FindAdapterIndex()
 	if (theApp->GetAdapterIndex()>0 && theApp->GetAdapterIndex()<=AdList.m_nAdapterCount)
 		return theApp->GetAdapterIndex()-1;
 
+
 	//find best adapter
+	std::string bestAdapaterName;
+	BarbaBuffer bestAdapaterAddress;
+	GetBestInternetAdapter(&bestAdapaterName, &bestAdapaterAddress);
+	StringUtils::MakeLower(bestAdapaterName);
+
 	TCHAR msg[ADAPTER_NAME_SIZE*ADAPTER_LIST_SIZE + 255] = {0};
 	_tcscat_s(msg, _T("Could not find main network adapter!\r\nPlease set your main network adapter index in AdapterIndex of BarbaTunnel.ini file.\r\n\r\n"));
 
-	size_t findCount = 0;
-	size_t findIndex = 0;
-	for (size_t i=0; i<AdList.m_nAdapterCount; i++)
+	int findIndex = -1;
+	for (int i=0; i<(int)AdList.m_nAdapterCount; i++)
 	{
-		TCHAR adapterName[ADAPTER_NAME_SIZE];
-		gWinpkFilterApi.ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[i], adapterName, _countof(adapterName));
+		CHAR internalNameLower[ADAPTER_NAME_SIZE] = {0};
+		for(size_t j = 0; j<ADAPTER_NAME_SIZE && AdList.m_szAdapterNameList[i][j] != '\0'; j++)
+			internalNameLower[j] = (CHAR)tolower((CHAR)AdList.m_szAdapterNameList[i][j]);
 
-		TCHAR adapterNameLower[ADAPTER_NAME_SIZE] = {0};
-		for(size_t j = 0; adapterName[j] != '\0' && i<ADAPTER_NAME_SIZE; j++)
-			adapterNameLower[j] = (TCHAR)_totlower(adapterName[j]);
-
-		bool isWan = _tcsstr(adapterNameLower, _T("wan network"))!=NULL;
-		if (isWan)
-			continue;
-
-		//save last find
-		findCount++;
-		findIndex = i;
+		//compare with best adapter
+		if (!bestAdapaterName.empty() && strstr(internalNameLower, bestAdapaterName.data())!=NULL 
+			&& bestAdapaterAddress.size()==ETHER_ADDR_LENGTH 
+			&& memcpy_s(bestAdapaterAddress.data(), bestAdapaterAddress.size(), AdList.m_czCurrentAddress[i], ETHER_ADDR_LENGTH)==0)
+		{
+			findIndex = i;
+			break;
+		}
 
 		//add adapter name
+		CHAR adapterName[ADAPTER_NAME_SIZE];
+		gWinpkFilterApi.ConvertWindows2000AdapterName((LPCSTR)AdList.m_szAdapterNameList[i], adapterName, _countof(adapterName));
 		TCHAR adapterLine[ADAPTER_NAME_SIZE + 10];
 		_stprintf_s(adapterLine, _T("%d) %s"), i+1, adapterName);
 		_tcscat_s(msg, adapterLine);
@@ -189,7 +227,7 @@ size_t WinpkFilterDriver::FindAdapterIndex()
 	}
 
 	//use the only found adapter
-	if (findCount==1)
+	if (findIndex!=-1)
 		return findIndex;
 
 	BarbaNotify(_T("Error: Could not find main network adapter!"));

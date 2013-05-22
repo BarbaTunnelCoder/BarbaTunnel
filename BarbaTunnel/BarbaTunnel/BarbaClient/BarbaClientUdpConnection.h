@@ -7,9 +7,9 @@ class BarbaClientUdpConnection :
 public:
 	explicit BarbaClientUdpConnection(BarbaClientConfig* config, u_short clientPort, u_short tunnelPort);
 	virtual ~BarbaClientUdpConnection(void);
-	virtual bool ProcessPacket(PacketHelper* packet, bool send);
-	virtual bool ShouldProcessPacket(PacketHelper* packet);
-	virtual u_short GetTunnelPort();
+	bool ProcessPacket(PacketHelper* packet, bool send) override;
+	bool ShouldProcessPacket(PacketHelper* packet) override;
+	virtual u_short GetTunnelPort() override;
 
 private:
 	bool CreateUdpBarbaPacket(PacketHelper* packet, PacketHelper* barbaPacket);

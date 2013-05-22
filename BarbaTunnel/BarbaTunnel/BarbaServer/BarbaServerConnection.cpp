@@ -6,9 +6,9 @@
 BarbaServerConnection::BarbaServerConnection(BarbaServerConfig* config, u_long clientVirtualIp, u_long clientIp)
 	: BarbaConnection()
 {
-	this->Config = config;
-	this->ClientVirtualIp = clientVirtualIp;
-	this->ClientIp = clientIp;
+	Config = config;
+	ClientVirtualIp = clientVirtualIp;
+	ClientIp = clientIp;
 }
 
 BarbaServerConnection::~BarbaServerConnection()
@@ -18,32 +18,33 @@ BarbaServerConnection::~BarbaServerConnection()
 
 BarbaBuffer* BarbaServerConnection::GetKey()
 {
-	return &this->Config->Key;
+	return &Config->Key;
 }
 
 u_long BarbaServerConnection::GetClientVirtualIp()
 {
-	return this->ClientVirtualIp;
+	return ClientVirtualIp;
 }
 
 LPCTSTR BarbaServerConnection::GetName()
 {
-	return this->Config->Name.empty() ? _T("Connection") : this->Config->Name.data();
+	return Config->Name.empty() ? _T("Connection") : Config->Name.data();
 }
 
 BarbaModeEnum BarbaServerConnection::GetMode()
 {
-	return this->Config->Mode;
+	return Config->Mode;
 }
 
 void BarbaServerConnection::ReportNewConnection()
 {
 	TCHAR ip[50];
-	PacketHelper::ConvertIpToString(this->ClientIp, ip, _countof(ip));
+	PacketHelper::ConvertIpToString(ClientIp, ip, _countof(ip));
 	TCHAR virtualIp[50];
-	PacketHelper::ConvertIpToString(this->ClientVirtualIp, virtualIp, _countof(virtualIp));
+	PacketHelper::ConvertIpToString(ClientVirtualIp, virtualIp, _countof(virtualIp));
 	LPCTSTR mode = BarbaMode_ToString(GetMode());
-	BarbaLog(_T("New %s! %s - %s:%d, VirtualIP: %s, ConnectionID: %u."), this->GetName(), ip, mode, this->GetTunnelPort(), virtualIp, this->GetId());
-	BarbaNotify(_T("New %s\r\nClient IP: %s\r\nClient Virtual IP: %s\r\nProtocol: %s:%d"), this->GetName(), ip, virtualIp, mode, this->GetTunnelPort());
+	std::tstring tunnelPorts = Config->TunnelPorts.ToString();
+	BarbaLog(_T("New %s! %s - %s:%s, VirtualIP: %s, ConnectionID: %u."), GetName(), ip, mode, tunnelPorts.data(), virtualIp, GetId());
+	BarbaNotify(_T("New %s\r\nClient IP: %s\r\nClient Virtual IP: %s\r\nProtocol: %s:%s"), GetName(), ip, virtualIp, mode, tunnelPorts.data());
 }
 
