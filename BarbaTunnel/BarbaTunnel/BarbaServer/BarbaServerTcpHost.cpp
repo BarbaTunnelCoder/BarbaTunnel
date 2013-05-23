@@ -174,6 +174,7 @@ void BarbaServerTcpHost::AnswerWorker(AnswerWorkerData* workerData)
 void BarbaServerTcpHost::ListenerWorker(ListenerWorkerData* workerData)
 {
 	BarbaSocketServer* listenerSocket = workerData->SocketServer;
+	u_short localPort = listenerSocket->GetLocalPort();
 
 	try
 	{
@@ -186,6 +187,13 @@ void BarbaServerTcpHost::ListenerWorker(ListenerWorkerData* workerData)
 			BarbaServerApp::CloseFinishedThreadHandle(&AnswerThreads);
 		}
 	}
+	catch(BarbaSocketException* er)
+	{
+		bool isDisposeCancelError = IsDisposing() &&  er->GetSocketError()==WSAEINTR;
+		if ( !isDisposeCancelError )
+			Log(_T("Error: %s"), er->ToString(), er->GetSocketError());
+		delete er;
+	}
 	catch(BarbaException* er)
 	{
 		Log(_T("Error: %s"), er->ToString());
@@ -197,7 +205,7 @@ void BarbaServerTcpHost::ListenerWorker(ListenerWorkerData* workerData)
 	}
 
 	ListenerSockets.Remove(listenerSocket);
-	Log(_T("TCP listener closed, port: %d."), listenerSocket->GetLocalPort());
+	Log2(_T("TCP listener closed, port: %d."), localPort);
 	delete listenerSocket;
 }
 
@@ -217,7 +225,7 @@ void BarbaServerTcpHost::Start()
 	for (size_t i=0; i<theServerApp->Configs.size() && createdSocket<BARBA_ServerMaxListenSockets; i++)
 	{
 		BarbaServerConfig* item = &theServerApp->Configs[i];
-		if (item->Mode!=BarbaModeHttpTunnel && item->Mode!=BarbaModeTcpTunnel)
+		if (item->Mode!=BarbaModeTcpTunnel && item->Mode!=BarbaModeHttpTunnel)
 			continue;
 
 		BarbaArray<u_short> ports;
