@@ -221,19 +221,19 @@ void BarbaCourierHttpClient::WaitForIncomingFileHeader(BarbaSocket* socket, size
 {
 	if (fileHeaderSize==0)
 	{
-		Log2(_T("Request does not have fake file header."));
+		Log2(_T("Request does not have file header."));
 	} 
 	else if (fileHeaderSize>BarbaCourier_MaxFileHeaderSize)
 	{
-		throw new BarbaException(_T("Fake file header could not be more than %u size! Requested Size: %u."), BarbaCourier_MaxFileHeaderSize, fileHeaderSize);
+		throw new BarbaException(_T("Fake header could not be more than %u size! Requested Size: %u."), BarbaCourier_MaxFileHeaderSize, fileHeaderSize);
 	}
 	else
 	{
-		Log2(_T("Waiting for incoming fake file header. HeaderSize: %u KB."), fileHeaderSize/1000);
+		Log2(_T("Waiting for incoming file header. HeaderSize: %u KB."), fileHeaderSize/1000);
 
 		BarbaBuffer buffer(fileHeaderSize);
 		if (socket->Receive(buffer.data(), buffer.size(), true)!=(int)buffer.size())
-			throw new BarbaException(_T("Could not receive fake file header."));
+			throw new BarbaException(_T("Could not receive file header."));
 	}
 }
 
