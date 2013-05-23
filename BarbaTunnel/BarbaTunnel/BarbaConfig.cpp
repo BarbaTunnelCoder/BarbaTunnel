@@ -45,6 +45,10 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 	{
 		ServerAddress = _T("*");
 	}
+	else if (ServerAddress.compare("x.x.x.x")==0)
+	{
+		Log(_T("Error: Item does not specify any ServerAddress!"));
+	}
 	else
 	{
 		hostent *he = gethostbyname(serverAddress);
