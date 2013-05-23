@@ -5,18 +5,12 @@
 
 BarbaFilterDriver::BarbaFilterDriver(size_t maxCaptureMessageQueue)
 	: StopEvent(true, false)
-	, RouteFinderSocket(AF_INET, SOCK_RAW, IPPROTO_NONE)
-	, RouteFinderPacket(IPPROTO_NONE, sizeof iphdr)
+	, SocketHelper(AF_INET, SOCK_RAW, IPPROTO_RAW)
 	, CaptureEvent(true, true)
 {
-	this->MaxCaptureMessageQueue = maxCaptureMessageQueue;
-	this->_IsStarted = false;
-	this->CaptureThreadHandle = NULL;
-
-	//initialize RouteFinderPacket
-	this->RouteFinderPacket.SetSrcIp( inet_addr("127.0.0.1") );
-	this->RouteFinderPacket.SetDesIp( inet_addr("127.0.0.2") );
-	this->RouteFinderPacket.RecalculateChecksum();
+	MaxCaptureMessageQueue = maxCaptureMessageQueue;
+	_IsStarted = false;
+	CaptureThreadHandle = NULL;
 }
 
 size_t BarbaFilterDriver::GetMaxPacketLen()
@@ -26,19 +20,9 @@ size_t BarbaFilterDriver::GetMaxPacketLen()
 		: sizeof ether_header + 0xFFFF;
 }
 
-void BarbaFilterDriver::SendRouteFinderPacket()
+void BarbaFilterDriver::SendPacketWithSocket(PacketHelper* packet)
 {
-	PacketHelper* routeFinderPacket = &this->RouteFinderPacket;
-	RouteFinderSocket.SendTo( routeFinderPacket->GetDesIp(), (BYTE*)routeFinderPacket->ipHeader, routeFinderPacket->GetIpLen() );
-}
-
-bool BarbaFilterDriver::IsRouteFinderPacket( PacketHelper* packet )
-{
-	PacketHelper* routeFinderPacket = &this->RouteFinderPacket;
-	return 
-		routeFinderPacket->ipHeader->ip_p == packet->ipHeader->ip_p &&
-		routeFinderPacket->GetDesIp() == packet->GetDesIp() &&
-		routeFinderPacket->GetDesPort() == packet->GetDesPort();
+	SocketHelper.SendTo( packet->GetDesIp(), (BYTE*)packet->ipHeader, packet->GetIpLen() );
 }
 
 BarbaFilterDriver::~BarbaFilterDriver(void)
@@ -97,13 +81,6 @@ void BarbaFilterDriver::AddPacket(PacketHelper* packet, bool send)
 	if (!packet->IsValidChecksum())
 	{
 		BarbaLog2("Error: Invalid packet received and dropped!");
-		delete packet;
-		return;
-	}
-
-	//Don't process RouteFinderPacket
-	if (IsRouteFinderPacket(packet))
-	{
 		delete packet;
 		return;
 	}
@@ -261,8 +238,4 @@ void BarbaFilterDriver::AddPacketFilter(void* filter)
 		AddServerFilters(filter, &theServerApp->Configs);
 	else
 		AddClientFilters(filter, &theClientApp->Configs);
-
-	//add route finder filter
-	PacketHelper* routeFinderPacket = &this->RouteFinderPacket;
-	AddFilter(filter, true, 0, 0, routeFinderPacket->GetDesIp(), 0, routeFinderPacket->ipHeader->ip_p, routeFinderPacket->GetSrcPort(), 0, routeFinderPacket->GetDesPort(), 0);
 }
