@@ -52,11 +52,23 @@ void InitWinDivertApi()
 }
 
 WinDivertFilterDriver::WinDivertFilterDriver(void)
+	: RouteFinderPacket(IPPROTO_RAW, sizeof iphdr)
+	, SingalPacket(IPPROTO_RAW, sizeof iphdr)
 {
-	this->DivertHandle = NULL;
-	this->MainIfIdx = 0;
-	this->MainSubIfIdx = 0;
-	this->FilterIpOnly = false;
+	DivertHandle = NULL;
+	MainIfIdx = 0;
+	MainSubIfIdx = 0;
+	FilterIpOnly = false;
+
+	//initialize RouteFinderPacket
+	RouteFinderPacket.SetSrcIp( inet_addr("127.0.0.1") );
+	RouteFinderPacket.SetDesIp( inet_addr("8.8.8.8") );
+	RouteFinderPacket.RecalculateChecksum();
+
+	//initialize SingalPacket
+	SingalPacket.SetSrcIp( inet_addr("127.0.0.1") );
+	SingalPacket.SetDesIp( inet_addr("127.0.0.2") );
+	SingalPacket.RecalculateChecksum();
 }
 
 WinDivertFilterDriver::~WinDivertFilterDriver(void)
@@ -103,7 +115,7 @@ void WinDivertFilterDriver::Dispose()
 void WinDivertFilterDriver::Stop()
 {
 	BarbaFilterDriver::Stop();
-	SendRouteFinderPacket(); //stop DivertRecv
+	SendPacketWithSocket(&SingalPacket); //stop DivertRecv
 }
 
 HANDLE WinDivertFilterDriver::OpenDivertHandle()
@@ -161,7 +173,7 @@ void WinDivertFilterDriver::StartCaptureLoop()
 		this->DivertHandle = OpenDivertHandle();
 
 	//SendRouteFinderPacket
-	SendRouteFinderPacket();
+	SendPacketWithSocket(&RouteFinderPacket);
 
 	// Main capture-modify-inject loop:
 	DIVERT_ADDRESS addr;    // Packet address
@@ -181,6 +193,13 @@ void WinDivertFilterDriver::StartCaptureLoop()
 		//user adapter index for any grab packet
 		this->MainIfIdx = addr.IfIdx;
 		this->MainSubIfIdx = addr.SubIfIdx;
+
+		//don't send my special packets
+		if (HasSamePacketTarget(packet, &RouteFinderPacket) || HasSamePacketTarget(packet, &SingalPacket))
+		{
+			delete packet;
+			continue;
+		}
 
 		//add packet to queue
 		AddPacket(packet, send);
@@ -317,3 +336,22 @@ void WinDivertFilterDriver::AddFilter(void* pfilter, bool send, u_long srcIpStar
 	filter->append(res);
 	filter->append(")");
 }
+
+void WinDivertFilterDriver::AddPacketFilter(void* filter)
+{
+	BarbaFilterDriver::AddPacketFilter(filter);
+
+	//add route finder filter & singal packet
+	AddFilter(filter, true, 0, 0, RouteFinderPacket.GetDesIp(), 0, RouteFinderPacket.ipHeader->ip_p, 0, 0, 0, 0);
+	AddFilter(filter, true, 0, 0, SingalPacket.GetDesIp(), 0, SingalPacket.ipHeader->ip_p, 0, 0, 0, 0);
+}
+
+bool WinDivertFilterDriver::HasSamePacketTarget( PacketHelper* packet1,  PacketHelper* packet2)
+{
+	return 
+		packet1->ipHeader->ip_p == packet2->ipHeader->ip_p &&
+		packet1->GetDesIp() == packet2->GetDesIp() &&
+		packet1->GetDesPort() == packet2->GetDesPort();
+}
+
+

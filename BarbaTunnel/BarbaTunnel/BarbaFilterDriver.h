@@ -53,24 +53,22 @@ protected:
 	virtual void StartCaptureLoop()=0;
 	SimpleEvent StopEvent;
 	void AddPacket(PacketHelper* packet, bool send);
-	void SendRouteFinderPacket();
-	bool IsRouteFinderPacket(PacketHelper* packet);
+	void SendPacketWithSocket(PacketHelper* packet);
 	void UpdateMTUDecrement();
 	//@param filter object that should handle by subclass implementer
 	virtual void AddFilter(void* filter, bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd)=0;
-	void AddPacketFilter(void* filter);
+	virtual void AddPacketFilter(void* filter);
 	
 private:
+	void ProcessCapturedPackets();
 	size_t MaxCaptureMessageQueue;
 	SimpleSafeList<CapturePacket*> CapturePackets;
 	SimpleEvent CaptureEvent;
-	void ProcessCapturedPackets();
 	static unsigned int __stdcall CaptureThread(void* data);
 	volatile HANDLE CaptureThreadHandle;
 
-	//RouteFinderSocket should not be shutdown or close after send packet, so we keep it in member
-	BarbaSocket RouteFinderSocket;
-	PacketHelper RouteFinderPacket; //send this packet to find route
+	//SocketHelper should not be shutdown or close after send packet, so we keep it in member
+	BarbaSocket SocketHelper;
 
 	//PacketFilter
 	void AddClientFilters(void* filter, std::vector<BarbaClientConfig>* configs);

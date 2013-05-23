@@ -22,6 +22,8 @@ public:
 	virtual void AddFilter(void* filter, bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
 
 private:
+	bool HasSamePacketTarget(PacketHelper* packet1, PacketHelper* packet2);
+	void AddPacketFilter(void* filter) override;
 	HANDLE OpenDivertHandle();
 	void CreateRangeFormat(TCHAR* format, LPCSTR fieldName, DWORD start, DWORD end, bool ip=false);
 	std::string GetFilter(bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
@@ -29,5 +31,7 @@ private:
 	volatile UINT32 MainIfIdx; // Packet's interface index.
     volatile UINT32 MainSubIfIdx; // Packet's sub-interface index.
 	bool FilterIpOnly; //used when filter exceed limit
+	PacketHelper SingalPacket; //used as timeout for windivert
+	PacketHelper RouteFinderPacket; //send this packet to find route
 };
 
