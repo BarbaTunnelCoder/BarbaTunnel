@@ -7,24 +7,25 @@ BarbaApp* theApp = NULL;
 
 BarbaApp::BarbaApp(void)
 {
-	this->Comm.Initialize(); //initialize soon as possible to see errors
+	Comm.Initialize(); //initialize soon as possible to see errors
 	BarbaSocket::InitializeLib();
-	this->IsRestartCommand = false;
-	this->_IsDisposed = false;
-	this->FilterDriver = NULL;
+	IsRestartCommand = false;
+	_IsDisposed = false;
+	FilterDriver = NULL;
 	srand( (UINT)time(0) );
 
 	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetAppFolder());
-	this->_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetSettingsFile());
-	this->LogLevel = GetPrivateProfileInt(_T("General"), _T("LogLevel"), 0, GetSettingsFile());
-	this->_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetSettingsFile())!=0;
-	this->ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), 0, GetSettingsFile())*60*1000;
-	this->MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), -1, GetSettingsFile());
-	if (this->ConnectionTimeout==0) this->ConnectionTimeout = BARBA_ConnectionTimeout;
+	_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetSettingsFile());
+	LogLevel = GetPrivateProfileInt(_T("General"), _T("LogLevel"), 1, GetSettingsFile());
+	_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetSettingsFile())!=0;
+	ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), 0, GetSettingsFile())*60*1000;
+	MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), -1, GetSettingsFile());
+	if (ConnectionTimeout==0) ConnectionTimeout = BARBA_ConnectionTimeout;
+	if (LogLevel==0) LogLevel = 1;
 	
 	//MaxLogFilesize
-	//this->Comm.MaxLogFilesize = GetPrivateProfileInt(_T("General"), _T("MaxLogFileSize"), BARBA_MaxLogFileSize/1000, GetSettingsFile())*1000;
-	//if (this->Comm.MaxLogFilesize==0) this->Comm.MaxLogFilesize = BARBA_MaxLogFileSize;
+	//Comm.MaxLogFilesize = GetPrivateProfileInt(_T("General"), _T("MaxLogFileSize"), BARBA_MaxLogFileSize/1000, GetSettingsFile())*1000;
+	//if (Comm.MaxLogFilesize==0) Comm.MaxLogFilesize = BARBA_MaxLogFileSize;
 
 	//FakeFileHeaders
 	InitFakeFileHeaders();
@@ -34,7 +35,7 @@ BarbaApp::BarbaApp(void)
 	GetPrivateProfileString(_T("General"), _T("FilterDriver"), _T(""), filterDriverName, _countof(filterDriverName), GetSettingsFile());
 	if (_tcslen(filterDriverName)==0)
 		_tcscpy_s(filterDriverName, _T("WinDivert"));
-	this->FilterDriver = CreateFilterDriverByName(filterDriverName);
+	FilterDriver = CreateFilterDriverByName(filterDriverName);
 }
 
 BarbaApp::~BarbaApp(void)

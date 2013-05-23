@@ -41,6 +41,7 @@ private:
 	static std::tstring GetRequestDataFromHttpRequest(LPCTSTR httpRequest, LPCTSTR keyName, BarbaBuffer* key);
 	void AddListenerPort(BarbaServerConfig* config, u_short port);
 	void Log(LPCTSTR format, ...);
+	void Log2(LPCTSTR format, ...);
 	SimpleCriticalSection CreateConnectionCriticalSection;
 	bool IsDisposing() { return this->DisposeEvent.IsSet(); }
 	SimpleEvent DisposeEvent;

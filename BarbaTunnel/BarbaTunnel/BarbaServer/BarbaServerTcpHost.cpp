@@ -21,6 +21,19 @@ void BarbaServerTcpHost::Log(LPCTSTR format, ...)
 
 	TCHAR msg2[1000];
 	_stprintf_s(msg2, _T("HttpHost: TID: %4x, %s"), GetCurrentThreadId(), msg);
+	BarbaLog1(msg2);
+}
+
+void BarbaServerTcpHost::Log2(LPCTSTR format, ...)
+{
+	va_list argp;
+	va_start(argp, format);
+	TCHAR msg[1000];
+	_vstprintf_s(msg, format, argp);
+	va_end(argp);
+
+	TCHAR msg2[1000];
+	_stprintf_s(msg2, _T("HttpHost: TID: %4x, %s"), GetCurrentThreadId(), msg);
 	BarbaLog2(msg2);
 }
 
@@ -119,14 +132,14 @@ void BarbaServerTcpHost::AnswerWorker(AnswerWorkerData* workerData)
 	try
 	{
 		//read httpRequest
-		Log(_T("New incoming connection. ServerPort: %d, ClientIp: %s."), workerData->ServerPort, clientIp.data());
-		Log(_T("Waiting for request."));
+		Log2(_T("New incoming connection. ServerPort: %d, ClientIp: %s."), workerData->ServerPort, clientIp.data());
+		Log2(_T("Waiting for request."));
 		std::string requestString = socket->ReadHttpRequest();
 
 		//find session
 		std::tstring requestDataKeyName = CreateRequestDataKeyName(&workerData->Config->Key);
 		std::tstring requestData = GetRequestDataFromHttpRequest(requestString.data(), requestDataKeyName.data(), &workerData->Config->Key);
-		Log(_T("Request recieved. RequestData: %s"), requestData.data());
+		Log2(_T("Request recieved. RequestData: %s"), requestData.data());
 		u_long sessionId = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("SessionId"), 0);
 		if (sessionId==0)
 			throw new BarbaException( _T("Could not extract sessionId from request!") );
@@ -146,12 +159,12 @@ void BarbaServerTcpHost::AnswerWorker(AnswerWorkerData* workerData)
 	}
 	catch(BarbaException* er)
 	{
-		Log(_T("Error: %s"), er->ToString());
+		Log2(_T("Error: %s"), er->ToString());
 		delete er;
 	}
 	catch(...)
 	{
-		Log(_T("Unknown Error!"));
+		Log2(_T("Unknown Error!"));
 	}
 
 	AnswerSockets.Remove(socket);
@@ -225,7 +238,7 @@ void BarbaServerTcpHost::Start()
 			try
 			{
 				Log(_T("Listening to TCP %s:%d."), item->ServerAddress.data(), port);
-				this->AddListenerPort(item, port);
+				AddListenerPort(item, port);
 				createdSocket++;
 			}
 			catch (BarbaException* er)

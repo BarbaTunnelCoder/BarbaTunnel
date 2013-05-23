@@ -202,8 +202,8 @@ void BarbaFilterDriver::AddClientFilters(void* filter, std::vector<BarbaClientCo
 		if (config->RealPort!=0)
 			AddFilter(filter, true, 0, 0, config->ServerIp, 0, config->GetTunnelProtocol(), 0, 0, config->RealPort, 0);
 
-		//filter only tunnel packet that come from server except http-tunnel that use socket
-		if (config->Mode!=BarbaModeHttpTunnel) 
+		//filter only tunnel packet that come from server except tcp-tunnel family that use socket
+		if (config->Mode!=BarbaModeTcpTunnel && config->Mode!=BarbaModeHttpTunnel) 
 			for (size_t i=0; i<config->TunnelPorts.Items.size(); i++)
 				AddFilter(filter, false, config->ServerIp, 0, 0, 0, config->GetTunnelProtocol(), config->TunnelPorts.Items[i].StartPort, config->TunnelPorts.Items[i].EndPort, 0, 0);
 	}
@@ -219,7 +219,7 @@ void BarbaFilterDriver::AddServerFilters(void* filter, std::vector<BarbaServerCo
 			continue;
 
 		//filter only tunnel packet that come from server except http-tunnel that use socket
-		if (config->Mode!=BarbaModeHttpTunnel) 
+		if (config->Mode!=BarbaModeTcpTunnel && config->Mode!=BarbaModeHttpTunnel) 
 			for (size_t i=0; i<config->TunnelPorts.Items.size(); i++)
 				AddFilter(filter, false, 0, 0, config->ServerIp, 0, config->GetTunnelProtocol(), 0, 0, config->TunnelPorts.Items[i].StartPort, config->TunnelPorts.Items[i].EndPort);
 
