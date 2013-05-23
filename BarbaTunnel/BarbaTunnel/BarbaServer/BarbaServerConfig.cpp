@@ -9,9 +9,9 @@ BarbaServerConfig::BarbaServerConfig()
 bool BarbaServerConfig::LoadFile(LPCTSTR file)
 {
 	//AllowRequestBombard
-	this->AllowHttpRequestNone = GetPrivateProfileInt(_T("General"), _T("AllowHttpRequestNone"), 1, file)!=0;
-	this->AllowHttpRequestNormal = GetPrivateProfileInt(_T("General"), _T("AllowHttpRequestNormal"), 1, file)!=0;
-	this->AllowHttpRequestBombard = GetPrivateProfileInt(_T("General"), _T("AllowHttpRequestBombard"), 1, file)!=0;
+	this->AllowHttpRequestNone = GetPrivateProfileInt(_T("Server"), _T("AllowHttpRequestNone"), 1, file)!=0;
+	this->AllowHttpRequestNormal = GetPrivateProfileInt(_T("Server"), _T("AllowHttpRequestNormal"), 1, file)!=0;
+	this->AllowHttpRequestBombard = GetPrivateProfileInt(_T("Server"), _T("AllowHttpRequestBombard"), 1, file)!=0;
 	return 	BarbaConfig::LoadFile(file);
 }
 
