@@ -22,19 +22,19 @@ void BarbaCourierHttpServer::WaitForIncomingFileHeader(BarbaSocket* socket, size
 {
 	if (fileHeaderSize==0)
 	{
-		Log2(_T("Request does not have fake file header."));
+		Log2(_T("Request does not have file header."));
 	} 
 	else if (fileHeaderSize>BarbaCourier_MaxFileHeaderSize)
 	{
-		throw new BarbaException(_T("Fake file header could not be more than %u size! Requested Size: %u."), BarbaCourier_MaxFileHeaderSize, fileHeaderSize);
+		throw new BarbaException(_T("File header could not be more than %u size! Requested Size: %u."), BarbaCourier_MaxFileHeaderSize, fileHeaderSize);
 	}
 	else
 	{
-		Log2(_T("Waiting for incoming fake file header. HeaderSize: %u KB."), fileHeaderSize/1000);
+		Log2(_T("Waiting for incoming file header. HeaderSize: %u KB."), fileHeaderSize/1000);
 
 		BarbaBuffer buffer(fileHeaderSize);
 		if (socket->Receive(buffer.data(), buffer.size(), true)!=(int)buffer.size())
-			throw new BarbaException(_T("Could not receive fake file header."));
+			throw new BarbaException(_T("Could not receive file header."));
 	}
 }
 
@@ -69,7 +69,7 @@ void BarbaCourierHttpServer::ServerWorker(ServerWorkerData* serverWorkerData)
 				std::tstring requestUrl = BarbaUtils::GetFileUrlFromHttpRequest(serverWorkerData->RequestString.data());
 				size_t remainBytes = SendGetReply(socket, requestUrl.data(), transferSize, &fileHeader);
 
-				//sending fake file header
+				//sending file header
 				if (fileHeader.size()!=0)
 				{
 					Log2(_T("Sending File Header! HeaderSize: %d KB"), fileHeader.size()/1000);
@@ -109,7 +109,7 @@ void BarbaCourierHttpServer::ServerWorker(ServerWorkerData* serverWorkerData)
 				//Get Initial data
 				size_t fileHeaderSize = BarbaUtils::GetKeyValueFromString(serverWorkerData->RequestData.data(), _T("FileHeaderSize"), 0);
 
-				//wait for incoming fake file header
+				//wait for incoming file header
 				Log2(_T("Receiving file %u KB."), transferSize/1000);
 				WaitForIncomingFileHeader(socket, fileHeaderSize);
 
