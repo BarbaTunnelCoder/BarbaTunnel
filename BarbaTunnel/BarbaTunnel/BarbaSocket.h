@@ -8,10 +8,11 @@ public:
 	virtual ~BarbaSocketException(){}
 	explicit BarbaSocketException (int socketError)
 	{
-		this->SocketError = socketError;
+		SocketError = socketError;
 		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, socketError, 0,
-			this->Description, _countof(this->Description), NULL);
+			Description, _countof(Description), NULL);
 	}
+	int GetSocketError() { return SocketError; }
 
 private:
 	int SocketError;
