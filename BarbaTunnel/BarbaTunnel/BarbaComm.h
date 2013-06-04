@@ -12,14 +12,15 @@ public:
 	};
 
 private:
+	void InitializeEvents();
+	bool _IsAlreadyRunning;
+
 	TCHAR _NotifyFilePath[MAX_PATH];
 	TCHAR _LogFilePath[MAX_PATH];
 	TCHAR _CommFilePath[MAX_PATH];
 	TCHAR _WorkFolderPath[MAX_PATH];
 	HANDLE LogFileHandle;
 	HANDLE NotifyFileHandle;
-	void InitializeEvents();
-	bool _IsAlreadyRunning;
 	DWORD LastWorkingTick;
 	SimpleEvent DisposeEvent;
 	SimpleEvent CommandEvent;

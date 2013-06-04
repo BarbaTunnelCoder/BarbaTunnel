@@ -1,6 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Threading;
 using System.Windows.Threading;
@@ -22,6 +25,7 @@ namespace BarbaTunnel.Monitor
 		private const String WindowsRunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
 		private const String BarbaTunnelRegKeyPath = @"Software\BarbaTunnel";
 		private String AutoStartRegValue { get { return String.Format("\"{0}\" /delaystart", ModuleFile); } }
+		public Boolean LockReportUpdate = false;
 
 		// ReSharper disable ValueParameterNotUsed
 		public bool IsProfileCreated
@@ -106,7 +110,7 @@ namespace BarbaTunnel.Monitor
 			_barbaNotify.AutoStartTunnelMenu.Checked = IsAutoStartTunnel;
 			InitializeComponent();
 			_barbaComm.Initialize();
-			LogLevelBox.SelectedIndex = _barbaComm.LogLevel -1;
+			LogLevelBox.SelectedIndex = _barbaComm.LogLevel - 1;
 
 			//StartTunnel when monitor start
 			if (_barbaComm.Status == BarbaStatus.Stopped && IsAutoStartTunnel)
@@ -156,23 +160,16 @@ namespace BarbaTunnel.Monitor
 
 		void UpdateLog()
 		{
-			if (ReportCheckBox.IsChecked != null && ReportCheckBox.IsChecked.Value)
-			{
-				if (ReportTextBox.IsFocused)
-					ReportCheckBox.Focus(); // TextBox jump to start if have focus
-				ReportTextBox.Text = _barbaComm.ReadLog();
-				ReportTextBox.ScrollToEnd();
-			}
+			if (LockReportUpdate)
+				return;
+			
+			ReportTextBox.Text = _barbaComm.ReadLog();
+			ReportTextBox.ScrollToEnd();
 		}
 
 		void BarbaComm_LogAdded(object sender, EventArgs e)
 		{
 			Dispatcher.Invoke(DispatcherPriority.Normal, (ThreadStart)UpdateLog);
-		}
-
-		private void ReportCheckBox_Checked(object sender, RoutedEventArgs e)
-		{
-			UpdateLog();
 		}
 
 		void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -297,7 +294,7 @@ namespace BarbaTunnel.Monitor
 			DoStop();
 		}
 
-		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+		private void Window_Closing(object sender, CancelEventArgs e)
 		{
 			if (!_exitMode)
 			{
@@ -306,16 +303,27 @@ namespace BarbaTunnel.Monitor
 			}
 		}
 
-		private void LogLevelBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+		private void LogLevelBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
 			_barbaComm.LogLevel = LogLevelBox.SelectedIndex + 1;
 		}
 
-        private void OpenLogFile_Click(object sender, RoutedEventArgs e)
-        {
-            Process.Start(new ProcessStartInfo("notepad.exe", _barbaComm.LogFilePath));
-            e.Handled = true;
+		private void OpenLogFile_Click(object sender, RoutedEventArgs e)
+		{
+			Process.Start(new ProcessStartInfo("notepad.exe", _barbaComm.LogFilePath));
+			e.Handled = true;
 
-        }
+		}
+
+		private void ReportTextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+		{
+			LockReportUpdate = true;
+		}
+
+		private void ReportTextBox_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+		{
+			LockReportUpdate = false;
+			UpdateLog();
+		}
 	}
 }

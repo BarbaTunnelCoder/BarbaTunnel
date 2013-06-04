@@ -36,7 +36,7 @@ void InitWinDivertApi()
 			res = pRegSetKeyValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), REG_SZ, myPath, (DWORD)_tcslen(myPath)) ;
 			if (res != ERROR_SUCCESS )
 				throw _T("WinDivert.sys path is invalid and could not be fixed!");
-			theComm->Log(_T("WinDivert.sys path was invalid and fixed."), false);
+			BarbaLog(_T("WinDivert.sys path was invalid and fixed."));
 		}
 	}
 

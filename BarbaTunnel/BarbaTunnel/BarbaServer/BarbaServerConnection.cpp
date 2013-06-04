@@ -38,13 +38,12 @@ BarbaModeEnum BarbaServerConnection::GetMode()
 
 void BarbaServerConnection::ReportNewConnection()
 {
-	TCHAR ip[50];
-	PacketHelper::ConvertIpToString(ClientIp, ip, _countof(ip));
-	TCHAR virtualIp[50];
-	PacketHelper::ConvertIpToString(ClientVirtualIp, virtualIp, _countof(virtualIp));
+	std::tstring ip = BarbaUtils::ConvertIpToString(ClientIp, !theApp->LogIpAddress);
+	std::tstring virtualIp = BarbaUtils::ConvertIpToString(ClientVirtualIp, false);
+
 	LPCTSTR mode = BarbaMode_ToString(GetMode());
 	std::tstring tunnelPorts = Config->TunnelPorts.ToString();
-	BarbaLog(_T("New %s! %s - %s:%s, VirtualIP: %s, ConnectionID: %u."), GetName(), ip, mode, tunnelPorts.data(), virtualIp, GetId());
-	BarbaNotify(_T("New %s\r\nClient IP: %s\r\nClient Virtual IP: %s\r\nProtocol: %s:%s"), GetName(), ip, virtualIp, mode, tunnelPorts.data());
+	BarbaLog(_T("New %s! %s - %s:%s, VirtualIP: %s, ConnectionID: %u."), GetName(), ip.data(), mode, tunnelPorts.data(), virtualIp.data(), GetId());
+	BarbaNotify(_T("New %s\r\nClient IP: %s\r\nClient Virtual IP: %s\r\nProtocol: %s:%s"), GetName(), ip.data(), virtualIp.data(), mode, tunnelPorts.data());
 }
 

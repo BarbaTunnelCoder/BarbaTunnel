@@ -11,17 +11,24 @@ BarbaApp::BarbaApp(void)
 	BarbaSocket::InitializeLib();
 	IsRestartCommand = false;
 	_IsDisposed = false;
+	LogIpAddress = false;
 	FilterDriver = NULL;
 	srand( (UINT)time(0) );
 
 	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetAppFolder());
 	_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetSettingsFile());
 	LogLevel = GetPrivateProfileInt(_T("General"), _T("LogLevel"), 1, GetSettingsFile());
+	LogIpAddress = GetPrivateProfileInt(_T("General"), _T("LogIpAddress"), 0, GetSettingsFile())!=0;
 	_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetSettingsFile())!=0;
 	ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), 0, GetSettingsFile())*60*1000;
-	MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), -1, GetSettingsFile());
+	MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), BARBA_MTUDecrementDefault, GetSettingsFile());
 	if (ConnectionTimeout==0) ConnectionTimeout = BARBA_ConnectionTimeout;
 	if (LogLevel==0) LogLevel = 1;
+
+	//Read TimeZone
+	TCHAR timeZoneBuf[200] = {0};
+	GetPrivateProfileString(_T("General"), _T("TimeZone"), _T(""), timeZoneBuf, _countof(timeZoneBuf), GetSettingsFile());
+	TimeZone = BarbaUtils::GetTimeZoneFromString(timeZoneBuf);
 	
 	//MaxLogFilesize
 	//Comm.MaxLogFilesize = GetPrivateProfileInt(_T("General"), _T("MaxLogFileSize"), BARBA_MaxLogFileSize/1000, GetSettingsFile())*1000;
@@ -43,10 +50,11 @@ BarbaApp::~BarbaApp(void)
 	BarbaSocket::UninitializeLib();
 }
 
-
 void BarbaApp::Initialize()
 {
-	BarbaLog(_T("%s Started...\r\nVersion: %s\r\nFilterDriver: %s"), theApp->GetName(), BARBA_CurrentVersion, theApp->GetFilterDriver()->GetName());
+	BarbaLog(_T("%s Started..."), theApp->GetName());
+	BarbaLog(_T("Version: %s"), BARBA_CurrentVersion);
+	BarbaLog(_T("FilterDriver: %s"), theApp->GetFilterDriver()->GetName());
 	this->FilterDriver->Initialize();
 }
 
@@ -184,7 +192,6 @@ LPCTSTR BarbaApp::GetModuleFolder()
 
 bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool send)
 {
-	std::tstring ss = BarbaUtils::ConvertIpToString(packet->GetDesIp());
 	if (send || !packet->IsIp())
 		return false;
 
