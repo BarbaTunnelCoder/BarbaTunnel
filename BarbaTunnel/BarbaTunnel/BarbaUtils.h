@@ -33,9 +33,13 @@ public:
 	static void SetKeyValue(std::tstring* str, LPCTSTR key, int value);
 	static std::tstring FormatTimeForHttp();
 	static std::tstring FormatTimeForHttp(time_t* t);
-	static std::tstring ConvertIpToString(u_int ip);
+	static std::tstring ConvertIpToString(u_int ip, bool secure);
 	static bool IsFileExists(LPCTSTR filename);
 	static void UpdateHttpRequest(std::tstring* httpRequest, std::tstring key, std::tstring value);
 	static void UpdateHttpRequest(std::tstring* httpRequest, LPCTSTR host, LPCTSTR fileName, LPCTSTR contentType, size_t contentLength, LPCTSTR data);
 	static std::string PrepareHttpRequest(std::tstring request);
+	static std::tstring GetTimeString(int timeZone);
+	static std::tstring GetTimeString(time_t _Time, int timeZone);
+	//@return -1 if not valid otherwise is the time zone different in second
+	static int GetTimeZoneFromString(LPCTSTR timeZone);
 };

@@ -31,7 +31,9 @@ public:
 	static LPCTSTR GetModuleFile();
 	BarbaFilterDriver* GetFilterDriver() { return this->FilterDriver; }
 	size_t GetAdapterIndex() {return _AdapterIndex;}
+	int TimeZone; 
 	int LogLevel;
+	bool LogIpAddress;
 	BarbaComm Comm;
 	u_int ConnectionTimeout;
 	std::vector<FakeFileHeader> FakeFileHeaders;

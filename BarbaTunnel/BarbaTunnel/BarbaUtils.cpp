@@ -434,10 +434,14 @@ std::string BarbaUtils::PrepareHttpRequest(std::tstring request)
 	return ret;
 }
 
-std::tstring BarbaUtils::ConvertIpToString(u_int ip)
+std::tstring BarbaUtils::ConvertIpToString(u_int ip, bool secure)
 {
-	TCHAR buf[100];
-	PacketHelper::ConvertIpToString(ip, buf, _countof(buf));
+	TCHAR buf[50];
+	if (secure)
+		_stprintf_s(buf, _T("#.#.#.%d"), HIBYTE(HIWORD(ip)));
+	else
+		_stprintf_s(buf, _T("%d.%d.%d.%d"), LOBYTE(LOWORD(ip)), HIBYTE(LOWORD(ip)), LOBYTE(HIWORD(ip)), HIBYTE(HIWORD(ip)));
+
 	return buf;
 }
 
@@ -448,4 +452,60 @@ bool BarbaUtils::IsFileExists(LPCTSTR filename)
 		return false;
 	fclose(f);
 	return true;    
+}
+
+std::tstring BarbaUtils::GetTimeString(int timeZone)
+{
+	time_t nowTime;
+	time ( &nowTime );
+	return GetTimeString(nowTime, timeZone);
+}
+
+std::tstring BarbaUtils::GetTimeString(time_t _Time, int timeZone)
+{
+	TCHAR buf[40];
+	tm t = {0};
+	
+	if (timeZone==-1)
+	{
+		localtime_s(&t, &_Time);
+	}
+	else
+	{
+		_Time += timeZone;
+		gmtime_s(&t, &_Time);
+	}
+
+	_stprintf_s(buf, "%02d:%02d:%02d", t.tm_hour, t.tm_min, t.tm_sec);
+
+	return buf;
+
+}
+
+int BarbaUtils::GetTimeZoneFromString(LPCTSTR timeZone)
+{
+	//Read TimeZone
+	std::tstring timeZibeStr = timeZone;
+	StringUtils::Trim(timeZibeStr);
+	StringUtils::MakeLower(timeZibeStr);
+	if ( timeZibeStr.empty() )
+		return -1;
+	
+	int utcSign = 0;
+	int timePos = (int)timeZibeStr.find(_T("utc-"));
+	if (timePos!=-1)
+		utcSign = -1;
+
+	if (utcSign==0)
+		timePos = (int)timeZibeStr.find(_T("utc+"));
+	if (timePos!=-1)
+		utcSign = 1;
+
+	if (utcSign==0)
+		return -1;
+
+	int hour = 0;
+	int min = 0;
+	_stscanf_s(timeZibeStr.data() + timePos + 4, _T("%d:%d"), &hour, &min);
+	return (hour * 3600 + min * 60) * utcSign;
 }

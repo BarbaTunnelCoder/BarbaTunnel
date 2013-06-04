@@ -29,9 +29,13 @@ u_long BarbaClientConnection::GetServerIp()
 
 void BarbaClientConnection::ReportNewConnection()
 {
+	std::tstring serverAddress = Config->ServerAddress;
+	if (!theApp->LogIpAddress)
+		serverAddress = BarbaUtils::ConvertIpToString(Config->ServerIp, !theApp->LogIpAddress);
+
 	LPCTSTR mode = BarbaMode_ToString(GetMode());
 	std::tstring tunnelPorts = Config->TunnelPorts.ToString();
-	BarbaLog(_T("New %s! Server: %s, Protocol: %s:%s, ConnectionID: %u."), GetName(), Config->ServerAddress.data(), mode, tunnelPorts.data(), GetId());
+	BarbaLog(_T("New %s! Server: %s, Protocol: %s:%s, ConnectionID: %u."), GetName(), serverAddress.data(), mode, tunnelPorts.data(), GetId());
 	BarbaNotify(_T("New %s\r\nServer: %s\r\nProtocol: %s:%s"), GetName(), Config->ServerAddress.data(), mode, tunnelPorts.data());
 }
 
