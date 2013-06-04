@@ -6,25 +6,33 @@ BarbaServerApp* theServerApp = NULL;
 
 BarbaServerApp::BarbaServerApp(bool delayStart)
 {
-	this->DelayStart = delayStart;
+	DelayStart = delayStart;
 	theServerApp = this;
-	TCHAR file[MAX_PATH];
+}
 
-	//Load Configs
-	BarbaServerConfig::LoadFolder(GetConfigFolder(), &this->Configs);
-	
+BarbaServerApp::~BarbaServerApp(void)
+{
+	if (!IsDisposed())
+		Dispose();
+}
+
+void BarbaServerApp::Load()
+{
+	BarbaApp::Load();
+
 	//load template files
+	TCHAR file[MAX_PATH];
 	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\GetReply.txt"), GetAppFolder());
-	this->HttpGetReplyTemplate = BarbaUtils::PrepareHttpRequest( BarbaUtils::LoadFileToString(file) );
+	HttpGetReplyTemplate = BarbaUtils::PrepareHttpRequest( BarbaUtils::LoadFileToString(file) );
 	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\PostReply.txt"), GetAppFolder());
-	this->HttpPostReplyTemplate = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
+	HttpPostReplyTemplate = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
 	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-Bombard\\GetReply.txt"), GetAppFolder());
-	this->HttpGetReplyTemplateBombard = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
+	HttpGetReplyTemplateBombard = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
 	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-Bombard\\PostReply.txt"), GetAppFolder());
-	this->HttpPostReplyTemplateBombard = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
+	HttpPostReplyTemplateBombard = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
 
 	//AutoStartDelay
-	this->AutoStartDelay = GetPrivateProfileInt(_T("Server"), _T("AutoStartDelay"), 0, GetSettingsFile());
+	AutoStartDelay = GetPrivateProfileInt(_T("Server"), _T("AutoStartDelay"), 0, GetSettingsFile());
 
 	//VirtualIpRange
 	TCHAR virtualIpRange[100] = {0};
@@ -33,31 +41,28 @@ BarbaServerApp::BarbaServerApp(bool delayStart)
 	TCHAR* dash = _tcschr(virtualIpRange, '-');
 	TCHAR ipBuffer[100];
 	_tcsncpy_s(ipBuffer, _countof(ipBuffer), virtualIpRange, dash!=NULL ? dash-virtualIpRange : _tcslen(virtualIpRange));
-	this->VirtualIpRange.StartIp = inet_addr(ipBuffer);
-	this->VirtualIpRange.EndIp = htonl( ntohl(VirtualIpRange.StartIp) + 0xFFFE ); //default
+	VirtualIpRange.StartIp = inet_addr(ipBuffer);
+	VirtualIpRange.EndIp = htonl( ntohl(VirtualIpRange.StartIp) + 0xFFFE ); //default
 	if (dash!=NULL)
 	{
 		_tcscpy_s(ipBuffer, _countof(ipBuffer), dash+1);
-		this->VirtualIpRange.EndIp = inet_addr(ipBuffer);
+		VirtualIpRange.EndIp = inet_addr(ipBuffer);
 	}
-}
 
-BarbaServerApp::~BarbaServerApp(void)
-{
-	if (!this->IsDisposed())
-		Dispose();
+	//Load Configs
+	BarbaServerConfig::LoadFolder(GetConfigFolder(), &Configs);
 }
 
 void BarbaServerApp::Initialize()
 {
 	BarbaApp::Initialize();
-	ConnectionManager.Initialize(&this->VirtualIpRange);
+	ConnectionManager.Initialize(&VirtualIpRange);
 }
 
 void BarbaServerApp::Start()
 {
 	//wait for server
-	if (this->DelayStart && theApp->IsServerMode())
+	if (DelayStart && theApp->IsServerMode())
 	{
 		DWORD delayMin = theServerApp->AutoStartDelay;
 		theApp->Comm.SetStatus(_T("Waiting"));
@@ -95,9 +100,9 @@ bool BarbaServerApp::ShouldGrabPacket(PacketHelper* packet, BarbaServerConfig* c
 
 BarbaServerConfig* BarbaServerApp::ShouldGrabPacket(PacketHelper* packet)
 {
-	for (size_t i=0; i<this->Configs.size(); i++)
+	for (size_t i=0; i<Configs.size(); i++)
 	{
-		BarbaServerConfig* item = &this->Configs[i];
+		BarbaServerConfig* item = &Configs[i];
 		if (ShouldGrabPacket(packet, item))
 			return item;
 	}
@@ -106,8 +111,8 @@ BarbaServerConfig* BarbaServerApp::ShouldGrabPacket(PacketHelper* packet)
 
 void BarbaServerApp::Dispose()
 {
-	this->HttpHost.Dispose();
-	this->ConnectionManager.Dispose();
+	HttpHost.Dispose();
+	ConnectionManager.Dispose();
 	BarbaApp::Dispose();
 }
 

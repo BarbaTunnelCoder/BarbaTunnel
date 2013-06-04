@@ -7,8 +7,8 @@
 int LastConnectionId = 0;
 BarbaConnection::BarbaConnection()
 {
-	this->ConnectionId = ++LastConnectionId;
-	this->LasNegotiationTime = GetTickCount();
+	ConnectionId = ++LastConnectionId;
+	LasNegotiationTime = GetTickCount();
 }
 
 
@@ -18,7 +18,7 @@ BarbaConnection::~BarbaConnection(void)
 
 size_t BarbaConnection::GetLasNegotiationTime() 
 {
-	return this->LasNegotiationTime;
+	return LasNegotiationTime;
 }
 
 void BarbaConnection::CryptData(BYTE* data, size_t dataSize, size_t index, bool encrypt)
@@ -38,7 +38,7 @@ void BarbaConnection::DecryptPacket(PacketHelper* packet)
 
 void BarbaConnection::SetWorkingState(size_t length, bool send)
 {
-	this->LasNegotiationTime = GetTickCount();
+	LasNegotiationTime = GetTickCount();
 	theApp->Comm.SetWorkingState(length, send);
 }
 

@@ -434,10 +434,10 @@ std::string BarbaUtils::PrepareHttpRequest(std::tstring request)
 	return ret;
 }
 
-std::tstring BarbaUtils::ConvertIpToString(u_int ip, bool secure)
+std::tstring BarbaUtils::ConvertIpToString(u_int ip, bool anonymously)
 {
 	TCHAR buf[50];
-	if (secure)
+	if (anonymously)
 		_stprintf_s(buf, _T("#.#.#.%d"), HIBYTE(HIWORD(ip)));
 	else
 		_stprintf_s(buf, _T("%d.%d.%d.%d"), LOBYTE(LOWORD(ip)), HIBYTE(LOWORD(ip)), LOBYTE(HIWORD(ip)), HIBYTE(HIWORD(ip)));

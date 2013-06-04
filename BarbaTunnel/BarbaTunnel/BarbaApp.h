@@ -33,7 +33,7 @@ public:
 	size_t GetAdapterIndex() {return _AdapterIndex;}
 	int TimeZone; 
 	int LogLevel;
-	bool LogIpAddress;
+	bool LogAnonymously;
 	BarbaComm Comm;
 	u_int ConnectionTimeout;
 	std::vector<FakeFileHeader> FakeFileHeaders;
@@ -51,6 +51,7 @@ public:
 	virtual void OnNewCommand(BarbaComm::CommandEnum command);
 
 protected:
+	virtual void Load();
 	virtual void Dispose();
 
 private:

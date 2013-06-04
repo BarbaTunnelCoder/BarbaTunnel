@@ -126,7 +126,7 @@ void BarbaServerTcpHost::AnswerWorker(AnswerWorkerData* workerData)
 {
 	bool success = false;
 	BarbaSocket* socket = workerData->Socket;
-	std::tstring clientIp = BarbaUtils::ConvertIpToString(socket->GetRemoteIp(), !theApp->LogIpAddress);
+	std::tstring clientIp = BarbaUtils::ConvertIpToString(socket->GetRemoteIp(), theApp->LogAnonymously);
 	socket->SetReceiveTimeOut(30000);
 
 	try

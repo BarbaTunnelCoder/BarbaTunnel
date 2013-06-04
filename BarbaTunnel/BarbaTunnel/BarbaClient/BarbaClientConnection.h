@@ -8,10 +8,9 @@ class BarbaClientConnection : public BarbaConnection
 public:
 	explicit BarbaClientConnection(BarbaClientConfig* config);
 	virtual ~BarbaClientConnection(){}
-	virtual void ReportNewConnection();
-	virtual BarbaBuffer* GetKey();
-	virtual LPCTSTR GetName();
-	virtual BarbaModeEnum GetMode();
+	void ReportNewConnection() override;
+	BarbaBuffer* GetKey() override;
+	BarbaModeEnum GetMode() override;
 	u_long GetServerIp();
 	BarbaClientConfig* GetConfigItem() {return this->Config;}
 	

@@ -11,14 +11,23 @@ BarbaApp::BarbaApp(void)
 	BarbaSocket::InitializeLib();
 	IsRestartCommand = false;
 	_IsDisposed = false;
-	LogIpAddress = false;
+	LogAnonymously = true;
 	FilterDriver = NULL;
 	srand( (UINT)time(0) );
+}
+
+BarbaApp::~BarbaApp(void)
+{
+	BarbaSocket::UninitializeLib();
+}
+
+void BarbaApp::Load()
+{
 
 	_stprintf_s(_ConfigFile, _T("%s\\BarbaTunnel.ini"), GetAppFolder());
 	_AdapterIndex = GetPrivateProfileInt(_T("General"), _T("AdapterIndex"), 0, GetSettingsFile());
 	LogLevel = GetPrivateProfileInt(_T("General"), _T("LogLevel"), 1, GetSettingsFile());
-	LogIpAddress = GetPrivateProfileInt(_T("General"), _T("LogIpAddress"), 0, GetSettingsFile())!=0;
+	LogAnonymously = GetPrivateProfileInt(_T("General"), _T("LogAnonymously"), 1, GetSettingsFile())!=0;
 	_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetSettingsFile())!=0;
 	ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), 0, GetSettingsFile())*60*1000;
 	MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), BARBA_MTUDecrementDefault, GetSettingsFile());
@@ -45,17 +54,13 @@ BarbaApp::BarbaApp(void)
 	FilterDriver = CreateFilterDriverByName(filterDriverName);
 }
 
-BarbaApp::~BarbaApp(void)
-{
-	BarbaSocket::UninitializeLib();
-}
-
 void BarbaApp::Initialize()
 {
+	Load();
 	BarbaLog(_T("%s Started..."), theApp->GetName());
 	BarbaLog(_T("Version: %s"), BARBA_CurrentVersion);
 	BarbaLog(_T("FilterDriver: %s"), theApp->GetFilterDriver()->GetName());
-	this->FilterDriver->Initialize();
+	FilterDriver->Initialize();
 }
 
 void BarbaApp::InitFakeFileHeaders()
