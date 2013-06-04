@@ -23,7 +23,7 @@ BarbaApp::BarbaApp(void)
 	ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), 0, GetSettingsFile())*60*1000;
 	MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), BARBA_MTUDecrementDefault, GetSettingsFile());
 	if (ConnectionTimeout==0) ConnectionTimeout = BARBA_ConnectionTimeout;
-	if (LogLevel==0) LogLevel = 1;
+	if (LogLevel<1) LogLevel = 1;
 
 	//Read TimeZone
 	TCHAR timeZoneBuf[200] = {0};

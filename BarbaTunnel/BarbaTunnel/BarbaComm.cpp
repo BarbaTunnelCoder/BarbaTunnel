@@ -184,18 +184,19 @@ void BarbaLogImpl(int level, LPCTSTR format, va_list _ArgList)
 {
 	if (theApp!=NULL && level>theApp->LogLevel)
 		return;
+	bool notify = level==0;
 
 	TCHAR* msg = new TCHAR[2000];
 	TCHAR* msgTime = new TCHAR[2000];
 	_vstprintf_s(msg, 2000, format, _ArgList);
 	_vstprintf_s(msgTime, 2000, format, _ArgList);
 	
-	if (theApp!=NULL)
+	if (theApp!=NULL && !notify)
 		sprintf_s(msgTime, 2000, _T("%s> %s"), BarbaUtils::GetTimeString(theApp->TimeZone).data(), msg);
 
 	if (theComm!=NULL)
 	{
-		theComm->Log(msgTime, level==0);
+		theComm->Log(msgTime, notify);
 	}
 	else
 	{
