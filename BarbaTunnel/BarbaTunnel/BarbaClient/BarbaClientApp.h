@@ -22,6 +22,9 @@ public:
 	std::string HttpGetTemplateBombard;
 	std::string HttpPostTemplateBombard;
 
+protected:
+	void Load() override;
+
 private:
 	BarbaClientConfig* ShouldGrabPacket(PacketHelper* packet);
 };

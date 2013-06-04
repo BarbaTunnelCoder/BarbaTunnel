@@ -6,32 +6,37 @@ BarbaClientApp* theClientApp = NULL;
 BarbaClientApp::BarbaClientApp()
 {
 	theClientApp = this;
-	TCHAR file[MAX_PATH];
-	
-	//Load Configs
-	BarbaClientConfig::LoadFolder(GetConfigFolder(), &this->Configs);
-
-	//load template files
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\Get.txt"), GetAppFolder());
-	this->HttpGetTemplate = BarbaUtils::PrepareHttpRequest( BarbaUtils::LoadFileToString(file) );
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\Post.txt"), GetAppFolder());
-	this->HttpPostTemplate = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-Bombard\\Get.txt"), GetAppFolder());
-	this->HttpGetTemplateBombard = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
-	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-Bombard\\Post.txt"), GetAppFolder());
-	this->HttpPostTemplateBombard = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
 }
 
 BarbaClientApp::~BarbaClientApp()
 {
-	if (!this->IsDisposed())
+	if (!IsDisposed())
 		Dispose();
 }
 
 void BarbaClientApp::Dispose()
 {
-	this->ConnectionManager.Dispose();
+	ConnectionManager.Dispose();
 	BarbaApp::Dispose();
+}
+
+void BarbaClientApp::Load()
+{
+	BarbaApp::Load();
+	TCHAR file[MAX_PATH];
+	
+	//load template files
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\Get.txt"), GetAppFolder());
+	HttpGetTemplate = BarbaUtils::PrepareHttpRequest( BarbaUtils::LoadFileToString(file) );
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request\\Post.txt"), GetAppFolder());
+	HttpPostTemplate = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-Bombard\\Get.txt"), GetAppFolder());
+	HttpGetTemplateBombard = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
+	_stprintf_s(file, _countof(file), _T("%s\\templates\\HTTP-Request-Bombard\\Post.txt"), GetAppFolder());
+	HttpPostTemplateBombard = BarbaUtils::PrepareHttpRequest(BarbaUtils::LoadFileToString(file));
+
+	//Load Configs
+	BarbaClientConfig::LoadFolder(GetConfigFolder(), &Configs);
 }
 
 void BarbaClientApp::Initialize()
@@ -65,9 +70,9 @@ bool BarbaClientApp::ShouldGrabPacket(PacketHelper* packet, BarbaClientConfig* c
 
 BarbaClientConfig* BarbaClientApp::ShouldGrabPacket(PacketHelper* packet)
 {
-	for (size_t i=0; i<this->Configs.size(); i++)
+	for (size_t i=0; i<Configs.size(); i++)
 	{
-		BarbaClientConfig* config = &this->Configs[i];
+		BarbaClientConfig* config = &Configs[i];
 		if (ShouldGrabPacket(packet, config))
 			return config;
 	}

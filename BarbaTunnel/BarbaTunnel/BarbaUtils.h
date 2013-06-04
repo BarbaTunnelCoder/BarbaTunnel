@@ -33,7 +33,7 @@ public:
 	static void SetKeyValue(std::tstring* str, LPCTSTR key, int value);
 	static std::tstring FormatTimeForHttp();
 	static std::tstring FormatTimeForHttp(time_t* t);
-	static std::tstring ConvertIpToString(u_int ip, bool secure);
+	static std::tstring ConvertIpToString(u_int ip, bool anonymously);
 	static bool IsFileExists(LPCTSTR filename);
 	static void UpdateHttpRequest(std::tstring* httpRequest, std::tstring key, std::tstring value);
 	static void UpdateHttpRequest(std::tstring* httpRequest, LPCTSTR host, LPCTSTR fileName, LPCTSTR contentType, size_t contentLength, LPCTSTR data);

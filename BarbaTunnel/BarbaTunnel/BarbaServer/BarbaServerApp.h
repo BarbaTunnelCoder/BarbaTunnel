@@ -27,6 +27,9 @@ public:
 	u_int AutoStartDelay;
 	IpRange VirtualIpRange;
 
+protected:
+	void Load() override;
+
 private:
 	BarbaServerConfig* ShouldGrabPacket(PacketHelper* packet);
 	bool DelayStart;

@@ -2,6 +2,7 @@
 #include "BarbaConfig.h"
 #include "BarbaUtils.h"
 #include "BarbaCrypt.h"
+#include "BarbaApp.h"
 
 BarbaConfig::BarbaConfig()
 {
@@ -13,7 +14,7 @@ BarbaConfig::BarbaConfig()
 }
 
 
-std::tstring BarbaConfig::GetNameFromFileName(LPCTSTR fileName)
+std::tstring BarbaConfig::GetNameFromFileName(LPCTSTR fileName, bool containsFolder)
 {
 	std::tstring ret = BarbaUtils::GetFileTitleFromUrl(fileName);
 	std::tstring parentFolder = BarbaUtils::GetFileFolderFromUrl(fileName);
@@ -21,7 +22,9 @@ std::tstring BarbaConfig::GetNameFromFileName(LPCTSTR fileName)
 	while ( !parentFolderName.empty() && _tcsicmp(parentFolderName.data(), BARBA_ConfigFolderName)!=0 )
 	{
 		TCHAR name[MAX_PATH];
-		_stprintf_s(name, _T("%s\\%s"), parentFolderName.data(), ret.data());
+		_stprintf_s(name, _T("%s"), ret.data());
+		if (containsFolder)
+			_stprintf_s(name, _T("%s\\%s"), parentFolderName.data(), ret.data());
 		ret = name;
 		parentFolder = BarbaUtils::GetFileFolderFromUrl(parentFolder.data());
 		parentFolderName = BarbaUtils::GetFileNameFromUrl(parentFolder.data());
@@ -29,12 +32,17 @@ std::tstring BarbaConfig::GetNameFromFileName(LPCTSTR fileName)
 	return ret;
 }
 
+std::tstring BarbaConfig::GetName(bool anonymously)
+{
+	return anonymously ? NameAnonymous : Name;
+}
 
 
 bool BarbaConfig::LoadFile(LPCTSTR file)
 {
 	FileName = BarbaUtils::GetFileNameFromUrl(file);
-	Name = GetNameFromFileName(file);
+	Name = GetNameFromFileName(file, true);
+	NameAnonymous = GetNameFromFileName(file, false);
 
 	//ServerIp
 	TCHAR serverAddress[1000];
