@@ -19,7 +19,8 @@ file = chr(34) & curDir & "\install.bat" & chr(34)
 oShell.Run file, 1, 1
 
 ' *** enable test signing on windows 64
-IF (is64 AND NOT isxp) THEN
+' *** Not more needed so I add "False And " instead remark it
+IF (False AND is64 AND NOT isxp) THEN
 	regValue = oShell.RegRead("HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SystemStartOptions")
 	restartNeeded = InStr(UCase(regValue), "TESTSIGNING")=0
 
