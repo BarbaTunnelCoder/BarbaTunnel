@@ -35,10 +35,10 @@ void BarbaServerConnection::ReportNewConnection()
 {
 	std::tstring ip = BarbaUtils::ConvertIpToString(ClientIp, theApp->LogAnonymously);
 	std::tstring virtualIp = BarbaUtils::ConvertIpToString(ClientVirtualIp, false);
-
 	LPCTSTR mode = BarbaMode_ToString(GetMode());
 	std::tstring tunnelPorts = Config->TunnelPorts.ToString();
-	BarbaLog(_T("New %s! %s - %s:%s, VirtualIP: %s, ConnectionID: %u."), Config->GetName(theApp->LogAnonymously).data(), ip.data(), mode, tunnelPorts.data(), virtualIp.data(), GetId());
-	BarbaNotify(_T("New %s\r\nClient IP: %s\r\nClient Virtual IP: %s\r\nProtocol: %s:%s"), Config->GetName(false).data(), ip.data(), virtualIp.data(), mode, tunnelPorts.data());
+
+	BarbaLog(_T("New %s! %s - %s:%s, VirtualIP: %s, ConnectionID: %u."), Config->GetName(theApp->LogAnonymously).data(), BarbaUtils::ConvertIpToString(ClientIp, theApp->LogAnonymously).data(), mode, tunnelPorts.data(), virtualIp.data(), GetId());
+	BarbaNotify(_T("New %s\r\nClient IP: %s\r\nClient Virtual IP: %s\r\nProtocol: %s:%s"), Config->GetName(false).data(), BarbaUtils::ConvertIpToString(ClientIp, false).data(), virtualIp.data(), mode, tunnelPorts.data());
 }
 
