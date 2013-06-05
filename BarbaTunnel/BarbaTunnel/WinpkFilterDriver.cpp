@@ -24,15 +24,15 @@ void InitWinpkFilterApi()
 
 WinpkFilterDriver::WinpkFilterDriver()
 {
-	this->AdapterHandle = NULL;
-	this->AdapterIndex = 0;
-	this->FilterDriverHandle = NULL;
+	AdapterHandle = NULL;
+	AdapterIndex = 0;
+	FilterDriverHandle = NULL;
 }
 
 ULARGE_INTEGER WinpkFilterDriver::GetAdapterHandleLarge()
 {
 	ULARGE_INTEGER ret = {0};
-	ret.QuadPart = (ULONGLONG)this->AdapterHandle;
+	ret.QuadPart = (ULONGLONG)AdapterHandle;
 	return ret;
 }
 
@@ -43,7 +43,7 @@ bool WinpkFilterDriver::ApplyFilters(std::vector<STATIC_FILTER>* filters)
 	STATIC_FILTER_TABLE* filterTable = (STATIC_FILTER_TABLE*)filterTableBuf.data();
 	filterTable->m_TableSize = (u_long)filters->size();
 	memcpy_s(filterTable->m_StaticFilters, filtersBufSize, filters->data(), filtersBufSize);
-	return gWinpkFilterApi.SetPacketFilterTable(this->FilterDriverHandle, filterTable)!=FALSE;
+	return gWinpkFilterApi.SetPacketFilterTable(FilterDriverHandle, filterTable)!=FALSE;
 }
 
 void WinpkFilterDriver::AddBypassPacketFilter(std::vector<STATIC_FILTER>* filters)
@@ -180,7 +180,7 @@ void WinpkFilterDriver::GetBestInternetAdapter(std::string* adapterName, BarbaBu
 size_t WinpkFilterDriver::FindAdapterIndex()
 {
 	//get adapter list
-	if (!gWinpkFilterApi.GetTcpipBoundAdaptersInfo (this->FilterDriverHandle,  &AdList ) )
+	if (!gWinpkFilterApi.GetTcpipBoundAdaptersInfo (FilterDriverHandle,  &AdList ) )
 		throw new BarbaException(_T("WinpkFilter could not get Could not call GetTcpipBoundAdaptersInfo!"));
 
 	//check is at least 1 adapter exists
@@ -242,9 +242,9 @@ bool WinpkFilterDriver::SendPacketToInbound(PacketHelper* packet)
 	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
 
 	ETH_REQUEST req;
-	req.hAdapterHandle = this->AdapterHandle;
+	req.hAdapterHandle = AdapterHandle;
 	req.EthPacket.Buffer = &intBuf;
-	return gWinpkFilterApi.SendPacketToMstcp(this->FilterDriverHandle, &req)!=FALSE;
+	return gWinpkFilterApi.SendPacketToMstcp(FilterDriverHandle, &req)!=FALSE;
 }
 
 bool WinpkFilterDriver::SendPacketToOutbound(PacketHelper* packet)
@@ -255,9 +255,9 @@ bool WinpkFilterDriver::SendPacketToOutbound(PacketHelper* packet)
 	memcpy_s(intBuf.m_IBuffer, MAX_ETHER_FRAME, packet->GetPacket(), intBuf.m_Length);
 
 	ETH_REQUEST req;
-	req.hAdapterHandle = this->AdapterHandle;
+	req.hAdapterHandle = AdapterHandle;
 	req.EthPacket.Buffer = &intBuf;
-	return gWinpkFilterApi.SendPacketToAdapter(this->FilterDriverHandle, &req)!=FALSE;
+	return gWinpkFilterApi.SendPacketToAdapter(FilterDriverHandle, &req)!=FALSE;
 }
 
 void WinpkFilterDriver::Dispose()
@@ -266,21 +266,21 @@ void WinpkFilterDriver::Dispose()
 	BarbaFilterDriver::Dispose();
 
 	// Set NULL event to release previously set event object
-	gWinpkFilterApi.SetPacketEvent(this->FilterDriverHandle, this->AdapterHandle, NULL);
+	gWinpkFilterApi.SetPacketEvent(FilterDriverHandle, AdapterHandle, NULL);
 
 	// Set default adapter mode
 	ADAPTER_MODE Mode;
 	Mode.dwFlags = 0;
-	Mode.hAdapterHandle = this->AdapterHandle;
-	gWinpkFilterApi.SetAdapterMode(this->FilterDriverHandle, &Mode);
+	Mode.hAdapterHandle = AdapterHandle;
+	gWinpkFilterApi.SetAdapterMode(FilterDriverHandle, &Mode);
 
 	// Empty adapter packets queue
-	gWinpkFilterApi.FlushAdapterPacketQueue(this->FilterDriverHandle, this->AdapterHandle);
+	gWinpkFilterApi.FlushAdapterPacketQueue(FilterDriverHandle, AdapterHandle);
 	Mode.hAdapterHandle = NULL;
 
 	//close driver handle
-	if (this->FilterDriverHandle!=NULL)
-		gWinpkFilterApi.CloseFilterDriver(this->FilterDriverHandle);
+	if (FilterDriverHandle!=NULL)
+		gWinpkFilterApi.CloseFilterDriver(FilterDriverHandle);
 }
 
 void WinpkFilterDriver::Initialize()
@@ -291,7 +291,7 @@ void WinpkFilterDriver::Initialize()
 		throw new BarbaException(_T("Could not open WinpkFilter handle!"));
 
 	//check is driver loaded (let after Comm Files created)
-	if(!gWinpkFilterApi.IsDriverLoaded(this->FilterDriverHandle))
+	if(!gWinpkFilterApi.IsDriverLoaded(FilterDriverHandle))
 	{
 		LPCTSTR err = _T("Driver not installed on this system or failed to load!\r\nPlease go to http://www.ntndis.com/w&p.php?id=7 and install WinpkFilter driver.");
 		BarbaNotify(_T("Error: Driver not installed!\r\nDriver not installed on this system or failed to load!"));
@@ -299,12 +299,12 @@ void WinpkFilterDriver::Initialize()
 	}
 
 	//FindAdapterIndex
-	this->AdapterIndex = FindAdapterIndex();
-	this->AdapterHandle = AdList.m_nAdapterHandle[this->AdapterIndex];
+	AdapterIndex = FindAdapterIndex();
+	AdapterHandle = AdList.m_nAdapterHandle[AdapterIndex];
 
 	//report info
 	TCHAR adapterName[ADAPTER_NAME_SIZE];
-	gWinpkFilterApi.ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[this->AdapterIndex], adapterName, _countof(adapterName));
+	gWinpkFilterApi.ConvertWindows2000AdapterName((LPCTSTR)AdList.m_szAdapterNameList[AdapterIndex], adapterName, _countof(adapterName));
 	BarbaLog(_T("Adapter: %s"), adapterName);
 
 	//try to set MTU
@@ -313,15 +313,15 @@ void WinpkFilterDriver::Initialize()
 	//Initialize
 	ADAPTER_MODE adapterMode;
 	adapterMode.dwFlags = MSTCP_FLAG_SENT_TUNNEL | MSTCP_FLAG_RECV_TUNNEL;
-	adapterMode.hAdapterHandle = this->AdapterHandle;
-	gWinpkFilterApi.SetAdapterMode(this->FilterDriverHandle, &adapterMode);
+	adapterMode.hAdapterHandle = AdapterHandle;
+	gWinpkFilterApi.SetAdapterMode(FilterDriverHandle, &adapterMode);
 	ApplyPacketFilter();
 
 	// Create notification event
-	this->WinpkPacketEvent.Attach( CreateEvent(NULL, TRUE, FALSE, NULL) );
+	WinpkPacketEvent.Attach( CreateEvent(NULL, TRUE, FALSE, NULL) );
 	
 	// Set event for helper driver
-	if (!gWinpkFilterApi.SetPacketEvent(this->FilterDriverHandle, adapterMode.hAdapterHandle, this->WinpkPacketEvent.GetHandle()))
+	if (!gWinpkFilterApi.SetPacketEvent(FilterDriverHandle, adapterMode.hAdapterHandle, WinpkPacketEvent.GetHandle()))
 		throw new BarbaException(_T("Failed to create notification event or set it for driver."));
 }
 
@@ -330,20 +330,20 @@ void WinpkFilterDriver::StartCaptureLoop()
 	// Initialize Request
 	ETH_REQUEST request = {0};
 	INTERMEDIATE_BUFFER CurrentPacketBuffer = {0};
-	request.hAdapterHandle = this->AdapterHandle;
+	request.hAdapterHandle = AdapterHandle;
 	request.EthPacket.Buffer = &CurrentPacketBuffer;
 
 	//Handle
 	HANDLE events[2];
-	events[0] = this->WinpkPacketEvent.GetHandle();
-	events[1] = this->StopEvent.GetHandle();
+	events[0] = WinpkPacketEvent.GetHandle();
+	events[1] = StopEvent.GetHandle();
 
-	while (!this->StopEvent.IsSet())
+	while (!StopEvent.IsSet())
 	{
 		DWORD res = WaitForMultipleObjects(_countof(events), events, FALSE, INFINITE);
 		if (res==WAIT_OBJECT_0-0)
 		{
-			while(gWinpkFilterApi.ReadPacket(this->FilterDriverHandle, &request))
+			while(gWinpkFilterApi.ReadPacket(FilterDriverHandle, &request))
 			{
 				PINTERMEDIATE_BUFFER buffer = request.EthPacket.Buffer;
 				bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
