@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+Date:
+Server: Apache/2.2.3 (Red Hat)
+X-Powered-By: PHP/5.1.6
+Keep-Alive: timeout=15, max=99
+Connection: Keep-Alive
+Content-Type: text/html; charset=UTF-8

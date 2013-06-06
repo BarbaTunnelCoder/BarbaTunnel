@@ -1,0 +1,9 @@
+GET /speedtest/random350x350.jpg?x={filetitle}&y=2 HTTP/1.1
+Host: 
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.63 Safari/535.7
+Accept: */*
+Accept-Encoding: gzip,deflate,sdch
+Accept-Language: en-US,en;q=0.8,fa;q=0.6
+Accept-Charset: UTF-8,*;q=0.5
+Cookie: {data}
