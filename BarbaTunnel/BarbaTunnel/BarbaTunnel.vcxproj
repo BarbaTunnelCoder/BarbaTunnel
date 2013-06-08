@@ -72,7 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(ProjectDir)BarbaCourier;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)BarbaCourier;$(ProjectDir)BarbaCourierDatagram;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\x86\</OutDir>
     <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\x86\</IntDir>
   </PropertyGroup>
@@ -84,7 +84,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(ProjectDir)BarbaCourier;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)BarbaCourier;$(ProjectDir)BarbaCourierDatagram;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)Run\Bin\$(Configuration)\x86\</OutDir>
     <IntDir>d:\temp\_inter\$(SolutionName)\$(ProjectName)\$(Configuration)\x86\</IntDir>
   </PropertyGroup>

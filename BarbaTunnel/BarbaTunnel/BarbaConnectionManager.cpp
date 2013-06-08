@@ -69,7 +69,7 @@ BarbaConnection* BarbaConnectionManager::FindByConfig(BarbaConfig* config)
 	//find connection
 	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&Connections);
 	BarbaConnection** connections = (BarbaConnection**)autoLockBuf.GetBuffer();
-	for (int i=0; i<Connections.GetCount(); i++)
+	for (size_t i=0; i<Connections.GetCount(); i++)
 	{
 		BarbaConnection* conn = connections[i];
 		if (conn->GetConfig()==config)
