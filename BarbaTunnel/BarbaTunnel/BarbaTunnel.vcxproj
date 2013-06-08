@@ -205,7 +205,7 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
   <ItemGroup>
     <ClInclude Include="BarbaApp.h" />
     <ClInclude Include="BarbaBuffer.h" />
-    <ClInclude Include="BarbaClient\BarbaClientUdpConnection2.h" />
+    <ClInclude Include="BarbaClient\BarbaClientUdpConnection.h" />
     <ClInclude Include="BarbaClient\BarbaClientHttpConnection.h" />
     <ClInclude Include="BarbaClient\BarbaClientTcpConnection.h" />
     <ClInclude Include="BarbaClient\BarbaClientConnectionManager.h" />
@@ -266,7 +266,7 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BarbaApp.cpp" />
-    <ClCompile Include="BarbaClient\BarbaClientUdpConnection2.cpp" />
+    <ClCompile Include="BarbaClient\BarbaClientUdpConnection.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientHttpConnection.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientTcpConnection.cpp" />
     <ClCompile Include="BarbaClient\BarbaClientConnectionManager.cpp" />
