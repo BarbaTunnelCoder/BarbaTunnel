@@ -210,7 +210,7 @@
     <ClInclude Include="BarbaCourierDatagram\BarbaCourierUdpServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaClient\BarbaClientUdpConnection2.h">
+    <ClInclude Include="BarbaClient\BarbaClientUdpConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -350,7 +350,7 @@
     <ClCompile Include="BarbaCourierDatagram\BarbaCourierUdpServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarbaClient\BarbaClientUdpConnection2.cpp">
+    <ClCompile Include="BarbaClient\BarbaClientUdpConnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
