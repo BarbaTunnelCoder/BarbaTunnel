@@ -16,6 +16,7 @@ void BarbaClientHttpConnection::Init()
 {
 	BarbaCourierHttpClient::CreateStrcutHttp* cs = new BarbaCourierHttpClient::CreateStrcutHttp();
 	InitHelper(cs);
+	cs->HostName = GetConfig()->ServerAddress;
 	cs->RequestMode = GetConfig()->HttpRequestMode;
 	_Courier = new Courier(cs, this);
 	_Courier->Init();

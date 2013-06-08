@@ -4,7 +4,7 @@
 
 
 BarbaCourierTcpClient::BarbaCourierTcpClient(CreateStrcutTcp* cs)
-	: BarbaCourier(cs)
+	: BarbaCourierStream(cs)
 {
 }
 
@@ -14,7 +14,7 @@ BarbaCourierTcpClient::~BarbaCourierTcpClient()
 
 void BarbaCourierTcpClient::Init()
 {
-	BarbaCourier::Init();
+	BarbaCourierStream::Init();
 	StartClientThreads();
 }
 

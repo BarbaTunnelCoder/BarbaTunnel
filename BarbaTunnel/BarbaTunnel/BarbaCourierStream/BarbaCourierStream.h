@@ -8,8 +8,8 @@
 #define BarbaCourier_MaxMessageLength 0xFFFF
 #define BarbaCourier_MaxFileHeaderSize (200*1000) //100KB
 
-//BarbaCourier
-class BarbaCourier
+//BarbaCourierStream
+class BarbaCourierStream
 {
 public:
 	struct CreateStrcut
@@ -20,7 +20,6 @@ public:
 		u_long KeepAliveInterval;
 		size_t MaxConnections;
 		size_t MinPacketSize;
-		std::tstring HostName;
 	};
 
 protected:
@@ -42,7 +41,7 @@ protected:
 
 public:
 	//@maxConnenction number of simultaneous connection for each outgoing and incoming, eg: 2 mean 2 connection for send and 2 connection for receive so the total will be 4
-	explicit BarbaCourier(CreateStrcut* cs);
+	explicit BarbaCourierStream(CreateStrcut* cs);
 	virtual void Send(BarbaBuffer* data);
 	virtual void Receive(BarbaBuffer* data);
 	virtual bool IsServer()=0;
@@ -74,7 +73,7 @@ protected:
 	void LogImpl(int level, LPCTSTR format, va_list _ArgList);
 	virtual void Dispose();
 	virtual void Crypt(BYTE* data, size_t dataSize, size_t index, bool encrypt);
-	virtual ~BarbaCourier(void);
+	virtual ~BarbaCourierStream(void);
 	virtual void Send(BarbaArray<Message*>& messages, bool highPriority=false);
 	virtual void Send(Message* message, bool highPriority=false);
 	virtual void BeforeSendMessage(BarbaSocket* barbaSocket, BarbaBuffer* messageBuffer);
@@ -91,7 +90,7 @@ protected:
 	Message* GetMessage();
 	void CheckKeepAlive();
 	void StartKeepAliveThread();
-	static unsigned int __stdcall CheckKeepAliveThread(void* BarbaCourier);
+	static unsigned int __stdcall CheckKeepAliveThread(void* BarbaCourierStream);
 	std::tstring RequestData_ToString(std::tstring requestData);
 	std::tstring RequestData_FromString(std::tstring requestString);
 	CreateStrcut* GetCreateStruct() {return _CreateStruct;}

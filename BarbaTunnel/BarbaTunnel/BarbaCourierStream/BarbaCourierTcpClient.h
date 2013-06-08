@@ -1,8 +1,8 @@
 #pragma once
-#include "BarbaCourier.h"
+#include "BarbaCourierStream.h"
 #include "BarbaPortRange.h"
 
-class BarbaCourierTcpClient : public BarbaCourier
+class BarbaCourierTcpClient : public BarbaCourierStream
 {
 public:
 	struct CreateStrcutTcp : public CreateStrcut
@@ -27,7 +27,7 @@ public:
 	
 protected:
 	std::tstring CreateRequestString(bool outgoing, size_t transferSize, LPCTSTR other=NULL);
-	CreateStrcutTcp* GetCreateStruct() {return (CreateStrcutTcp*)BarbaCourier::GetCreateStruct();}
+	CreateStrcutTcp* GetCreateStruct() {return (CreateStrcutTcp*)BarbaCourierStream::GetCreateStruct();}
 	virtual ~BarbaCourierTcpClient();
 	virtual void ClientWorker(ClientWorkerData* clientWorkerData);
 	

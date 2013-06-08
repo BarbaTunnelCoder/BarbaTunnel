@@ -1,10 +1,10 @@
 #include "StdAfx.h"
-#include "BarbaCourier.h"
+#include "BarbaCourierStream.h"
 #include "BarbaUtils.h"
 #include "BarbaCrypt.h"
 
 
-BarbaCourier::BarbaCourier(BarbaCourier::CreateStrcut* cs)
+BarbaCourierStream::BarbaCourierStream(BarbaCourierStream::CreateStrcut* cs)
 	: SendEvent(true, true)
 	, DisposeEvent(true, false)
 {
@@ -16,25 +16,25 @@ BarbaCourier::BarbaCourier(BarbaCourier::CreateStrcut* cs)
 	LastSentTime = 0;
 }
 
-void BarbaCourier::Init()
+void BarbaCourierStream::Init()
 {
 	RequestDataKeyName = CreateRequestDataKeyName();
 }
 
-BarbaCourier::~BarbaCourier(void)
+BarbaCourierStream::~BarbaCourierStream(void)
 {
 	delete _CreateStruct;
 }
 
-void BarbaCourier::StartKeepAliveThread()
+void BarbaCourierStream::StartKeepAliveThread()
 {
 	if (GetCreateStruct()->KeepAliveInterval!=0)
 		Threads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, CheckKeepAliveThread, this, 0, NULL));
 }
 
-unsigned int __stdcall BarbaCourier::CheckKeepAliveThread(void* barbaCourier)
+unsigned int __stdcall BarbaCourierStream::CheckKeepAliveThread(void* barbaCourier)
 {
-	BarbaCourier* _this = (BarbaCourier*)barbaCourier;
+	BarbaCourierStream* _this = (BarbaCourierStream*)barbaCourier;
 	while (_this->DisposeEvent.Wait(2000)==WAIT_TIMEOUT)
 	{
 		_this->CheckKeepAlive();
@@ -42,7 +42,7 @@ unsigned int __stdcall BarbaCourier::CheckKeepAliveThread(void* barbaCourier)
 	return 0;
 }
 
-void BarbaCourier::CheckKeepAlive()
+void BarbaCourierStream::CheckKeepAlive()
 {
 	//close connection that does not receive keep alive
 	if (GetCreateStruct()->KeepAliveInterval==0 || LastSentTime==0)
@@ -63,15 +63,15 @@ void BarbaCourier::CheckKeepAlive()
 	}
 }
 
-unsigned BarbaCourier::DeleteThread(void* object) 
+unsigned BarbaCourierStream::DeleteThread(void* object) 
 {
-	BarbaCourier* _this = (BarbaCourier*)object;
+	BarbaCourierStream* _this = (BarbaCourierStream*)object;
 	_this->Dispose();
 	delete _this; 
 	return 0;
 }
 
-void BarbaCourier::CloseSocketsList(SimpleSafeList<BarbaSocket*>* list)
+void BarbaCourierStream::CloseSocketsList(SimpleSafeList<BarbaSocket*>* list)
 {
 	//IncomingSockets
 	SimpleSafeList<BarbaSocket*>::AutoLockBuffer autoLockBuf(list);
@@ -89,13 +89,13 @@ void BarbaCourier::CloseSocketsList(SimpleSafeList<BarbaSocket*>* list)
 	}
 }
 
-void BarbaCourier::LogImpl(int level, LPCTSTR format, va_list _ArgList)
+void BarbaCourierStream::LogImpl(int level, LPCTSTR format, va_list _ArgList)
 {
 	TCHAR* msg = new TCHAR[1000];
 	_vstprintf_s(msg, 1000, format, _ArgList);
 	
 	TCHAR* msg2 = new TCHAR[1000];
-	_stprintf_s(msg2, 1000, _T("BarbaCourier: TID: %4x, SessionId: %x, %s"), GetCurrentThreadId(), this->GetCreateStruct()->SessionId, msg);
+	_stprintf_s(msg2, 1000, _T("BarbaCourierStream: TID: %4x, SessionId: %x, %s"), GetCurrentThreadId(), this->GetCreateStruct()->SessionId, msg);
 
 	va_list emptyList = {0};
 	BarbaLogImpl(level, msg2, emptyList);
@@ -103,17 +103,17 @@ void BarbaCourier::LogImpl(int level, LPCTSTR format, va_list _ArgList)
 	delete msg2;
 }
 
-void BarbaCourier::Log2(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(2, format, argp); va_end(argp); }
-void BarbaCourier::Log3(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(3, format, argp); va_end(argp); }
+void BarbaCourierStream::Log2(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(2, format, argp); va_end(argp); }
+void BarbaCourierStream::Log3(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(3, format, argp); va_end(argp); }
 
-HANDLE BarbaCourier::Delete()
+HANDLE BarbaCourierStream::Delete()
 {
-	Log2(_T("BarbaCourier disposing."));
+	Log2(_T("BarbaCourierStream disposing."));
 	DisposeEvent.Set();
 	return (HANDLE)_beginthreadex(0, BARBA_SocketThreadStackSize, DeleteThread, (void*)this, 0, NULL);
 }
 
-void BarbaCourier::Dispose()
+void BarbaCourierStream::Dispose()
 {
 	DisposeEvent.Set();
 
@@ -139,15 +139,15 @@ void BarbaCourier::Dispose()
 		CloseHandle(thread);
 		thread = this->Threads.RemoveHead();
 	}
-	Log2(_T("BarbaCourier disposed."));
+	Log2(_T("BarbaCourierStream disposed."));
 }
 
-void BarbaCourier::Send(BarbaBuffer* data)
+void BarbaCourierStream::Send(BarbaBuffer* data)
 {
 	Send(new Message(data));
 }
 
-void BarbaCourier::Send(Message* message, bool highPriority)
+void BarbaCourierStream::Send(Message* message, bool highPriority)
 {
 	if (message->GetDataSize()>BarbaCourier_MaxMessageLength)
 	{
@@ -159,7 +159,7 @@ void BarbaCourier::Send(Message* message, bool highPriority)
 	Send(messages, highPriority);
 }
 
-void BarbaCourier::Send(BarbaArray<Message*>& messages, bool highPriority)
+void BarbaCourierStream::Send(BarbaArray<Message*>& messages, bool highPriority)
 {
 	//check is any message
 	if (messages.size()==0)
@@ -198,11 +198,11 @@ void BarbaCourier::Send(BarbaArray<Message*>& messages, bool highPriority)
 	SendEvent.Set();
 }
 
-void BarbaCourier::Receive(BarbaBuffer* /*data*/)
+void BarbaCourierStream::Receive(BarbaBuffer* /*data*/)
 {
 }
 
-void BarbaCourier::GetMessages(BarbaArray<Message*>& messages)
+void BarbaCourierStream::GetMessages(BarbaArray<Message*>& messages)
 {
 	messages.reserve(this->Messages.GetCount());
 	Message* message = this->Messages.RemoveHead();
@@ -213,12 +213,12 @@ void BarbaCourier::GetMessages(BarbaArray<Message*>& messages)
 	}
 }
 
-BarbaCourier::Message* BarbaCourier::GetMessage()
+BarbaCourierStream::Message* BarbaCourierStream::GetMessage()
 {
 	return Messages.RemoveHead();
 }
 
-void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
+void BarbaCourierStream::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 {
 	Log2(_T("Connection is ready to send the actual data. TransferSize: %d KB."), maxBytes/1000);
 
@@ -301,7 +301,7 @@ void BarbaCourier::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxBytes)
 	}
 }
 
-void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
+void BarbaCourierStream::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
 {
 	Log2(_T("Connection is ready to receive the actual data. TransferSize: %d KB."), maxBytes/1000);
 
@@ -332,7 +332,7 @@ void BarbaCourier::ProcessIncoming(BarbaSocket* barbaSocket, size_t maxBytes)
 	}
 }
 
-void BarbaCourier::ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet)
+void BarbaCourierStream::ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet)
 {
 	// don't do anything if there is no message
 	if (messages.size()==0)
@@ -396,7 +396,7 @@ void BarbaCourier::ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_
 	messages.assign(&includeMessages);
 }
 
-size_t BarbaCourier::ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cryptIndex, size_t chunkSize, bool processAllChunk)
+size_t BarbaCourierStream::ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cryptIndex, size_t chunkSize, bool processAllChunk)
 {
 	size_t receivedBytes = 0;
 	while (receivedBytes<chunkSize)
@@ -439,25 +439,25 @@ size_t BarbaCourier::ProcessIncomingMessage(BarbaSocket* barbaSocket, size_t cry
 }
 
 
-void BarbaCourier::BeforeSendMessage(BarbaSocket* /*barbaSocket*/, BarbaBuffer* messageBuffer)
+void BarbaCourierStream::BeforeSendMessage(BarbaSocket* /*barbaSocket*/, BarbaBuffer* messageBuffer)
 {
 	Log3(_T("Sending %d bytes"), messageBuffer->size());
 }
 
-void BarbaCourier::AfterSendMessage(BarbaSocket* /*barbaSocket*/, bool /*isTransferFinished*/)
+void BarbaCourierStream::AfterSendMessage(BarbaSocket* /*barbaSocket*/, bool /*isTransferFinished*/)
 {
 }
 
-void BarbaCourier::BeforeReceiveMessage(BarbaSocket* /*barbaSocket*/, size_t* /*chunkSize*/)
+void BarbaCourierStream::BeforeReceiveMessage(BarbaSocket* /*barbaSocket*/, size_t* /*chunkSize*/)
 {
 }
 
-void BarbaCourier::AfterReceiveMessage(BarbaSocket* /*barbaSocket*/, size_t messageLength, bool /*isTransferFinished*/) 
+void BarbaCourierStream::AfterReceiveMessage(BarbaSocket* /*barbaSocket*/, size_t messageLength, bool /*isTransferFinished*/) 
 {
 	Log3(_T("Received %d bytes"), messageLength);
 }
 
-void BarbaCourier::Sockets_Add(BarbaSocket* socket, bool isOutgoing)
+void BarbaCourierStream::Sockets_Add(BarbaSocket* socket, bool isOutgoing)
 {
 	//check maximum connection
 	SimpleSafeList<BarbaSocket*>* list = isOutgoing ? &OutgoingSockets : &IncomingSockets;
@@ -481,23 +481,23 @@ void BarbaCourier::Sockets_Add(BarbaSocket* socket, bool isOutgoing)
 		socket->SetSendTimeOut(this->GetCreateStruct()->KeepAliveInterval); //I don't know why it doesn't any effect, anyway I set it
 }
 
-void BarbaCourier::Sockets_Remove(BarbaSocket* socket, bool isOutgoing)
+void BarbaCourierStream::Sockets_Remove(BarbaSocket* socket, bool isOutgoing)
 {
 	SimpleSafeList<BarbaSocket*>* list = isOutgoing ? &this->OutgoingSockets : &this->IncomingSockets;
 	list->Remove(socket);
 	delete socket;
 }
 
-void BarbaCourier::Crypt(BarbaBuffer* data, size_t index, bool encrypt)
+void BarbaCourierStream::Crypt(BarbaBuffer* data, size_t index, bool encrypt)
 {
 	Crypt(data->data(), data->size(), index, encrypt);
 }
 
-void BarbaCourier::Crypt(BYTE* /*data*/, size_t /*dataSize*/, size_t /*index*/, bool /*encrypt*/)
+void BarbaCourierStream::Crypt(BYTE* /*data*/, size_t /*dataSize*/, size_t /*index*/, bool /*encrypt*/)
 {
 }
 
-std::tstring BarbaCourier::RequestData_ToString(std::tstring requestData)
+std::tstring BarbaCourierStream::RequestData_ToString(std::tstring requestData)
 {
 	//encrypt-data
 	BarbaBuffer rdataBuffer((BYTE*)requestData.data(), requestData.size());
@@ -515,7 +515,7 @@ std::tstring BarbaCourier::RequestData_ToString(std::tstring requestData)
 	return data;
 }
 
-std::tstring BarbaCourier::RequestData_FromString(std::tstring requestString)
+std::tstring BarbaCourierStream::RequestData_FromString(std::tstring requestString)
 {
 	try
 	{
@@ -539,7 +539,7 @@ std::tstring BarbaCourier::RequestData_FromString(std::tstring requestString)
 	return _T("");
 }
 
-std::tstring BarbaCourier::CreateRequestDataKeyName()
+std::tstring BarbaCourierStream::CreateRequestDataKeyName()
 {
 	std::string keyName = "RequestDataKey";
 	BarbaBuffer keyBuffer((BYTE*)keyName.data(), keyName.size());

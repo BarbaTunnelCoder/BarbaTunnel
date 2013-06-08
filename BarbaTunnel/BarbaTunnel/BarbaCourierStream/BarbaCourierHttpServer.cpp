@@ -236,7 +236,7 @@ void BarbaCourierHttpServer::SendPostReply(BarbaSocket* socket, BarbaBuffer* con
 
 	//process replyPayload
 	std::tstring postReply = GetHttpPostReplyRequest(GetRequestMode()->BombardPost);
-	BarbaUtils::UpdateHttpRequest(&postReply, GetCreateStruct()->HostName.data(), NULL, _T("application/octet-stream"), content->size(), NULL);
+	BarbaUtils::UpdateHttpRequest(&postReply, NULL, NULL, _T("application/octet-stream"), content->size(), NULL);
 
 	//send buffer
 	BarbaBuffer buffer;
@@ -266,7 +266,7 @@ size_t BarbaCourierHttpServer::SendGetReply(BarbaSocket* socket, LPCTSTR fileUrl
 	std::tstring reply = GetHttpGetReplyRequest(false);
 	std::tstring requestData;
 	BarbaUtils::SetKeyValue(&requestData, _T("FileHeaderSize"), (int)fileHeader->size());
-	BarbaUtils::UpdateHttpRequest(&reply, GetCreateStruct()->HostName.data(), filename, contentType.data(), fileSize, RequestData_ToString(requestData).data());
+	BarbaUtils::UpdateHttpRequest(&reply, NULL, filename, contentType.data(), fileSize, RequestData_ToString(requestData).data());
 
 	Log2(_T("Sending GET reply! File: %s (%u KB)."), filename, fileSize/1000, fakeFileHeaderSize);
 	std::string replyA = replyA;
@@ -278,7 +278,7 @@ size_t BarbaCourierHttpServer::SendGetReply(BarbaSocket* socket, LPCTSTR fileUrl
 void BarbaCourierHttpServer::GetGetReplyBombard(size_t dataLength, BarbaBuffer* requestBuffer)
 {
 	std::tstring reply = GetHttpGetReplyRequest(true);
-	BarbaUtils::UpdateHttpRequest(&reply, GetCreateStruct()->HostName.data(), NULL, _T("application/octet-stream"), dataLength, NULL);
+	BarbaUtils::UpdateHttpRequest(&reply, NULL, NULL, _T("application/octet-stream"), dataLength, NULL);
 	requestBuffer->append((char*)reply.data(), reply.size());
 }
 
