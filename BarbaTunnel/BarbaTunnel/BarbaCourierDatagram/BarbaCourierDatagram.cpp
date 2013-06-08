@@ -53,18 +53,18 @@ void BarbaCourierDatagram::Message::GetData(BarbaBuffer* data)
 {
 	//calculate data size for reservation
 	size_t totalSize = 0;
-	for (int i=0; i<Parts.size(); i++)
+	for (size_t i=0; i<Parts.size(); i++)
 		totalSize += Parts[i]->size();
 	data->reserve(totalSize);
 
 	//append data
-	for (int i=0; i<Parts.size(); i++)
+	for (size_t i=0; i<Parts.size(); i++)
 		data->append(Parts[i]);
 }
 
 BarbaCourierDatagram::Message::~Message()
 {
-	for (int i=0; i<Parts.size(); i++)
+	for (size_t i=0; i<Parts.size(); i++)
 		delete Parts[i];
 }
 
