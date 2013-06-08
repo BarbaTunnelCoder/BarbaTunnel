@@ -10,17 +10,17 @@ private:
 	struct CapturePacket
 	{
 		//packet will be deleted at destructor
-		CapturePacket(PacketHelper* packet, bool send)
+		CapturePacket(PacketHelper* packet, bool outbound)
 		{
-			this->Packet = packet;
-			this->Send = send;
+			Packet = packet;
+			Outbound = outbound;
 		}
 		~CapturePacket()
 		{
-			delete this->Packet;
+			delete Packet;
 		}
 
-		bool Send;
+		bool Outbound;
 		PacketHelper* Packet;
 	};
 
@@ -71,7 +71,7 @@ private:
 	BarbaSocket SocketHelper;
 
 	//PacketFilter
-	void AddClientFilters(void* filter, std::vector<BarbaClientConfig>* configs);
-	void AddServerFilters(void* filter, std::vector<BarbaServerConfig>* configs);
+	void AddClientFilters(void* filter, BarbaArray<BarbaClientConfig>* configs);
+	void AddServerFilters(void* filter, BarbaArray<BarbaServerConfig>* configs);
 };
 

@@ -44,6 +44,11 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 	Name = GetNameFromFileName(file, true);
 	NameAnonymous = GetNameFromFileName(file, false);
 
+	//fail if not enabled
+	Enabled = GetPrivateProfileInt(_T("General"), _T("Enabled"), 1, file)!=0;
+	if (!Enabled)
+		return false;
+
 	//ServerIp
 	TCHAR serverAddress[1000];
 	GetPrivateProfileString(_T("General"), _T("ServerAddress"), _T("*"), serverAddress, _countof(serverAddress), file);
@@ -63,11 +68,6 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 		}
 		ServerIp = ((in_addr *)he->h_addr)->S_un.S_addr;
 	}
-
-	//fail if not enabled
-	Enabled = GetPrivateProfileInt(_T("General"), _T("Enabled"), 1, file)!=0;
-	if (!Enabled)
-		return false;
 
 	//mode
 	TCHAR modeString[100];

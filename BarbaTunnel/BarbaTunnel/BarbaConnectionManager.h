@@ -8,11 +8,11 @@ public:
 	BarbaConnectionManager(void);
 	virtual ~BarbaConnectionManager(void);
 	virtual void Dispose();
-	SimpleSafeList<BarbaConnection*> Connections;
 	virtual void RemoveConnection(BarbaConnection* conn);
 	void AddConnection(BarbaConnection* conn);
 	void CleanTimeoutConnections();
-	BarbaConnection* FindByPacketToProcess(PacketHelper* packet);
+	BarbaConnection* FindByConfig(BarbaConfig* config);
+	SimpleSafeList<BarbaConnection*> Connections;
 
 private:
 	void DoIntervalCheck();

@@ -5,17 +5,17 @@
 
 BarbaConnectionManager::BarbaConnectionManager(void)
 {
-	this->LastIntervalTime = GetTickCount();
+	LastIntervalTime = GetTickCount();
 }
 
 void BarbaConnectionManager::Dispose()
 {
 	//delete all messages
-	BarbaConnection* connection = this->Connections.RemoveHead();
+	BarbaConnection* connection = Connections.RemoveHead();
 	while(connection!=NULL)
 	{
 		delete connection;
-		connection = this->Connections.RemoveHead();
+		connection = Connections.RemoveHead();
 	}
 }
 
@@ -26,22 +26,22 @@ BarbaConnectionManager::~BarbaConnectionManager(void)
 void BarbaConnectionManager::RemoveConnection(BarbaConnection* conn)
 {
 	BarbaLog(_T("BarbaConnection removed. ID: %u"), conn->GetId());
-	this->Connections.Remove(conn);
+	Connections.Remove(conn);
 	delete conn;
 }
 
 void BarbaConnectionManager::AddConnection(BarbaConnection* conn)
 {
-	this->CleanTimeoutConnections();
+	CleanTimeoutConnections();
 	conn->ReportNewConnection();
-	this->Connections.AddTail(conn);
+	Connections.AddTail(conn);
 }
 
 void BarbaConnectionManager::CleanTimeoutConnections()
 {
-	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&this->Connections);
+	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&Connections);
 	BarbaConnection** connections = autoLockBuf.GetBuffer();
-	for (size_t i=0; i<this->Connections.GetCount(); i++)
+	for (size_t i=0; i<Connections.GetCount(); i++)
 	{
 		BarbaConnection* conn = connections[i];
 		if (GetTickCount()-conn->GetLasNegotiationTime()>theApp->ConnectionTimeout)
@@ -61,20 +61,19 @@ void BarbaConnectionManager::DoIntervalCheck()
 	CleanTimeoutConnections();
 }
 
-BarbaConnection* BarbaConnectionManager::FindByPacketToProcess(PacketHelper* packet)
+BarbaConnection* BarbaConnectionManager::FindByConfig(BarbaConfig* config)
 {
 	//FindByPacketToProcess called frequently, good place to check interval
 	DoIntervalCheck();
 
 	//find connection
-	BarbaConnection* ret = NULL;
-	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&this->Connections);
+	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&Connections);
 	BarbaConnection** connections = (BarbaConnection**)autoLockBuf.GetBuffer();
-	for (size_t i=0; i<this->Connections.GetCount() && ret==NULL; i++)
+	for (int i=0; i<Connections.GetCount(); i++)
 	{
 		BarbaConnection* conn = connections[i];
-		if (conn->ShouldProcessPacket(packet))
-			ret = conn;
+		if (conn->GetConfig()==config)
+			return conn;
 	}
-	return ret;
+	return NULL;
 }

@@ -14,7 +14,7 @@ public:
 	void Initialize(IpRange* virtualIpRange);
 	BarbaServerConnection* FindByVirtualIp(DWORD ip);
 	BarbaServerConnection* FindBySessionId(u_long sessionId);
-	BarbaServerConnection* CreateConnection(PacketHelper* packet, BarbaServerConfig* config);
+	BarbaServerConnection* CreateConnection(BarbaServerConfig* config, PacketHelper* packet);
 	BarbaServerTcpConnectionBase* CreateTcpConnection(BarbaServerConfig* config, u_long clientIp, LPCTSTR requestData);
 
 private:

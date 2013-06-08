@@ -14,10 +14,10 @@ public:
 	DWORD ServerIp;
 	BarbaModeEnum Mode;
 	BarbaBuffer Key; 
-	u_char GetTunnelProtocol() {return BarbaMode_GetProtocol(this->Mode);}
+	u_char GetTunnelProtocol() {return BarbaMode_GetProtocol(Mode);}
 	BarbaPortRange TunnelPorts;
 	u_short RealPort; //valid when mode is UDP-Redirect or TCP-Redirect mode
-	u_short MaxUserConnections; //use by HTTP-Tunnel
+	u_short MaxUserConnections;
 	std::tstring GetName(bool anonymously);
 
 private:

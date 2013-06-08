@@ -52,7 +52,7 @@ bool BarbaUtils::GetProtocolAndPort(LPCTSTR value, BYTE* protocol, u_short* port
 	return ret;
 }
 
-void BarbaUtils::GetProtocolAndPortArray(LPCTSTR value, std::vector<ProtocolPort>* result)
+void BarbaUtils::GetProtocolAndPortArray(LPCTSTR value, BarbaArray<ProtocolPort>* result)
 {
 	TCHAR buffer[1000];
 	_tcscpy_s(buffer, value);
@@ -65,7 +65,7 @@ void BarbaUtils::GetProtocolAndPortArray(LPCTSTR value, std::vector<ProtocolPort
 		ProtocolPort protocol;
 		if (BarbaUtils::GetProtocolAndPort(token, &protocol.Protocol, &protocol.Port))
 		{
-			result->push_back(protocol);
+			result->append(protocol);
 		}
 		token = _tcstok_s(NULL, _T(","), &currentPos);
 	}

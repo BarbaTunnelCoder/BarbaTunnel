@@ -18,6 +18,16 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	GetPrivateProfileString(_T("General"), _T("GrabProtocols"), _T(""), grabProtocols, _countof(grabProtocols), file);
 	BarbaUtils::GetProtocolAndPortArray(grabProtocols, &GrabProtocols);
 
+	//Add RealPort to GrabProtocols
+	if (Mode==BarbaModeTcpRedirect || Mode==BarbaModeUdpRedirect)
+	{
+		GrabProtocols.clear();
+		ProtocolPort port;
+		port.Protocol = GetTunnelProtocol();
+		port.Port = RealPort;
+		GrabProtocols.append(port);
+	}
+	
 	//FakePacketMinSize
 	MinPacketSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MinPacketSize"), 0, file);
 	if (MinPacketSize > BARBA_MinPacketSizeLimit)
@@ -65,7 +75,7 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	return true;
 }
 
-void BarbaClientConfig::LoadFolder(LPCTSTR folder, std::vector<BarbaClientConfig>* configs)
+void BarbaClientConfig::LoadFolder(LPCTSTR folder, BarbaArray<BarbaClientConfig>* configs)
 {
 	std::vector<std::tstring> files;
 	BarbaUtils::FindFiles(folder, _T("*.ini"), true, &files);
@@ -73,6 +83,6 @@ void BarbaClientConfig::LoadFolder(LPCTSTR folder, std::vector<BarbaClientConfig
 	{
 		BarbaClientConfig config;
 		if (config.LoadFile(files[i].data()))
-			configs->push_back(config);
+			configs->append(config);
 	}
 }

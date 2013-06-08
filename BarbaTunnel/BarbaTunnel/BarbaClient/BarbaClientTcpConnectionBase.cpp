@@ -12,15 +12,15 @@ BarbaClientTcpConnectionBase::BarbaClientTcpConnectionBase(BarbaClientConfig* co
 
 void BarbaClientTcpConnectionBase::InitHelper(BarbaCourierTcpClient::CreateStrcutTcp* cs)
 {
-	cs->HostName = Config->ServerAddress;
-	cs->MaxTransferSize = Config->MaxTransferSize;
-	cs->MaxConnections = Config->MaxUserConnections;
+	cs->HostName = GetConfig()->ServerAddress;
+	cs->MaxTransferSize = GetConfig()->MaxTransferSize;
+	cs->MaxConnections = GetConfig()->MaxUserConnections;
 	cs->SessionId = SessionId;
 	cs->ConnectionTimeout = theApp->ConnectionTimeout;
-	cs->MinPacketSize = Config->MinPacketSize;
-	cs->KeepAliveInterval = Config->KeepAliveInterval;
-	cs->RemoteIp = Config->ServerIp;
-	cs->PortRange = &Config->TunnelPorts;
+	cs->MinPacketSize = GetConfig()->MinPacketSize;
+	cs->KeepAliveInterval = GetConfig()->KeepAliveInterval;
+	cs->RemoteIp = GetConfig()->ServerIp;
+	cs->PortRange = &GetConfig()->TunnelPorts;
 }
 
 BarbaClientTcpConnectionBase::~BarbaClientTcpConnectionBase(void)
@@ -28,26 +28,30 @@ BarbaClientTcpConnectionBase::~BarbaClientTcpConnectionBase(void)
 	theApp->AddThread(GetCourier()->Delete());
 }
 
-bool BarbaClientTcpConnectionBase::ShouldProcessPacket(PacketHelper* packet)
+bool BarbaClientTcpConnectionBase::ProcessOutboundPacket(PacketHelper* packet)
 {
-	//just process outgoing packets
-	return packet->GetDesIp()==GetServerIp() && BarbaClientApp::ShouldGrabPacket(packet, Config);
+	SetWorkingState(packet->GetIpLen(), true);
+	
+	//encrypt whole packet include header
+	BarbaBuffer data(packet->ipHeader, packet->GetIpLen());
+	if (!GetCourier()->IsDisposing())
+		GetCourier()->Send(&data);
+	return true;
 }
 
-bool BarbaClientTcpConnectionBase::ProcessPacket(PacketHelper* packet, bool send)
+bool BarbaClientTcpConnectionBase::ProcessInboundPacket(PacketHelper* packet)
 {
-	if (send)
+	UNREFERENCED_PARAMETER(packet);
+	return false;
+}
+
+void BarbaClientTcpConnectionBase::ReceiveData(BarbaBuffer* data)
+{
+	PacketHelper packet((iphdr_ptr)data->data(), data->size());
+	if (!packet.IsValidChecksum())
 	{
-		SetWorkingState(packet->GetIpLen(), true);
-	
-		//encrypt whole packet include header
-		BarbaBuffer data(packet->ipHeader, packet->GetIpLen());
-		if (!GetCourier()->IsDisposing())
-			GetCourier()->Send(&data);
+		BarbaLog(_T("Error: Invalid packet checksum received!"));
+		return;
 	}
-	else
-	{
-		SendPacketToInbound(packet);
-	}
-	return true;
+	SendPacketToInbound(&packet);
 }

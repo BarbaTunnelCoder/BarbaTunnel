@@ -4,14 +4,13 @@
 class BarbaServerRedirectConnection : public BarbaServerConnection
 {
 public:
-	explicit BarbaServerRedirectConnection(BarbaServerConfig* config, u_long clientVirtualIp, 
-		u_long clientIp, u_short clientPort, u_short tunnelPort);
+	explicit BarbaServerRedirectConnection(BarbaServerConfig* config, u_long clientVirtualIp, PacketHelper* initPacket);
 	virtual ~BarbaServerRedirectConnection(void);
-	virtual bool ShouldProcessPacket(PacketHelper* packet);
-	virtual bool ProcessPacket(PacketHelper* packet, bool send);
-	virtual u_short GetTunnelPort();
+	bool ProcessOutboundPacket(PacketHelper* packet) override;
+	bool ProcessInboundPacket(PacketHelper* packet) override;
 	u_short GetRealPort();
-
+	u_long GetSessionId();
+	
 private:
 	u_short ClientPort;
 	u_short TunnelPort;

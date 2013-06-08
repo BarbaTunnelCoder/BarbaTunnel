@@ -78,37 +78,6 @@ void BarbaServerApp::Start()
 	BarbaApp::Start();
 }
 
-bool BarbaServerApp::ShouldGrabPacket(PacketHelper* packet, BarbaServerConfig* config)
-{
-	if (config->ServerIp!=0 && packet->GetDesIp()!=config->ServerIp)
-		return false;
-
-	//check protocol
-	if (config->GetTunnelProtocol()!=packet->ipHeader->ip_p)
-		return false;
-
-	//check port
-	u_short port = packet->GetDesPort();
-	for (size_t j=0; j<config->TunnelPorts.Items.size(); j++)
-	{
-		if (port>=config->TunnelPorts.Items[j].StartPort && port<=config->TunnelPorts.Items[j].EndPort)
-			return true;
-	}
-
-	return false;
-}
-
-BarbaServerConfig* BarbaServerApp::ShouldGrabPacket(PacketHelper* packet)
-{
-	for (size_t i=0; i<Configs.size(); i++)
-	{
-		BarbaServerConfig* item = &Configs[i];
-		if (ShouldGrabPacket(packet, item))
-			return item;
-	}
-	return NULL;
-}
-
 void BarbaServerApp::Dispose()
 {
 	HttpHost.Dispose();
@@ -116,22 +85,49 @@ void BarbaServerApp::Dispose()
 	BarbaApp::Dispose();
 }
 
-bool BarbaServerApp::ProcessPacket(PacketHelper* packet, bool send)
+bool BarbaServerApp::IsConfigForInboundPacket(BarbaServerConfig* config, PacketHelper* packet)
 {
-	//find an open connection to process packet
-	BarbaServerConnection* connection = (BarbaServerConnection*)ConnectionManager.FindByPacketToProcess(packet);
-	
-	//create new connection if not found
-	if (!send && connection==NULL)
-	{
-		BarbaServerConfig* item = ShouldGrabPacket(packet);
-		if (item!=NULL)
-			connection = ConnectionManager.CreateConnection(packet, item);
-	}
-	
-	//process packet for connection
-	if (connection!=NULL)
-		return connection->ProcessPacket(packet, send);
+	if (config->ServerIp!=0 && packet->GetDesIp()!=config->ServerIp)
+		return false;
 
-	return false;
+	return config->GetTunnelProtocol()==packet->ipHeader->ip_p && config->TunnelPorts.IsPortInRange(packet->GetDesPort());
+}
+
+BarbaServerConfig* BarbaServerApp::FindConfigForInboundPacket(PacketHelper* packet)
+{
+	for (size_t i=0; i<Configs.size(); i++)
+		if (IsConfigForInboundPacket(&Configs[i], packet))
+			return &Configs[i];
+	return NULL;
+}
+
+bool BarbaServerApp::ProcessInboundPacket(PacketHelper* packet)
+{
+	BarbaServerConfig* config = FindConfigForInboundPacket(packet);
+	if (config==NULL)
+		return false;
+
+	//find existing connection who can process packet
+	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&ConnectionManager.Connections);
+	BarbaServerConnection** connections = (BarbaServerConnection**)autoLockBuf.GetBuffer();
+	for (size_t i=0; i<ConnectionManager.Connections.GetCount(); i++)
+	{
+		BarbaServerConnection* connection = connections[i];
+		if ( connection->GetConfig()==config && connection->GetClientIp()==packet->GetSrcIp() && connection->ProcessInboundPacket(packet) )
+			return true;
+	}
+
+	//create connection if not proceed
+	BarbaConnection* connection = ConnectionManager.CreateConnection(config, packet);
+	return connection->ProcessInboundPacket(packet);	
+}
+
+bool BarbaServerApp::ProcessOutboundPacket(PacketHelper* packet)
+{
+	BarbaServerConnection* connection = (BarbaServerConnection*)ConnectionManager.FindByVirtualIp(packet->GetDesIp());
+	if (connection==NULL)
+		return false;
+
+	connection->ProcessOutboundPacket(packet);
+	return true;
 }

@@ -99,9 +99,6 @@
     <ClInclude Include="SimpleCriticalSection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaServer\BarbaServerUdpConnection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BarbaServer\BarbaServerRedirectConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -112,9 +109,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BarbaConnection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BarbaClient\BarbaClientUdpConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BarbaClient\BarbaClientRedirectConnection.h">
@@ -201,6 +195,24 @@
     <ClInclude Include="BarbaClient\BarbaClientHttpConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BarbaClient\BarbaClientUdpSimpleConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaServer\BarbaServerUdpSimpleConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaCourierDatagram\BarbaCourierDatagram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaCourierDatagram\BarbaCourierUdpClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaCourierDatagram\BarbaCourierUdpServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaClient\BarbaClientUdpConnection2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -248,9 +260,6 @@
     <ClCompile Include="BarbaSocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarbaServer\BarbaServerUdpConnection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BarbaServer\BarbaServerRedirectConnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -258,9 +267,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BarbaConnection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BarbaClient\BarbaClientUdpConnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BarbaClient\BarbaClientRedirectConnection.cpp">
@@ -327,6 +333,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BarbaClient\BarbaClientHttpConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaClient\BarbaClientUdpSimpleConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaServer\BarbaServerUdpSimpleConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaCourierDatagram\BarbaCourierDatagram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaCourierDatagram\BarbaCourierUdpClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaCourierDatagram\BarbaCourierUdpServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaClient\BarbaClientUdpConnection2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

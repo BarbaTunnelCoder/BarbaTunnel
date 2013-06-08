@@ -9,16 +9,19 @@ class BarbaServerApp : public BarbaApp
 public:
 	explicit BarbaServerApp(bool delayStart);
 	virtual ~BarbaServerApp(void);
-	virtual void Initialize();
-	virtual void Start();
-	virtual bool ProcessPacket(PacketHelper* packet, bool send);
-	virtual void Dispose();
-	virtual bool IsServerMode() {return true;}
-	virtual LPCTSTR GetName() {return _T("Barba Server");}
-	static bool ShouldGrabPacket(PacketHelper* packet, BarbaServerConfig* config);
+	void Initialize() override;
+	void Start() override;
+	void Dispose() override;
+	bool IsServerMode() override {return true;}
+	LPCTSTR GetName() override {return _T("Barba Server");}
+	BarbaServerConfig* FindConfigForOutboundPacket(PacketHelper* packet);
+	BarbaServerConfig* FindConfigForInboundPacket(PacketHelper* packet);
+	bool ProcessOutboundPacket(PacketHelper* packet) override;
+	bool ProcessInboundPacket(PacketHelper* packet) override;
+	static bool IsConfigForInboundPacket(BarbaServerConfig* config, PacketHelper* packet);
 
 	BarbaServerTcpHost HttpHost;
-	std::vector<BarbaServerConfig> Configs;
+	BarbaArray<BarbaServerConfig> Configs;
 	BarbaServerConnectionManager ConnectionManager;
 	std::tstring HttpGetReplyTemplate;
 	std::tstring HttpGetReplyTemplateBombard;
@@ -31,7 +34,6 @@ protected:
 	void Load() override;
 
 private:
-	BarbaServerConfig* ShouldGrabPacket(PacketHelper* packet);
 	bool DelayStart;
 };
 
