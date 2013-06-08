@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "BarbaClientConnectionManager.h"
 #include "BarbaClientRedirectConnection.h"
-#include "BarbaClientUdpConnection.h"
+#include "BarbaClientUdpSimpleConnection.h"
 #include "BarbaClientTcpConnection.h"
 #include "BarbaClientHttpConnection.h"
 
@@ -20,11 +20,11 @@ BarbaClientConnection* BarbaClientConnectionManager::CreateConnection(PacketHelp
 	BarbaClientConnection* conn = NULL;
 	if (config->Mode==BarbaModeTcpRedirect || config->Mode==BarbaModeUdpRedirect)
 	{
-		conn = new BarbaClientRedirectConnection(config, packet->GetSrcPort(), config->TunnelPorts.GetRandomPort());
+		conn = new BarbaClientRedirectConnection(config, packet);
 	}
 	else if (config->Mode==BarbaModeUdpTunnel)
 	{
-		conn = new BarbaClientUdpConnection(config, packet->GetSrcPort(), config->TunnelPorts.GetRandomPort());
+		conn = new BarbaClientUdpSimpleConnection(config, packet);
 	}
 	else if (config->Mode==BarbaModeTcpTunnel)
 	{

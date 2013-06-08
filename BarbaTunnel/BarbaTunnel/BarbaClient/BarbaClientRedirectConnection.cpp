@@ -3,68 +3,47 @@
 #include "BarbaClientRedirectConnection.h"
 
 
-BarbaClientRedirectConnection::BarbaClientRedirectConnection(BarbaClientConfig* config, u_short clientPort, u_short tunnelPort)
+BarbaClientRedirectConnection::BarbaClientRedirectConnection(BarbaClientConfig* config, PacketHelper* initPacket)
 	: BarbaClientConnection(config)
 {
-	this->ClientPort = clientPort;
-	this->TunnelPort = tunnelPort;
-}
-
-u_short BarbaClientRedirectConnection::GetTunnelPort()
-{
-	return this->TunnelPort;
+	ClientPort = initPacket->GetSrcPort();
+	TunnelPort = config->TunnelPorts.GetRandomPort();
 }
 
 u_short BarbaClientRedirectConnection::GetRealPort()
 {
-	return this->Config->RealPort;
+	return GetConfig()->GrabProtocols[0].Port;
+}
+
+u_long BarbaClientRedirectConnection::GetSessionId()
+{
+	return ClientPort;
 }
 
 BarbaClientRedirectConnection::~BarbaClientRedirectConnection(void)
 {
 }
 
-bool BarbaClientRedirectConnection::ShouldProcessPacket(PacketHelper* packet)
+bool BarbaClientRedirectConnection::ProcessOutboundPacket(PacketHelper* packet)
 {
-	//check outgoing packets
-	if (packet->GetDesIp()==GetServerIp())
-	{
-		return packet->GetSrcPort()==this->ClientPort && BarbaClientApp::ShouldGrabPacket(packet, Config);
-	}
-	//check incoming packets
-	else if (packet->GetSrcIp()==GetServerIp())
-	{
-		return packet->ipHeader->ip_p==BarbaMode_GetProtocol(GetMode())
-			&& packet->GetSrcPort()==this->GetTunnelPort()
-			&& packet->GetDesPort()==this->ClientPort;
-	}
-	else
-	{
-		return false;
-	}
+	if (packet->GetSrcPort()!=ClientPort)
+		return false; //it is another UDP connection
+
+	packet->SetDesPort(TunnelPort);
+	EncryptPacket(packet);
+	SendPacketToOutbound(packet);
+	Log3(_T("Sending packet with %d bytes."), packet->GetPacketLen());
+	return true;
 }
 
-
-bool BarbaClientRedirectConnection::ProcessPacket(PacketHelper* packet, bool send)
+bool BarbaClientRedirectConnection::ProcessInboundPacket(PacketHelper* packet)
 {
-	if (send)
-	{
-		packet->SetDesPort(this->GetTunnelPort());
-		EncryptPacket(packet);
-		SendPacketToOutbound(packet);
-		return true;
-	}
-	else
-	{
-		DecryptPacket(packet);
-		if (!packet->IsValidChecksum())
-		{
-			BarbaLog(_T("Error: Detect packet with invalid checksum to redirecting port %d! Check your key."), this->GetTunnelPort());
-			return true;
-		}
-		packet->SetSrcPort(this->GetRealPort());
-		SendPacketToInbound(packet);
-	}
+	if (packet->GetSrcPort()!=TunnelPort || packet->GetDesPort()!=ClientPort)
+		return false;
 
+	DecryptPacket(packet);
+	packet->SetSrcPort(GetRealPort());
+	SendPacketToInbound(packet);
+	Log3(_T("Receving packet with %d bytes."), packet->GetPacketLen());
 	return true;
 }

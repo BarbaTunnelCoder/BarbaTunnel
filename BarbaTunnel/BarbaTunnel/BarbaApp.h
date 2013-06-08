@@ -14,33 +14,35 @@ public:
 	virtual void Initialize();
 	virtual void Start();
 	virtual void Stop();
-	virtual bool ProcessPacket(PacketHelper* packet, bool send)=0;
 	virtual bool IsServerMode()=0;
 	virtual LPCTSTR GetName()=0;
-	bool GetFakeFile(BarbaArray<std::tstring>* fakeTypes, size_t fakeFileMaxSize, TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* fakeFileHeader, bool createNew);
 	bool SendPacketToOutbound(PacketHelper* packet);
 	bool SendPacketToInbound(PacketHelper* packet);
+	virtual bool ProcessInboundPacket(PacketHelper* packet)=0;
+	virtual bool ProcessOutboundPacket(PacketHelper* packet)=0;
 	bool IsDebugMode() {return _DebugMode;}
-	bool IsDisposed() {return this->_IsDisposed;}
-	int GetMTUDecrement() { return this->MTUDecrement; }
+	bool IsDisposed() {return _IsDisposed;}
+	int GetMTUDecrement() { return MTUDecrement; }
 	bool CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMTUDecrement);
 	static LPCTSTR GetConfigFolder();
 	static LPCTSTR GetSettingsFile();
 	static LPCTSTR GetAppFolder();
 	static LPCTSTR GetModuleFolder();
 	static LPCTSTR GetModuleFile();
-	BarbaFilterDriver* GetFilterDriver() { return this->FilterDriver; }
+	static int GetMinMTUDecrement();
+	BarbaFilterDriver* GetFilterDriver() { return FilterDriver; }
 	size_t GetAdapterIndex() {return _AdapterIndex;}
 	int TimeZone; 
 	int LogLevel;
 	bool LogAnonymously;
 	BarbaComm Comm;
 	u_int ConnectionTimeout;
-	std::vector<FakeFileHeader> FakeFileHeaders;
+	bool GetFakeFile(BarbaArray<std::tstring>* fakeTypes, size_t fakeFileMaxSize, TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* fakeFileHeader, bool createNew);
+	BarbaArray<FakeFileHeader> FakeFileHeaders;
 
 	//ProcessFilterDriverPacket should called by FilterDriver
 	//@return false if packet does not processed and should just continue its route
-	bool ProcessFilterDriverPacket(PacketHelper* packet, bool send);
+	bool ProcessFilterDriverPacket(PacketHelper* packet, bool outbound);
 
 	//store thread for clean shutdown; the process will wait for all of this thread to complete
 	void AddThread(HANDLE threadHandle);

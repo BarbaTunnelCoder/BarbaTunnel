@@ -7,13 +7,13 @@ class BarbaClientConfig : public BarbaConfig
 {
 public:
 	BarbaClientConfig();
-	virtual bool LoadFile(LPCTSTR file);
+	bool LoadFile(LPCTSTR file) override;
 	virtual ~BarbaClientConfig(){}
-	static void LoadFolder(LPCTSTR folder, std::vector<BarbaClientConfig>* configs);
+	static void LoadFolder(LPCTSTR folder, BarbaArray<BarbaClientConfig>* configs);
 	u_short MinPacketSize;
 	DWORD KeepAliveInterval;
 	BarbaArray<std::tstring> FakeFileTypes; //use by HTTP-Tunnel
 	u_int MaxTransferSize; //use by HTTP-Tunnel
-	std::vector<ProtocolPort> GrabProtocols;
+	BarbaArray<ProtocolPort> GrabProtocols;
 	BarbaCourierRequestMode HttpRequestMode;
 };

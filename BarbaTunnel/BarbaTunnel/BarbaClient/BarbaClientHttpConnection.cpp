@@ -16,7 +16,7 @@ void BarbaClientHttpConnection::Init()
 {
 	BarbaCourierHttpClient::CreateStrcutHttp* cs = new BarbaCourierHttpClient::CreateStrcutHttp();
 	InitHelper(cs);
-	cs->RequestMode = Config->HttpRequestMode;
+	cs->RequestMode = GetConfig()->HttpRequestMode;
 	_Courier = new Courier(cs, this);
 	_Courier->Init();
 }
@@ -47,13 +47,7 @@ void BarbaClientHttpConnection::Courier::Receive(BarbaBuffer* data)
 	if (IsDisposing()) 
 		return; 
 
-	PacketHelper packet((iphdr_ptr)data->data(), data->size());
-	if (!packet.IsValidChecksum())
-	{
-		Log2(_T("Error: Invalid packet checksum received! Check your key and version."));
-		return;
-	}
-	_Connection->ProcessPacket(&packet, false);
+	_Connection->ReceiveData(data);
 }
 
 std::tstring BarbaClientHttpConnection::Courier::GetHttpPostTemplate(bool bombardMode)
@@ -71,5 +65,5 @@ void BarbaClientHttpConnection::Courier::GetFakeFile(TCHAR* filename, std::tstri
 	if (IsDisposing()) 
 		return; 
 
-	theApp->GetFakeFile(&_Connection->GetConfigItem()->FakeFileTypes, GetCreateStruct()->MaxTransferSize, filename, contentType, fileSize, fakeFileHeader, createNew);
+	theApp->GetFakeFile(&_Connection->GetConfig()->FakeFileTypes, GetCreateStruct()->MaxTransferSize, filename, contentType, fileSize, fakeFileHeader, createNew);
 }

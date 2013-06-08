@@ -35,10 +35,12 @@ void BarbaCrypt::CryptUdp(PacketHelper* packet, BYTE* key, size_t keyCount, bool
 {
 	Crypt(packet->GetUdpPayload(), packet->GetUdpPayloadLen(), key, keyCount, 0, encrypt);
 	Crypt(packet->GetIpExtraHeader(), packet->GetIpExtraHeaderLen(), key, keyCount, 0, encrypt);
+	packet->RecalculateChecksum();
 }
 
 void BarbaCrypt::CryptTcp(PacketHelper* packet, BYTE* key, size_t keyCount, bool encrypt)
 {
 	Crypt(packet->GetTcpExtraHeader(), packet->GetTcpExtraHeaderLen() + packet->GetTcpPayloadLen(), key, keyCount, 0, encrypt);
 	Crypt(packet->GetIpExtraHeader(), packet->GetIpExtraHeaderLen(), key, keyCount, 0, encrypt);
+	packet->RecalculateChecksum();
 }

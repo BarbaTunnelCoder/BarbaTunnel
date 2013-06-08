@@ -36,6 +36,7 @@ u_char BarbaMode_GetProtocol(BarbaModeEnum mode)
 	switch (mode){
 	case BarbaModeUdpTunnel: return IPPROTO_UDP;
 	case BarbaModeUdpRedirect: return IPPROTO_UDP;
+	case BarbaModeHttpTunnel: return IPPROTO_TCP;
 	case BarbaModeTcpTunnel: return IPPROTO_TCP;
 	case BarbaModeTcpRedirect: return IPPROTO_TCP;
 	default: return IPPROTO_IP;

@@ -6,8 +6,8 @@ class BarbaServerConfig : public BarbaConfig
 public:
 	BarbaServerConfig();
 	virtual ~BarbaServerConfig(){}
-	virtual bool LoadFile(LPCTSTR file);
-	static void LoadFolder(LPCTSTR folder, std::vector<BarbaServerConfig>* configs);
+	bool LoadFile(LPCTSTR file) override;
+	static void LoadFolder(LPCTSTR folder, BarbaArray<BarbaServerConfig>* configs);
 	
 	bool AllowHttpRequestNone;
 	bool AllowHttpRequestNormal;

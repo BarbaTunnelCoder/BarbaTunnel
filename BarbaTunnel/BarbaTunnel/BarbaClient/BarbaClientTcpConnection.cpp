@@ -44,11 +44,5 @@ void BarbaClientTcpConnection::Courier::Receive(BarbaBuffer* data)
 	if (IsDisposing()) 
 		return; 
 
-	PacketHelper packet((iphdr_ptr)data->data(), data->size());
-	if (!packet.IsValidChecksum())
-	{
-		Log2(_T("Error: Invalid packet checksum received! Check your key and version."));
-		return;
-	}
-	_Connection->ProcessPacket(&packet, false);
+	_Connection->ReceiveData(data);
 }

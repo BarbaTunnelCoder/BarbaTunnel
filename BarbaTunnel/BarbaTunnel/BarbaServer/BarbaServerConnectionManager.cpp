@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "BarbaServerConnectionManager.h"
-#include "BarbaServerUdpConnection.h"
+#include "BarbaServerUdpSimpleConnection.h"
 #include "BarbaServerRedirectConnection.h"
 #include "BarbaServerApp.h"
 #include "BarbaServerTcpConnection.h"
@@ -18,7 +18,7 @@ BarbaServerConnectionManager::~BarbaServerConnectionManager(void)
 
 void BarbaServerConnectionManager::Initialize(IpRange* virtualIpRange)
 {
-	this->VirtualIpManager.Initialize(virtualIpRange);
+	VirtualIpManager.Initialize(virtualIpRange);
 }
 
 void BarbaServerConnectionManager::RemoveConnection(BarbaConnection* conn)
@@ -31,44 +31,41 @@ void BarbaServerConnectionManager::RemoveConnection(BarbaConnection* conn)
 
 BarbaServerConnection* BarbaServerConnectionManager::FindByVirtualIp(DWORD ip)
 {
-	BarbaServerConnection* ret = NULL;
-	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&this->Connections);
+	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&Connections);
 	BarbaServerConnection** connections = (BarbaServerConnection**)autoLockBuf.GetBuffer();
-	for (size_t i=0; i<this->Connections.GetCount() && ret==NULL; i++)
+	for (size_t i=0; i<Connections.GetCount(); i++)
 	{
 		BarbaServerConnection* conn = connections[i];
 		if (conn->GetClientVirtualIp()==ip )
-			ret = conn;
+			return conn;
 	}
 
-	return ret;
+	return NULL;
 }
 
 BarbaServerConnection* BarbaServerConnectionManager::FindBySessionId(u_long sessionId)
 {
-	BarbaServerConnection* ret = NULL;
-	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&this->Connections);
+	SimpleSafeList<BarbaConnection*>::AutoLockBuffer autoLockBuf(&Connections);
 	BarbaServerConnection** connections = (BarbaServerConnection**)autoLockBuf.GetBuffer();
-	for (size_t i=0; i<this->Connections.GetCount() && ret==NULL; i++)
+	for (size_t i=0; i<Connections.GetCount(); i++)
 	{
 		BarbaServerConnection* conn = connections[i];
 		if (conn->GetSessionId()==sessionId)
-			ret = conn;
+			return conn;
 	}
-	return ret;
+	return NULL;
 }
-	
 
-BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(PacketHelper* packet, BarbaServerConfig* config)
+BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(BarbaServerConfig* config, PacketHelper* packet)
 {
 	BarbaServerConnection* conn = NULL;
 	if (config->Mode==BarbaModeUdpRedirect || config->Mode==BarbaModeTcpRedirect)
 	{
-		conn = new BarbaServerRedirectConnection(config, this->VirtualIpManager.GetNewIp(), packet->GetSrcIp(), packet->GetSrcPort(), packet->GetDesPort());
+		conn = new BarbaServerRedirectConnection(config, VirtualIpManager.GetNewIp(), packet);
 	}
 	else if (config->Mode==BarbaModeUdpTunnel)
 	{
-		conn = new BarbaServerUdpConnection(config, this->VirtualIpManager.GetNewIp(), packet->GetSrcIp(), packet->GetSrcPort(), packet->GetDesPort(), packet->ethHeader->h_source);
+		conn = new BarbaServerUdpSimpleConnection(config, VirtualIpManager.GetNewIp(), packet);
 	}
 	else
 	{

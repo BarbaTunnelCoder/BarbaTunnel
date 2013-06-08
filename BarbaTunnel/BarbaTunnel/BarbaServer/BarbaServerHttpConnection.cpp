@@ -41,15 +41,9 @@ void BarbaServerHttpConnection::Courier::Crypt(BYTE* data, size_t dataSize, size
 void BarbaServerHttpConnection::Courier::Receive(BarbaBuffer* data)
 {
 	if (IsDisposing()) 
-		return; 
-
-	PacketHelper packet((iphdr_ptr)data->data(), data->size());
-	if (!packet.IsValidChecksum())
-	{
-		Log2(_T("Error: Invalid packet checksum received! Check your key."));
 		return;
-	}
-	_Connection->ProcessPacket(&packet, false);
+
+	_Connection->ReceiveData(data);
 }
 
 void BarbaServerHttpConnection::Courier::GetFakeFile(TCHAR* filename, std::tstring* contentType, BarbaBuffer* fakeFileHeader)

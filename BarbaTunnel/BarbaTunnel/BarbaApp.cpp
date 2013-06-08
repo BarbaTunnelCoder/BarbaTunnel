@@ -30,7 +30,7 @@ void BarbaApp::Load()
 	LogAnonymously = GetPrivateProfileInt(_T("General"), _T("LogAnonymously"), 1, GetSettingsFile())!=0;
 	_DebugMode = GetPrivateProfileInt(_T("General"), _T("DebugMode"), 0, GetSettingsFile())!=0;
 	ConnectionTimeout = GetPrivateProfileInt(_T("General"), _T("ConnectionTimeout"), 0, GetSettingsFile())*60*1000;
-	MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), BARBA_MTUDecrementDefault, GetSettingsFile());
+	MTUDecrement = GetPrivateProfileInt(_T("General"), _T("MTUDecrement"), GetMinMTUDecrement(), GetSettingsFile());
 	if (ConnectionTimeout==0) ConnectionTimeout = BARBA_ConnectionTimeout;
 	if (LogLevel<1) LogLevel = 1;
 
@@ -84,7 +84,7 @@ void BarbaApp::InitFakeFileHeaders()
 		ffh.ContentType = contentType;
 		//file-header
 		if ( BarbaUtils::LoadFileToBuffer(files[i].data(), &ffh.Data) )
-			this->FakeFileHeaders.push_back(ffh);
+			FakeFileHeaders.append(ffh);
 	}
 }
 
@@ -194,10 +194,14 @@ LPCTSTR BarbaApp::GetModuleFolder()
 	return file;
 }
 
-
-bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool send)
+int BarbaApp::GetMinMTUDecrement()
 {
-	if (send || !packet->IsIp())
+	return sizeof iphdr + sizeof udphdr + sizeof BarbaHeader;
+}
+ 
+bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool outbound)
+{
+	if (outbound || !packet->IsIp())
 		return false;
 
 	if (packet->ipHeader->ip_p!=1)
@@ -383,18 +387,21 @@ void BarbaApp::Start()
 	}
 }
 
-bool BarbaApp::ProcessFilterDriverPacket(PacketHelper* packet, bool send)
+bool BarbaApp::ProcessFilterDriverPacket(PacketHelper* packet, bool outbound)
 {
 	if (!packet->IsIp())
 		return false;
 
 	//check commands
-	if (IsDebugMode() && CheckTerminateCommands(packet, send))
+	if (IsDebugMode() && CheckTerminateCommands(packet, outbound))
 	{
 		BarbaLog(_T("Terminate Command Received."));
 		Stop();
 		return true;
 	}
 
-	return ProcessPacket(packet, send);
+	if (outbound)
+		return ProcessOutboundPacket(packet);
+	else
+		return ProcessInboundPacket(packet);
 }

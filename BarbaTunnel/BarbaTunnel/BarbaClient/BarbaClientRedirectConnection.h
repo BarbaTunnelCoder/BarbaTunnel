@@ -1,14 +1,13 @@
 #pragma once
 #include "BarbaClientConnection.h"
-class BarbaClientRedirectConnection :
-	public BarbaClientConnection
+class BarbaClientRedirectConnection : public BarbaClientConnection
 {
 public:
-	explicit BarbaClientRedirectConnection(BarbaClientConfig* config, u_short clientPort, u_short tunnelPort);
+	explicit BarbaClientRedirectConnection(BarbaClientConfig* config, PacketHelper* initPacket);
 	virtual ~BarbaClientRedirectConnection(void);
-	virtual bool ProcessPacket(PacketHelper* packet, bool send);
-	virtual bool ShouldProcessPacket(PacketHelper* packet);
-	virtual u_short GetTunnelPort();
+	bool ProcessOutboundPacket(PacketHelper* packet) override;
+	bool ProcessInboundPacket(PacketHelper* packet) override;
+	u_long GetSessionId() override;
 	u_short GetRealPort();
 
 private:

@@ -50,12 +50,12 @@ void BarbaFilterDriver::UpdateMTUDecrement()
 
 void BarbaFilterDriver::Start()
 {
-	this->_IsStarted = true;
-	if (this->CaptureThreadHandle!=NULL)
-		CloseHandle(this->CaptureThreadHandle); //delete old handle if start again without dispose
-	this->CaptureThreadHandle = (HANDLE)_beginthreadex(NULL, 16000, CaptureThread, this, 0, NULL);
+	_IsStarted = true;
+	if (CaptureThreadHandle!=NULL)
+		CloseHandle(CaptureThreadHandle); //delete old handle if start again without dispose
+	CaptureThreadHandle = (HANDLE)_beginthreadex(NULL, 16000, CaptureThread, this, 0, NULL);
 	ProcessCapturedPackets();
-	this->_IsStarted = false;
+	_IsStarted = false;
 }
 
 void BarbaFilterDriver::Stop()
@@ -69,10 +69,10 @@ void BarbaFilterDriver::Dispose()
 	if (IsStarted())
 		Stop();
 
-	if (this->CaptureThreadHandle!=NULL)
+	if (CaptureThreadHandle!=NULL)
 	{
-		WaitForSingleObject(this->CaptureThreadHandle, INFINITE);
-		CloseHandle( this->CaptureThreadHandle );
+		WaitForSingleObject(CaptureThreadHandle, INFINITE);
+		CloseHandle( CaptureThreadHandle );
 	}
 }
 
@@ -86,8 +86,8 @@ void BarbaFilterDriver::AddPacket(PacketHelper* packet, bool send)
 	}
 
 	//wait till pulse set
-	SimpleLock lock(this->CapturePackets.GetCriticalSection());
-	if (this->CapturePackets.GetCount()==this->MaxCaptureMessageQueue)
+	SimpleLock lock(CapturePackets.GetCriticalSection());
+	if (CapturePackets.GetCount()==MaxCaptureMessageQueue)
 	{
 		BarbaLog(_T("FilterDriver: Capture Message Queue is full. Packet dropped!"));
 		delete packet;
@@ -95,8 +95,8 @@ void BarbaFilterDriver::AddPacket(PacketHelper* packet, bool send)
 	}
 
 
-	this->CapturePackets.AddTail(new CapturePacket(packet, send));
-	this->CaptureEvent.Set();
+	CapturePackets.AddTail(new CapturePacket(packet, send));
+	CaptureEvent.Set();
 }
 
 unsigned int __stdcall BarbaFilterDriver::CaptureThread(void* data)
@@ -127,26 +127,27 @@ unsigned int __stdcall BarbaFilterDriver::CaptureThread(void* data)
 void BarbaFilterDriver::ProcessCapturedPackets()
 {
 	HANDLE events[2];
-	events[0] = this->CaptureEvent.GetHandle();
-	events[1] = this->StopEvent.GetHandle();
-	while (!this->StopEvent.IsSet())
+	events[0] = CaptureEvent.GetHandle();
+	events[1] = StopEvent.GetHandle();
+	while (!StopEvent.IsSet())
 	{
 		WaitForMultipleObjects(_countof(events), events, FALSE, INFINITE);
-		CapturePacket* capturePacket = this->CapturePackets.RemoveHead();
+		CapturePacket* capturePacket = CapturePackets.RemoveHead();
 		try
 		{
 			while (capturePacket!=NULL)
 			{
-				if (!theApp->ProcessFilterDriverPacket(capturePacket->Packet, capturePacket->Send))
+				PacketHelper packet(capturePacket->Packet); //keep copy to prevent change
+				if (!theApp->ProcessFilterDriverPacket(&packet, capturePacket->Outbound))
 				{
-					if (capturePacket->Send)
-						this->SendPacketToOutbound(capturePacket->Packet);
+					if (capturePacket->Outbound)
+						SendPacketToOutbound(capturePacket->Packet);
 					else
-						this->SendPacketToInbound(capturePacket->Packet);
+						SendPacketToInbound(capturePacket->Packet);
 				}
 				
 				delete capturePacket;
-				capturePacket = this->CapturePackets.RemoveHead();
+				capturePacket = CapturePackets.RemoveHead();
 			}
 		}
 		catch (BarbaException* err)
@@ -186,7 +187,7 @@ void BarbaFilterDriver::ProcessCapturedPackets()
 	}
 }
 
-void BarbaFilterDriver::AddClientFilters(void* filter, std::vector<BarbaClientConfig>* configs)
+void BarbaFilterDriver::AddClientFilters(void* filter, BarbaArray<BarbaClientConfig>* configs)
 {
 	for (size_t i=0; i<configs->size(); i++)
 	{
@@ -209,7 +210,7 @@ void BarbaFilterDriver::AddClientFilters(void* filter, std::vector<BarbaClientCo
 	}
 }
 
-void BarbaFilterDriver::AddServerFilters(void* filter, std::vector<BarbaServerConfig>* configs)
+void BarbaFilterDriver::AddServerFilters(void* filter, BarbaArray<BarbaServerConfig>* configs)
 {
 	//filter incoming tunnel
 	for (size_t i=0; i<configs->size(); i++)

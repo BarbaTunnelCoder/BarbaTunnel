@@ -7,7 +7,7 @@
 #include "SimpleEvent.h"
 #include "BarbaException.h"
 
-#define BARBA_CurrentVersion _T("7.2")
+#define BARBA_CurrentVersion _T("8.0")
 #define BARBA_MaxConfigName 100
 #define BARBA_ServerMaxVirtualIps 0xFFFF
 #define BARBA_ServerMaxListenSockets 200
@@ -24,7 +24,6 @@
 #define BARBA_KeepAliveIntervalDefault (60 * 1000) //60 second
 #define BARBA_ConfigFolderName _T("config")
 #define BARBA_ConnectionTimeout (15 * 60*1000) //15 min
-#define BARBA_MTUDecrementDefault 60
 
 
 //BarbaModeEnum

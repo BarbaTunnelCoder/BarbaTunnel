@@ -2,57 +2,46 @@
 #include "BarbaServerRedirectConnection.h"
 
 
-BarbaServerRedirectConnection::BarbaServerRedirectConnection(BarbaServerConfig* config, u_long clientVirtualIp, u_long clientIp, 
-	u_short clientPort, u_short tunnelPort)
-	: BarbaServerConnection(config, clientVirtualIp, clientIp)
+BarbaServerRedirectConnection::BarbaServerRedirectConnection(BarbaServerConfig* config, u_long clientVirtualIp, PacketHelper* initPacket)
+	: BarbaServerConnection(config, clientVirtualIp, initPacket->GetSrcIp())
 {
-	this->ClientPort = clientPort;
-	this->TunnelPort = tunnelPort;
+	ClientPort = initPacket->GetSrcPort();
+	TunnelPort = initPacket->GetDesPort();
 }
 
+u_long BarbaServerRedirectConnection::GetSessionId()
+{
+	return ClientPort;
+}
 
 BarbaServerRedirectConnection::~BarbaServerRedirectConnection(void)
 {
 }
 
-u_short BarbaServerRedirectConnection::GetTunnelPort()
-{
-	return this->TunnelPort;
-}
-
 u_short BarbaServerRedirectConnection::GetRealPort()
 {
-	return Config->RealPort;
+	return GetConfig()->RealPort;
 }
 
-bool BarbaServerRedirectConnection::ShouldProcessPacket(PacketHelper* packet)
+bool BarbaServerRedirectConnection::ProcessOutboundPacket(PacketHelper* packet)
 {
-	return 
-		(packet->GetDesIp()==this->GetClientVirtualIp()) || //check outgoing packets
-		(packet->GetSrcIp()==this->ClientIp && packet->GetSrcPort()==this->ClientPort && packet->GetDesPort()==this->GetTunnelPort() && packet->ipHeader->ip_p==BarbaMode_GetProtocol(GetMode()) );  //check incoming packets
+	packet->SetSrcPort(TunnelPort);
+	packet->SetDesIp(ClientIp);
+	EncryptPacket(packet);
+	SendPacketToOutbound(packet);
+	Log3(_T("Sending packet with %d bytes."), packet->GetPacketLen());
+	return true;
 }
 
-bool BarbaServerRedirectConnection::ProcessPacket(PacketHelper* packet, bool send)
+bool BarbaServerRedirectConnection::ProcessInboundPacket(PacketHelper* packet)
 {
-	if (send)
-	{
-		packet->SetSrcPort(this->TunnelPort);
-		packet->SetDesIp(this->ClientIp);
-		EncryptPacket(packet);
-		this->SendPacketToOutbound(packet);
-	}
-	else
-	{
-		DecryptPacket(packet);
-		if (!packet->IsValidChecksum())
-		{
-			BarbaLog(_T("Error: Detect packet with invalid checksum to redirecting port %d! Check your key."), this->GetTunnelPort());
-			return true; //don't process packet
-		}
-		packet->SetSrcIp(this->ClientVirtualIp);
-		packet->SetDesPort(this->GetRealPort());
-		SendPacketToInbound(packet);
-	}
+	if (packet->GetSrcPort()!=ClientPort)
+		return false;
 
+	DecryptPacket(packet);
+	packet->SetSrcIp(ClientVirtualIp);
+	packet->SetDesPort(GetRealPort());
+	SendPacketToInbound(packet);
+	Log3(_T("Receving packet with %d bytes."), packet->GetPacketLen());
 	return true;
 }

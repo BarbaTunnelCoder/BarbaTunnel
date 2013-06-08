@@ -51,6 +51,8 @@ public:
 	size_t GetSentBytesCount() {return this->SentBytesCount;}
 	size_t GetReceiveBytesCount() {return this->ReceivedBytesCount;}
 	bool IsDisposing() { return this->DisposeEvent.IsSet(); }
+	void Log2(LPCTSTR format, ...);
+	void Log3(LPCTSTR format, ...);
 
 	//Call this method to delete object, This method will signal all created thread to finish their job
 	//This method will call asynchronously. do not use the object after call it 
@@ -67,7 +69,9 @@ private:
 	SimpleCriticalSection SendEventCS;
 	SimpleSafeList<Message*> Messages;
 	std::tstring RequestDataKeyName;
+
 protected: 
+	void LogImpl(int level, LPCTSTR format, va_list _ArgList);
 	virtual void Dispose();
 	virtual void Crypt(BYTE* data, size_t dataSize, size_t index, bool encrypt);
 	virtual ~BarbaCourier(void);
@@ -85,9 +89,6 @@ protected:
 	void ProcessOutgoingMessages(BarbaArray<Message*>& messages, size_t cryptIndex, size_t maxPacketSize, BarbaBuffer* packet);
 	void GetMessages(BarbaArray<Message*>& messages);
 	Message* GetMessage();
-	void LogImpl(int level, LPCTSTR format, va_list _ArgList);
-	void Log2(LPCTSTR format, ...);
-	void Log3(LPCTSTR format, ...);
 	void CheckKeepAlive();
 	void StartKeepAliveThread();
 	static unsigned int __stdcall CheckKeepAliveThread(void* BarbaCourier);
