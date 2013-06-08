@@ -162,24 +162,6 @@
     <ClInclude Include="BarbaClient\BarbaClientTcpConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BarbaCourier\BarbaCourier.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BarbaCourier\BarbaCourierHttpClient.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BarbaCourier\BarbaCourierHttpServer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BarbaCourier\BarbaCourierTcpClient.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BarbaCourier\BarbaCourierTcpServer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BarbaCourier\BarbaCourierRequestMode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BarbaServer\BarbaServerHttpConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -211,6 +193,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BarbaClient\BarbaClientUdpConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaCourierStream\BarbaCourierHttpClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaCourierStream\BarbaCourierHttpServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaCourierStream\BarbaCourierRequestMode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaCourierStream\BarbaCourierTcpClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaCourierStream\BarbaCourierTcpServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BarbaCourierStream\BarbaCourierStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -302,24 +302,6 @@
     <ClCompile Include="BarbaClient\BarbaClientTcpConnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarbaCourier\BarbaCourier.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BarbaCourier\BarbaCourierHttpClient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BarbaCourier\BarbaCourierHttpServer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BarbaCourier\BarbaCourierTcpClient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BarbaCourier\BarbaCourierTcpServer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BarbaCourier\BarbaCourierRequestMode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BarbaServer\BarbaServerHttpConnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -351,6 +333,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BarbaClient\BarbaClientUdpConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaCourierStream\BarbaCourierHttpClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaCourierStream\BarbaCourierHttpServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaCourierStream\BarbaCourierRequestMode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaCourierStream\BarbaCourierTcpClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaCourierStream\BarbaCourierTcpServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BarbaCourierStream\BarbaCourierStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

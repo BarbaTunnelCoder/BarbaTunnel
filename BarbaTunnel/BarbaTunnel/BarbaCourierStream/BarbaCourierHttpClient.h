@@ -8,8 +8,8 @@ public:
 	struct CreateStrcutHttp : public CreateStrcutTcp
 	{
 		BarbaCourierRequestMode RequestMode;
+		std::tstring HostName;
 	};
-
 
 public:
 	BarbaCourierHttpClient(CreateStrcutHttp* cs);
@@ -24,7 +24,7 @@ protected:
 	virtual std::tstring GetHttpPostTemplate(bool bombardMode)=0;
 	virtual std::tstring GetHttpGetTemplate(bool bombardMode)=0;
 	virtual void GetFakeFile(TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* fakeFileHeader, bool createNew)=0;
-	CreateStrcutHttp* GetCreateStruct() {return (CreateStrcutHttp*)BarbaCourier::GetCreateStruct();}
+	CreateStrcutHttp* GetCreateStruct() {return (CreateStrcutHttp*)BarbaCourierStream::GetCreateStruct();}
 	std::tstring CreateRequestString(bool outgoing, size_t transferSize, size_t fileHeaderSize);
 	
 private:

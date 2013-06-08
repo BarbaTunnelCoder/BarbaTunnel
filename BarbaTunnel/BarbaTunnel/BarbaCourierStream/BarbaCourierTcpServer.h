@@ -1,8 +1,8 @@
 #pragma once
-#include "BarbaCourier.h"
+#include "BarbaCourierStream.h"
 
 //BarbaCourierTcpServer
-class BarbaCourierTcpServer : public BarbaCourier
+class BarbaCourierTcpServer : public BarbaCourierStream
 {
 public:
 	struct CreateStrcutTcp : public CreateStrcut

@@ -11,7 +11,6 @@ BarbaServerTcpConnectionBase::BarbaServerTcpConnectionBase(BarbaServerConfig* co
 void BarbaServerTcpConnectionBase::InitHelper(BarbaCourierTcpServer::CreateStrcutTcp* cs, LPCTSTR requestData)
 {
 	SessionId = (u_long)BarbaUtils::GetKeyValueFromString(requestData, _T("SessionId"), 0);
-	cs->HostName = GetConfig()->ServerAddress;
 	cs->MaxConnections = GetConfig()->MaxUserConnections;
 	cs->ConnectionTimeout = theApp->ConnectionTimeout;
 }

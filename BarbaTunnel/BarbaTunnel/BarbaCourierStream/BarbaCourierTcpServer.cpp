@@ -3,13 +3,13 @@
 #include "BarbaUtils.h"
 
 BarbaCourierTcpServer::BarbaCourierTcpServer(CreateStrcutTcp* cs)
-	: BarbaCourier(cs)
+	: BarbaCourierStream(cs)
 {
 }
 
 void BarbaCourierTcpServer::Init(LPCTSTR requestData)
 {
-	BarbaCourier::Init();
+	BarbaCourierStream::Init();
 	GetCreateStruct()->MinPacketSize = BarbaUtils::GetKeyValueFromString(requestData, _T("MinPacketSize"), 0);
 	GetCreateStruct()->KeepAliveInterval = BarbaUtils::GetKeyValueFromString(requestData, _T("KeepAliveInterval"), 0);
 	GetCreateStruct()->SessionId = BarbaUtils::GetKeyValueFromString(requestData, _T("SessionId"), 0);
