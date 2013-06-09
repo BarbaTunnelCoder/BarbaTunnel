@@ -218,53 +218,53 @@ bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool outbound)
 void BarbaApp::Dispose()
 {
 	//check is already disposed
-	if (this->_IsDisposed)
+	if (_IsDisposed)
 		return; 
 
 	//dispose
-	this->_IsDisposed = true;
+	_IsDisposed = true;
 	Stop();
 
 	//wait for all thread to end
-	HANDLE thread = this->Threads.RemoveHead();
+	HANDLE thread = Threads.RemoveHead();
 	while (thread!=NULL)
 	{
 		WaitForSingleObject(thread, INFINITE);
 		CloseHandle(thread);
-		thread = this->Threads.RemoveHead();
+		thread = Threads.RemoveHead();
 	}
 
 	//dispose Comm
-	this->Comm.Dispose();
-	this->FilterDriver->Dispose();
-	delete this->FilterDriver;
+	Comm.Dispose();
+	FilterDriver->Dispose();
+	delete FilterDriver;
 }
 
 bool BarbaApp::SendPacketToOutbound(PacketHelper* packet)
 {
-	return this->FilterDriver->SendPacketToOutbound(packet);
+	return FilterDriver->SendPacketToOutbound(packet);
 }
 
 bool BarbaApp::SendPacketToInbound(PacketHelper* packet)
 {
-	return this->FilterDriver->SendPacketToInbound(packet);
+	return FilterDriver->SendPacketToInbound(packet);
 }
 
 bool BarbaApp::CheckMTUDecrement(size_t outgoingPacketLength, u_short requiredMTUDecrement)
 {
 	static bool ShowMtuError = true;
-	bool ret = (outgoingPacketLength + requiredMTUDecrement)<=this->FilterDriver->GetMaxPacketLen();
+	bool ret = (outgoingPacketLength + requiredMTUDecrement)<=FilterDriver->GetMaxPacketLen();
 	if ( !ret && ShowMtuError)
 	{
 		ShowMtuError = false;
-		if (this->FilterDriver->GetMTUDecrement()<requiredMTUDecrement)
+		if (FilterDriver->GetMTUDecrement()<requiredMTUDecrement)
 		{
-			BarbaLog(_T("Error: Large outgoing packet size! Your current MTU-Decrement is %d, Please set MTU-Decrement to %d in BarbaTunnel.ini."), this->FilterDriver->GetMTUDecrement(), requiredMTUDecrement);
+			BarbaLog(_T("Error: Large outgoing packet size! Your current MTU-Decrement is %d, Please set MTU-Decrement to %d in BarbaTunnel.ini."), FilterDriver->GetMTUDecrement(), requiredMTUDecrement);
 			BarbaNotify(_T("Error: Large outgoing packet size!\r\nPlease set MTU-Decrement to %d in BarbaTunnel.ini."), requiredMTUDecrement);
 		}
 		else
 		{
-			BarbaLog(_T("Error: Large outgoing packet size! More %d MTU-Decrement bytes required, Are you sure your system has been restarted?"), outgoingPacketLength + requiredMTUDecrement - this->FilterDriver->GetMaxPacketLen());
+			BarbaLog(_T("Error: Large outgoing packet size! More %d MTU-Decrement bytes required, Are you sure your system has been restarted?"), outgoingPacketLength + requiredMTUDecrement - FilterDriver->GetMaxPacketLen());
 			BarbaNotify(_T("Error: Large outgoing packet size!\r\nAre you sure your system has been restarted?"));
 		}
 	}
@@ -297,12 +297,12 @@ bool BarbaApp::GetFakeFile(BarbaArray<std::tstring>* fakeTypes, size_t fakeFileM
 	if (fakeFileHeader!=NULL)
 	{
 		std::tstring extension = BarbaUtils::GetFileExtensionFromUrl(filename);
-		for (size_t i=0; i<this->FakeFileHeaders.size(); i++)
+		for (size_t i=0; i<FakeFileHeaders.size(); i++)
 		{
-			if (_tcsicmp(this->FakeFileHeaders[i].Extension.data(), extension.data())==0)
+			if (_tcsicmp(FakeFileHeaders[i].Extension.data(), extension.data())==0)
 			{
-				*contentType = this->FakeFileHeaders[i].ContentType;
-				*fakeFileHeader = this->FakeFileHeaders[i].Data;
+				*contentType = FakeFileHeaders[i].ContentType;
+				*fakeFileHeader = FakeFileHeaders[i].Data;
 			}
 		}
 	}
@@ -312,14 +312,14 @@ bool BarbaApp::GetFakeFile(BarbaArray<std::tstring>* fakeTypes, size_t fakeFileM
 
 void BarbaApp::UpdateSettings()
 {
-	this->LogLevel = GetPrivateProfileInt(_T("General"), _T("LogLevel"), 0, GetSettingsFile());
+	LogLevel = GetPrivateProfileInt(_T("General"), _T("LogLevel"), 0, GetSettingsFile());
 }
 
 void BarbaApp::OnNewCommand(BarbaComm::CommandEnum command)
 {
 	switch(command){
 	case BarbaComm::CommandRestart:
-		this->IsRestartCommand = true;
+		IsRestartCommand = true;
 		Stop();
 		break;
 
@@ -335,12 +335,12 @@ void BarbaApp::OnNewCommand(BarbaComm::CommandEnum command)
 
 void BarbaApp::Stop()
 {
-	if (this->FilterDriver->IsStopping() || !this->FilterDriver->IsStarted())
+	if (FilterDriver->IsStopping() || !FilterDriver->IsStarted())
 		return;
 
 	BarbaLog(_T("BarbaTunnel Stopping."));
-	if (this->FilterDriver!=NULL)
-		this->FilterDriver->Stop();
+	if (FilterDriver!=NULL)
+		FilterDriver->Stop();
 }
 
 void BarbaApp::Start()
@@ -352,16 +352,16 @@ void BarbaApp::Start()
 	//start FilterDriver
 	BarbaLog(_T("Ready!"));
 	BarbaNotify(_T("%s Started\r\nVersion: %s"), GetName(), BARBA_CurrentVersion);
-	this->Comm.SetStatus(_T("Started"));
-	this->FilterDriver->Start();
+	Comm.SetStatus(_T("Started"));
+	FilterDriver->Start();
 
 	//report finish
 	BarbaLog(_T("BarbaTunnel Stopped."));
-	this->Comm.SetStatus(_T("Stopped"));
+	Comm.SetStatus(_T("Stopped"));
 
 	//report restarting
 	PROCESS_INFORMATION pi = {0};
-	if (this->IsRestartCommand)
+	if (IsRestartCommand)
 	{
 		BarbaLog(_T("BarbaTunnel Restarting..."));
 		STARTUPINFO inf = {0};

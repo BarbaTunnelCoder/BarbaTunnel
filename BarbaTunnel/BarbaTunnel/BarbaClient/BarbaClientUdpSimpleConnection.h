@@ -1,6 +1,11 @@
 #pragma once
 #include "BarbaClientConnection.h"
 
+/*
+ * This class is deprecated and UDP tunnel implemented by BarbaClientUdpConnection. 
+ * It very sample and hello word fo whom that wants to add a protocol to BarbaTunnel
+ * See how much simple is to add a tunnel protocol with BarbaTunnel!
+ */
 class BarbaClientUdpSimpleConnection : 	public BarbaClientConnection
 {
 public:
