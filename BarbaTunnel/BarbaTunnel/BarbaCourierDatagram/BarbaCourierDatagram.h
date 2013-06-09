@@ -4,15 +4,15 @@
 class BarbaCourierDatagram
 {
 public:
-	class CreateStrcut
+	struct CreateStrcut
 	{
-	public:
-		CreateStrcut() { SessionId=0; MaxPacketSize=0; }
+		CreateStrcut() { SessionId=0; MaxPacketSize=0; MessageTimeout=10000;}
 		DWORD SessionId;
 		size_t MaxPacketSize;
+		DWORD MessageTimeout;
 	};
 
-protected:
+private:
 	class Message
 	{
 	public:
@@ -33,21 +33,27 @@ protected:
 		DWORD AddedPartCount;
 	};
 
-
 public:
-	BarbaCourierDatagram(void);
+	explicit BarbaCourierDatagram(CreateStrcut* cs);
 	virtual ~BarbaCourierDatagram(void);
 
-	void SendData(BarbaBuffer* data);
-	virtual void ReceiveData(BarbaBuffer* data)=0;
+	void SendData(BarbaBuffer* data); //end-user send data with this method
+	virtual void ReceiveData(BarbaBuffer* data)=0; //end-user receive data with this method
+	virtual void Encrypt(BYTE* data, size_t dataSize, size_t index)=0;
+	virtual void Decrypt(BYTE* data, size_t dataSize, size_t index)=0;
 	CreateStrcut* GetCreateStruct() {return _CreateStruct;}
 
 protected:
 	DWORD GetNewMessageId();
-	virtual void SendMessage(Message* message)=0; //Subclasser should send the message
-	void ReceiveMessage(Message* data); //Subclasser should called it when got new message
+	void SendChunkToInbound(BarbaBuffer* data); //Subclasser should called it when got new chunk
+	virtual void SendChunkToOutbound(BarbaBuffer* chunk)=0; //Subclasser should send chunk
 
 private:
 	CreateStrcut* _CreateStruct;
+	DWORD LastMessageId;
+	BarbaArray<Message*> Messages;
+	void RemoveMessage(int messageIndex);
+	void RemoveTimeoutMessages();
+	DWORD LastCleanTimeoutMessagesTime;
 };
 

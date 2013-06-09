@@ -2,7 +2,8 @@
 #include "BarbaCourierUdpServer.h"
 
 
-BarbaCourierUdpServer::BarbaCourierUdpServer(void)
+BarbaCourierUdpServer::BarbaCourierUdpServer(CreateStrcutUdp* cs)
+	: BarbaCourierDatagram(cs)
 {
 }
 

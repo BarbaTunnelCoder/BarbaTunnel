@@ -22,12 +22,42 @@ bool BarbaClientUdpConnection::ProcessOutboundPacket(PacketHelper* packet)
 
 bool BarbaClientUdpConnection::ProcessInboundPacket(PacketHelper* packet)
 {
-	//Decrypt Packet
-	DecryptPacket(packet);
-
+	//store last LastEtherHeader
+	memcpy_s(packet->ethHeader, sizeof packet->ethHeader, &LastEtherHeader, sizeof LastEtherHeader);
+	
 	//process by courier
-	//return GetCourier()->ProcessInboundPacket(packet);
-	return false;
+	return GetCourier()->ProcessInboundPacket(packet);
+
 }
 
-// GUID (32) | Control (1) | Session (4) | MessageID (4) | TotalPart (4) | PartIndex (4) | data
+//Courier Implementation
+BarbaClientUdpConnection::Courier::Courier(BarbaClientUdpConnection* connection, CreateStrcutUdp* cs)
+	: BarbaCourierUdpClient(cs)
+{
+	_Connection = connection;
+}
+
+void BarbaClientUdpConnection::Courier::ReceiveData(BarbaBuffer* data)
+{
+	PacketHelper orgPacket;
+	orgPacket.SetEthHeader(&_Connection->LastEtherHeader);
+	orgPacket.SetIpPacket((iphdr_ptr)data->data(), data->size());
+	if (orgPacket.IsValidChecksum())
+		_Connection->SendPacketToInbound(&orgPacket);
+}
+
+void BarbaClientUdpConnection::Courier::SendPacketToOutbound(PacketHelper* packet)
+{
+	_Connection->SendPacketToOutbound(packet);
+}
+
+void BarbaClientUdpConnection::Courier::Encrypt(BYTE* data, size_t dataSize, size_t index)
+{
+	_Connection->CryptData(data, dataSize, index, true);
+}
+
+void BarbaClientUdpConnection::Courier::Decrypt(BYTE* data, size_t dataSize, size_t index)
+{
+	_Connection->CryptData(data, dataSize, index, false);
+}
+

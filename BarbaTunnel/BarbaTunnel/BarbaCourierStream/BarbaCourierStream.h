@@ -18,7 +18,7 @@ public:
 		u_long SessionId;
 		u_long ConnectionTimeout;
 		u_long KeepAliveInterval;
-		size_t MaxConnections;
+		size_t MaxConnections; //number of simultaneous connection for each outgoing and incoming, eg: 2 mean 2 connection for send and 2 connection for receive so the total will be 4
 		size_t MinPacketSize;
 	};
 
@@ -40,7 +40,6 @@ protected:
 	};
 
 public:
-	//@maxConnenction number of simultaneous connection for each outgoing and incoming, eg: 2 mean 2 connection for send and 2 connection for receive so the total will be 4
 	explicit BarbaCourierStream(CreateStrcut* cs);
 	virtual void Send(BarbaBuffer* data);
 	virtual void Receive(BarbaBuffer* data);

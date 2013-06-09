@@ -3,7 +3,12 @@
 class BarbaCourierUdpServer : public BarbaCourierDatagram
 {
 public:
-	BarbaCourierUdpServer(void);
+	struct CreateStrcutUdp : public CreateStrcut
+	{
+	};
+
+public:
+	BarbaCourierUdpServer(CreateStrcutUdp* cs);
 	virtual ~BarbaCourierUdpServer(void);
 };
 

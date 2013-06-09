@@ -24,6 +24,7 @@
 #include <process.h>
 #include <fstream>
 #include <vector>
+#include <map>
 #include <Iphlpapi.h>
 #include <in6addr.h>
 #include "WinpkFilter\Common.h"
