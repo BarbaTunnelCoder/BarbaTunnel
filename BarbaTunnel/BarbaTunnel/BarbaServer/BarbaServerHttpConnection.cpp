@@ -5,6 +5,7 @@
 BarbaServerHttpConnection::BarbaServerHttpConnection(BarbaServerConfig* config, u_long clientVirtualIp, u_long clientIp)
 	: BarbaServerTcpConnectionBase(config, clientVirtualIp, clientIp)
 {
+	_Courier = NULL;
 }
 
 void BarbaServerHttpConnection::Init(LPCTSTR requestData)

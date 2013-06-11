@@ -9,8 +9,9 @@ public:
 	virtual ~BarbaConnection(void);
 	virtual bool ProcessOutboundPacket(PacketHelper * packet)=0;
 	virtual bool ProcessInboundPacket(PacketHelper * packet)=0;
-	virtual u_long GetSessionId() {return 0;} //may 0 when protocol has not session
+	virtual u_long GetSessionId()=0;
 	virtual void ReportNewConnection()=0;
+	virtual void Init();
 	virtual size_t GetId() {return this->ConnectionId;}
 	BarbaConfig* GetConfig() { return _Config; }
 	void CryptData(BYTE* data, size_t dataSize, size_t index, bool encrypt);

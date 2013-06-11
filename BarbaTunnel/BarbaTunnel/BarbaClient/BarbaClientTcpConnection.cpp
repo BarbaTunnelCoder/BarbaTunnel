@@ -6,6 +6,7 @@
 BarbaClientTcpConnection::BarbaClientTcpConnection(BarbaClientConfig* config) 
 	: BarbaClientTcpConnectionBase(config)
 {
+	_Courier = NULL;
 }
 
 BarbaClientTcpConnection::~BarbaClientTcpConnection(void)
@@ -16,11 +17,11 @@ void BarbaClientTcpConnection::Init()
 {
 	BarbaCourierTcpClient::CreateStrcutTcp* cs = new BarbaCourierTcpClient::CreateStrcutTcp();
 	InitHelper(cs);
-	_Courier = new Courier(cs, this);
+	_Courier = new Courier(this, cs);
 	_Courier->Init();
 }
 
-BarbaClientTcpConnection::Courier::Courier(BarbaCourierTcpClient::CreateStrcutTcp* cs, BarbaClientTcpConnection* connection)
+BarbaClientTcpConnection::Courier::Courier(BarbaClientTcpConnection* connection, BarbaCourierTcpClient::CreateStrcutTcp* cs)
 	: BarbaCourierTcpClient(cs)
 	, _Connection(connection)
 {

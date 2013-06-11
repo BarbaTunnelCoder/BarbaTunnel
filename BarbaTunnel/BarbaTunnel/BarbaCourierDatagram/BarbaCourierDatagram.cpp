@@ -3,6 +3,7 @@
 #include "BarbaException.h"
 #include "BarbaUtils.h"
 
+//Message Implementation
 BarbaCourierDatagram::Message::Message(DWORD id, DWORD totalParts)
 {
 	AddedPartCount = 0;
@@ -25,6 +26,7 @@ void BarbaCourierDatagram::Message::Construct(DWORD id, BYTE* data, size_t dataS
 {
 	AddedPartCount = 0;
 	Id = id;
+	maxPartSize = max(maxPartSize, 100); //couldnt be less than 100
 	DWORD totalParts = (DWORD) (dataSize / maxPartSize);
 	if ( (dataSize % maxPartSize)!=0 ) totalParts++;
 	
@@ -68,12 +70,35 @@ BarbaCourierDatagram::Message::~Message()
 		delete Parts[i];
 }
 
+//BarbaCourierDatagram Implementation
 BarbaCourierDatagram::BarbaCourierDatagram(CreateStrcut* cs)
 {
+	_SessionId = 0;
 	LastMessageId = 0;
 	_CreateStruct = cs;
 	Messages.reserve(100000); //reserver for 100K messages!
 }
+
+void BarbaCourierDatagram::Init()
+{
+}
+
+void BarbaCourierDatagram::Log2(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(2, format, argp); va_end(argp); }
+void BarbaCourierDatagram::Log3(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(3, format, argp); va_end(argp); }
+void BarbaCourierDatagram::LogImpl(int level, LPCTSTR format, va_list _ArgList)
+{
+	TCHAR* msg = new TCHAR[1000];
+	_vstprintf_s(msg, 1000, format, _ArgList);
+	
+	TCHAR* msg2 = new TCHAR[1000];
+	_stprintf_s(msg2, 1000, _T("BarbaCourierDatagram: SessionId: %x, %s"), GetSessionId(), msg);
+
+	va_list emptyList = {0};
+	BarbaLogImpl(level, msg2, emptyList);
+	delete msg;
+	delete msg2;
+}
+
 
 DWORD BarbaCourierDatagram::GetNewMessageId()
 {
@@ -92,6 +117,7 @@ void BarbaCourierDatagram::SendData(BarbaBuffer* data)
 {
 	//prevent fix maxSize
 	size_t maxSize = GetCreateStruct()->MaxPacketSize - BarbaUtils::GetRandom(0, (u_int)GetCreateStruct()->MaxPacketSize/8);
+	maxSize = 1000;
 	Message message(GetNewMessageId(), data, (DWORD)maxSize);
 
 	for (int i=0; i<message.Parts.size(); i++)
@@ -189,13 +215,13 @@ void BarbaCourierDatagram::RemoveTimeoutMessages()
 {
 	//Use abs because GetTickCount is DWORD and just work for 50 days; servers may work beyound
 	DWORD currentTime = GetTickCount();
-	if (abs((long)(currentTime-LastCleanTimeoutMessagesTime))<GetCreateStruct()->MessageTimeout)
+	if ((DWORD)abs((long)(currentTime-LastCleanTimeoutMessagesTime))<GetCreateStruct()->MessageTimeout)
 		return;
 
 	LastCleanTimeoutMessagesTime = currentTime;
 	for (int i=0; i<Messages.size(); i++)
 	{
-		if (abs((long)(currentTime - Messages[i]->LastUpdateTime))>GetCreateStruct()->MessageTimeout)
+		if ((DWORD)abs((long)(currentTime - Messages[i]->LastUpdateTime))>GetCreateStruct()->MessageTimeout)
 		{
 			delete Messages[i];
 			RemoveMessage(i);

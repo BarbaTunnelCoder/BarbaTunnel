@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "BarbaServerConnectionManager.h"
+#include "BarbaServerUdpConnection.h"
 #include "BarbaServerUdpSimpleConnection.h"
 #include "BarbaServerRedirectConnection.h"
 #include "BarbaServerApp.h"
@@ -63,16 +64,20 @@ BarbaServerConnection* BarbaServerConnectionManager::CreateConnection(BarbaServe
 	{
 		conn = new BarbaServerRedirectConnection(config, VirtualIpManager.GetNewIp(), packet);
 	}
-	else if (config->Mode==BarbaModeUdpTunnel)
+	else if (config->Mode==BarbaModeUdpSimpleTunnel)
 	{
 		conn = new BarbaServerUdpSimpleConnection(config, VirtualIpManager.GetNewIp(), packet);
+	}
+	else if (config->Mode==BarbaModeUdpTunnel)
+	{
+		conn = new BarbaServerUdpConnection(config, VirtualIpManager.GetNewIp(), packet);
 	}
 	else
 	{
 		throw new BarbaException(_T("%s mode not supported!"), BarbaMode_ToString(config->Mode));
 	}
 
-
+	conn->Init();
 	AddConnection(conn);
 	return conn;
 }

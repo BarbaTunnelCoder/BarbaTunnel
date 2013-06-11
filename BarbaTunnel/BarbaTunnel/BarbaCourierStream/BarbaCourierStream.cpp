@@ -89,6 +89,8 @@ void BarbaCourierStream::CloseSocketsList(SimpleSafeList<BarbaSocket*>* list)
 	}
 }
 
+void BarbaCourierStream::Log2(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(2, format, argp); va_end(argp); }
+void BarbaCourierStream::Log3(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(3, format, argp); va_end(argp); }
 void BarbaCourierStream::LogImpl(int level, LPCTSTR format, va_list _ArgList)
 {
 	TCHAR* msg = new TCHAR[1000];
@@ -102,9 +104,6 @@ void BarbaCourierStream::LogImpl(int level, LPCTSTR format, va_list _ArgList)
 	delete msg;
 	delete msg2;
 }
-
-void BarbaCourierStream::Log2(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(2, format, argp); va_end(argp); }
-void BarbaCourierStream::Log3(LPCTSTR format, ...) { va_list argp; va_start(argp, format); LogImpl(3, format, argp); va_end(argp); }
 
 HANDLE BarbaCourierStream::Delete()
 {

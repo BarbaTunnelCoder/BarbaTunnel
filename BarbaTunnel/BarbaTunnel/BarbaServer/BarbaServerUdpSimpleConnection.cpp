@@ -9,7 +9,6 @@ BarbaServerUdpSimpleConnection::BarbaServerUdpSimpleConnection(BarbaServerConfig
 	ClientLocalIp = 0;
 	ClientPort = initPacket->GetSrcPort();
 	TunnelPort = initPacket->GetDesPort();
-	memcpy_s(ClientRouteEthAddress, ETH_ALEN, initPacket->ethHeader->h_source, ETH_ALEN);
 }
 
 u_long BarbaServerUdpSimpleConnection::GetSessionId()
@@ -24,17 +23,13 @@ BarbaServerUdpSimpleConnection::~BarbaServerUdpSimpleConnection(void)
 bool BarbaServerUdpSimpleConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, PacketHelper* orgPacket)
 {
 	DecryptPacket(barbaPacket);
-	orgPacket->SetEthHeader(barbaPacket->ethHeader);
 	orgPacket->SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload(), barbaPacket->GetUdpPayloadLen());
 	return orgPacket->IsValidChecksum();
 }
 
 bool BarbaServerUdpSimpleConnection::CreateUdpBarbaPacket(PacketHelper* packet, PacketHelper* barbaPacket)
 {
-	packet->RecalculateChecksum();
-
 	barbaPacket->Reset(IPPROTO_UDP, sizeof iphdr + sizeof udphdr + packet->GetIpLen());
-	barbaPacket->SetEthHeader(packet->ethHeader);
 	barbaPacket->ipHeader->ip_ttl = packet->ipHeader->ip_ttl;
 	barbaPacket->ipHeader->ip_v = packet->ipHeader->ip_v;
 	barbaPacket->ipHeader->ip_id = 56;
@@ -44,7 +39,6 @@ bool BarbaServerUdpSimpleConnection::CreateUdpBarbaPacket(PacketHelper* packet, 
 	barbaPacket->SetDesPort( ClientPort );
 	barbaPacket->SetSrcPort( TunnelPort );
 	barbaPacket->SetUdpPayload((BYTE*)packet->ipHeader, packet->GetIpLen());
-	barbaPacket->SetDesEthAddress(ClientRouteEthAddress);
 	EncryptPacket(barbaPacket);
 	return true;
 }
@@ -55,6 +49,7 @@ bool BarbaServerUdpSimpleConnection::ProcessOutboundPacket(PacketHelper* packet)
 		return false;
 
 	packet->SetDesIp(ClientLocalIp);
+	packet->RecalculateChecksum();
 
 	//Create Barba packet
 	PacketHelper barbaPacket;
