@@ -10,7 +10,6 @@ public:
 	bool ProcessOutboundPacket(PacketHelper * packet) override;
 	bool ProcessInboundPacket(PacketHelper * packet) override;
 	u_long GetSessionId() override {return this->SessionId;}
-	virtual void Init()=0;
 
 protected:
 	void ReceiveData(BarbaBuffer* data);

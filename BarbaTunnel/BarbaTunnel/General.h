@@ -31,6 +31,7 @@ enum BarbaModeEnum
 {
 	BarbaModeNone,
 	BarbaModeUdpTunnel,
+	BarbaModeUdpSimpleTunnel,
 	BarbaModeUdpRedirect,
 	BarbaModeTcpTunnel,
 	BarbaModeTcpRedirect,
@@ -67,6 +68,7 @@ struct BarbaHeader
 	BYTE Version;	
 };
 
+GUID* GetBarbaSign();
 BarbaModeEnum BarbaMode_FromString(LPCTSTR mode);
 LPCTSTR BarbaMode_ToString(BarbaModeEnum mode);
 u_char BarbaMode_GetProtocol(BarbaModeEnum mode);

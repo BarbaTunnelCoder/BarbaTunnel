@@ -119,7 +119,10 @@ bool BarbaServerApp::ProcessInboundPacket(PacketHelper* packet)
 
 	//create connection if not proceed
 	BarbaConnection* connection = ConnectionManager.CreateConnection(config, packet);
-	return connection->ProcessInboundPacket(packet);	
+	bool ret = connection->ProcessInboundPacket(packet);
+	if (!ret)
+		ConnectionManager.RemoveConnection(connection);
+	return ret;
 }
 
 bool BarbaServerApp::ProcessOutboundPacket(PacketHelper* packet)

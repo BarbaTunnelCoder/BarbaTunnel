@@ -22,16 +22,13 @@ BarbaClientUdpSimpleConnection::~BarbaClientUdpSimpleConnection(void)
 bool BarbaClientUdpSimpleConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPacket, PacketHelper* orgPacket)
 {
 	DecryptPacket(barbaPacket);
-	orgPacket->SetEthHeader(barbaPacket->ethHeader);
 	orgPacket->SetIpPacket((iphdr_ptr)barbaPacket->GetUdpPayload(), barbaPacket->GetUdpPayloadLen());
 	return orgPacket->IsValidChecksum();
 }
 
 bool BarbaClientUdpSimpleConnection::CreateUdpBarbaPacket(PacketHelper* packet, PacketHelper*  barbaPacket)
 {
-	packet->RecalculateChecksum();
 	barbaPacket->Reset(IPPROTO_UDP, sizeof iphdr + sizeof udphdr + packet->GetIpLen());
-	barbaPacket->SetEthHeader(packet->ethHeader);
 	barbaPacket->ipHeader->ip_ttl = packet->ipHeader->ip_ttl;
 	barbaPacket->ipHeader->ip_v = packet->ipHeader->ip_v;
 	barbaPacket->ipHeader->ip_id = 56;

@@ -8,7 +8,7 @@ public:
 	class Courier : public BarbaCourierHttpClient
 	{
 	public:
-		explicit Courier(CreateStrcutHttp* cs, BarbaClientHttpConnection* connection);
+		explicit Courier(BarbaClientHttpConnection* connection, CreateStrcutHttp* cs);
 		virtual ~Courier(void);
 		void Receive(BarbaBuffer* data) override;
 		void Crypt(BYTE* data, size_t dataSize, size_t index, bool encrypt) override;

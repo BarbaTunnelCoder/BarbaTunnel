@@ -86,6 +86,23 @@ void BarbaUtils::ConvertHexStringToBuffer(LPCTSTR hexString, BarbaBuffer* buffer
 	}
 }
 
+std::tstring BarbaUtils::ConvertBufferToHexString(BarbaBuffer* buffer, bool decorate)
+{
+	std::tstring ret;
+	ret.reserve(buffer->size()+3);
+	for (int i=0; i<buffer->size(); i++)
+	{
+		if (decorate && i>0)
+			ret.append(_T("-"));
+
+		TCHAR code[5];
+		_itot_s(buffer->at(i), code, 16);
+		if (_tcsclen(code)<2 ) ret.append(_T("0"));
+		ret.append(code);
+	}
+	return ret;
+}
+
 bool BarbaUtils::SimpleShellExecuteAndWait(LPCTSTR fileName, LPCTSTR commandLine, int nShow, LPCTSTR lpszWorkDirectory, LPCTSTR lpVerb, HWND hWnd)
 {
 	DWORD exitCode;

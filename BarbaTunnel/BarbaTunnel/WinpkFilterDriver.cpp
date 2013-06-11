@@ -27,6 +27,8 @@ WinpkFilterDriver::WinpkFilterDriver()
 	AdapterHandle = NULL;
 	AdapterIndex = 0;
 	FilterDriverHandle = NULL;
+	memset(&OutboundAddress, sizeof OutboundAddress, 0);
+	memset(&InboundAddress, sizeof InboundAddress, 0);
 }
 
 ULARGE_INTEGER WinpkFilterDriver::GetAdapterHandleLarge()
@@ -236,6 +238,10 @@ size_t WinpkFilterDriver::FindAdapterIndex()
 
 bool WinpkFilterDriver::SendPacketToInbound(PacketHelper* packet)
 {
+	//fix ethernet packet
+	memcpy_s(OutboundAddress, ETH_ALEN, packet->ethHeader->h_source, ETH_ALEN);
+	memcpy_s(InboundAddress, ETH_ALEN, packet->ethHeader->h_dest, ETH_ALEN);
+
 	INTERMEDIATE_BUFFER intBuf = {0};
 	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_RECEIVE;
 	intBuf.m_Length = min(MAX_ETHER_FRAME, (ULONG)packet->GetPacketLen());
@@ -249,6 +255,10 @@ bool WinpkFilterDriver::SendPacketToInbound(PacketHelper* packet)
 
 bool WinpkFilterDriver::SendPacketToOutbound(PacketHelper* packet)
 {
+	//fix ethernet address
+	memcpy_s(InboundAddress, ETH_ALEN, packet->ethHeader->h_source, ETH_ALEN);
+	memcpy_s(OutboundAddress, ETH_ALEN, packet->ethHeader->h_dest, ETH_ALEN);
+
 	INTERMEDIATE_BUFFER intBuf = {0};
 	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_SEND;
 	intBuf.m_Length = min(MAX_ETHER_FRAME, (ULONG)packet->GetPacketLen());
@@ -348,12 +358,20 @@ void WinpkFilterDriver::StartCaptureLoop()
 				PINTERMEDIATE_BUFFER buffer = request.EthPacket.Buffer;
 				bool send = buffer->m_dwDeviceFlags == PACKET_FLAG_ON_SEND;
 				PacketHelper* packet = new PacketHelper((ether_header_ptr)buffer->m_IBuffer, buffer->m_Length);
+				SaveEthernetHeader(packet, send);
 				AddPacket(packet, send);
 			}
 			WinpkPacketEvent.Reset();
 		}
 	}
 }
+
+void WinpkFilterDriver::SaveEthernetHeader(PacketHelper* packet, bool outbound)
+{
+	memcpy_s(outbound ? packet->ethHeader->h_dest : packet->ethHeader->h_source, ETH_ALEN, OutboundAddress, ETH_ALEN);
+	memcpy_s(outbound ? packet->ethHeader->h_source : packet->ethHeader->h_dest, ETH_ALEN, InboundAddress, ETH_ALEN);
+}
+	
 
 DWORD WinpkFilterDriver::GetMTUDecrement()
 {

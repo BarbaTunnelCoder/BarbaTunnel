@@ -19,6 +19,7 @@ public:
 	bool ProcessInboundPacket(PacketHelper* packet);
 
 protected:
-	virtual void SendPacketToOutbound(PacketHelper* packet)=0;
+	void SendChunkToOutbound(BarbaBuffer* chunk) final override;
+	virtual void SendUdpPacketToOutbound(DWORD remoteIp, u_short srcPort, u_short desPort, BarbaBuffer* payLoad)=0;
 };
 

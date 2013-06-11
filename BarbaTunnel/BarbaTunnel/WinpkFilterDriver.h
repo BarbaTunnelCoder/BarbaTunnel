@@ -25,6 +25,7 @@ private:
 	void GetFilter(STATIC_FILTER* staticFilter, bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
 	//helper methid
 	static void GetBestInternetAdapter(std::string* adapterName, BarbaBuffer* address);
+	void SaveEthernetHeader(PacketHelper* packet, bool outbound);
 	
 	//Process Methods
 	HANDLE FilterDriverHandle;
@@ -33,5 +34,7 @@ private:
 	size_t AdapterIndex;
 	SimpleEvent WinpkPacketEvent;
 	HANDLE AdapterHandle;
+	ether_header OutboundAddress[ETH_ALEN];
+	ether_header InboundAddress[ETH_ALEN];
 };
 

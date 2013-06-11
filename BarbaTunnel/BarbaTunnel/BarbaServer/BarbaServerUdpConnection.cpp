@@ -1,57 +1,59 @@
 #include "stdafx.h"
-#include "BarbaClientUdpConnection.h"
-#include "BarbaClientApp.h"
+#include "BarbaServerUdpConnection.h"
+#include "BarbaServerApp.h"
 
 
-BarbaClientUdpConnection::BarbaClientUdpConnection(BarbaClientConfig* config)
-	: BarbaClientConnection(config)
+BarbaServerUdpConnection::BarbaServerUdpConnection(BarbaServerConfig* config, u_long clientVirtualIp, PacketHelper* initPacket)
+	: BarbaServerConnection(config, clientVirtualIp, initPacket->GetSrcIp())
 {
+	ClientLocalIp = 0;
 	_Courier = NULL;
 }
 
-
-BarbaClientUdpConnection::~BarbaClientUdpConnection(void)
+BarbaServerUdpConnection::~BarbaServerUdpConnection(void)
 {
 }
 
-void BarbaClientUdpConnection::Init()
+DWORD BarbaServerUdpConnection::GetSessionId()
 {
-	BarbaCourierUdpClient::CreateStrcutUdp* cs = new BarbaCourierUdpClient::CreateStrcutUdp();
-	cs->RemoteIp = GetConfig()->ServerIp;
-	cs->PortRange = &GetConfig()->TunnelPorts;
+	return _Courier->GetSessionId();
+}
+
+void BarbaServerUdpConnection::Init()
+{
+	BarbaCourierUdpServer::CreateStrcutUdp* cs = new BarbaCourierUdpServer::CreateStrcutUdp();
+	cs->RemoteIp = ClientIp;
 	_Courier = new Courier(this, cs);
 	_Courier->Init();
 }
 
-bool BarbaClientUdpConnection::ProcessOutboundPacket(PacketHelper* packet)
+bool BarbaServerUdpConnection::ProcessOutboundPacket(PacketHelper* packet)
 {
 	memcpy_s(&LastOutboundIpHeader, sizeof iphdr, packet->ipHeader, sizeof iphdr);
+	packet->SetDesIp(ClientLocalIp);
+	packet->RecalculateChecksum();
+	
 	BarbaBuffer buffer((BYTE*)packet->ipHeader, packet->GetIpLen());
-	Log3(_T("Sending packet with %d bytes."), packet->GetIpLen());
+	Log3(_T("Sending packet with %d bytes."), buffer.size());
 	GetCourier()->SendData(&buffer);
 	return true;
 }
 
-bool BarbaClientUdpConnection::ProcessInboundPacket(PacketHelper* packet)
+bool BarbaServerUdpConnection::ProcessInboundPacket(PacketHelper* packet)
 {
 	//process by courier
 	return GetCourier()->ProcessInboundPacket(packet);
 
 }
 
-u_long BarbaClientUdpConnection::GetSessionId()
-{
-	return GetCourier()->GetSessionId();
-}
-
 //Courier Implementation
-BarbaClientUdpConnection::Courier::Courier(BarbaClientUdpConnection* connection, CreateStrcutUdp* cs)
-	: BarbaCourierUdpClient(cs)
+BarbaServerUdpConnection::Courier::Courier(BarbaServerUdpConnection* connection, CreateStrcutUdp* cs)
+	: BarbaCourierUdpServer(cs)
 {
 	_Connection = connection;
 }
 
-void BarbaClientUdpConnection::Courier::ReceiveData(BarbaBuffer* data)
+void BarbaServerUdpConnection::Courier::ReceiveData(BarbaBuffer* data)
 {
 	PacketHelper orgPacket;
 	orgPacket.SetIpPacket((iphdr_ptr)data->data(), data->size());
@@ -61,11 +63,17 @@ void BarbaClientUdpConnection::Courier::ReceiveData(BarbaBuffer* data)
 		return;
 	}
 
+	//Initialize First Attempt
+	_Connection->ClientLocalIp = orgPacket.GetSrcIp();
+
+	//prepare for NAT
+	orgPacket.SetSrcIp(_Connection->ClientVirtualIp);
+
 	Log3(_T("Receving packet with %d bytes."), orgPacket.GetIpLen());
 	_Connection->SendPacketToInbound(&orgPacket);
 }
 
-void BarbaClientUdpConnection::Courier::SendUdpPacketToOutbound(DWORD remoteIp, u_short srcPort, u_short desPort, BarbaBuffer* payLoad)
+void BarbaServerUdpConnection::Courier::SendUdpPacketToOutbound(DWORD remoteIp, u_short srcPort, u_short desPort, BarbaBuffer* payLoad)
 {
 	PacketHelper barbaPacket;
 	barbaPacket.Reset(IPPROTO_UDP, sizeof iphdr + sizeof udphdr + payLoad->size());
@@ -81,12 +89,12 @@ void BarbaClientUdpConnection::Courier::SendUdpPacketToOutbound(DWORD remoteIp, 
 	_Connection->SendPacketToOutbound(&barbaPacket);
 }
 
-void BarbaClientUdpConnection::Courier::Encrypt(BYTE* data, size_t dataSize, size_t index)
+void BarbaServerUdpConnection::Courier::Encrypt(BYTE* data, size_t dataSize, size_t index)
 {
 	_Connection->CryptData(data, dataSize, index, true);
 }
 
-void BarbaClientUdpConnection::Courier::Decrypt(BYTE* data, size_t dataSize, size_t index)
+void BarbaServerUdpConnection::Courier::Decrypt(BYTE* data, size_t dataSize, size_t index)
 {
 	_Connection->CryptData(data, dataSize, index, false);
 }

@@ -21,6 +21,5 @@ private:
 	u_long ClientLocalIp;
 	u_short ClientPort;
 	u_short TunnelPort;
-	BYTE ClientRouteEthAddress[ETH_ALEN]; //Ethernet address of received packet; useful when there is no router between client and server
 };
 

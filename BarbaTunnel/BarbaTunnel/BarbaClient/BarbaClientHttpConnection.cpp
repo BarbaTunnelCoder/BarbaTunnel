@@ -6,6 +6,7 @@
 BarbaClientHttpConnection::BarbaClientHttpConnection(BarbaClientConfig* config) 
 	: BarbaClientTcpConnectionBase(config)
 {
+	_Courier = NULL;
 }
 
 BarbaClientHttpConnection::~BarbaClientHttpConnection(void)
@@ -18,13 +19,13 @@ void BarbaClientHttpConnection::Init()
 	InitHelper(cs);
 	cs->HostName = GetConfig()->ServerAddress;
 	cs->RequestMode = GetConfig()->HttpRequestMode;
-	_Courier = new Courier(cs, this);
+	_Courier = new Courier(this, cs);
 	_Courier->Init();
 }
 
 //-------------------------------- Courier
 
-BarbaClientHttpConnection::Courier::Courier(BarbaCourierHttpClient::CreateStrcutHttp* cs, BarbaClientHttpConnection* connection)
+BarbaClientHttpConnection::Courier::Courier(BarbaClientHttpConnection* connection, BarbaCourierHttpClient::CreateStrcutHttp* cs)
 	: BarbaCourierHttpClient(cs)
 	, _Connection(connection)
 {

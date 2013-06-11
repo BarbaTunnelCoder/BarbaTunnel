@@ -11,7 +11,7 @@ public:
 	static void GetProtocolAndPortArray(LPCTSTR value, BarbaArray<ProtocolPort>* result);
 	//@return number of bytes copied to buffer
 	static void ConvertHexStringToBuffer(LPCTSTR hexString, BarbaBuffer* buffer);
-	static std::tstring ConvertBufferToHexString(BarbaBuffer* buffer);
+	static std::tstring ConvertBufferToHexString(BarbaBuffer* buffer, bool decorate=true);
 	// @param lphProcess return handle to opened process; if not NULL user must close handle after use it
 	static bool SimpleShellExecute(LPCTSTR fileName, LPCTSTR commandLine=_T(""), int nShow=SW_SHOWNORMAL, LPCTSTR lpszWorkDirectory = NULL, LPCTSTR lpVerb=NULL, HWND hWnd=NULL, DWORD* lpExitCode=NULL);
 	static bool SimpleShellExecuteAndWait(LPCTSTR fileName, LPCTSTR commandLine=_T(""), int nShow=SW_SHOWNORMAL, LPCTSTR lpszWorkDirectory = NULL, LPCTSTR lpVerb=NULL, HWND hWnd=NULL);

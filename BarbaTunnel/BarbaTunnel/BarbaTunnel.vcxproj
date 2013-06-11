@@ -229,6 +229,7 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <ClInclude Include="BarbaFilterDriver.h" />
     <ClInclude Include="BarbaCourierStream\BarbaCourierRequestMode.h" />
     <ClInclude Include="BarbaPortRange.h" />
+    <ClInclude Include="BarbaServer\BarbaServerUdpConnection.h" />
     <ClInclude Include="BarbaServer\BarbaServerHttpConnection.h" />
     <ClInclude Include="BarbaServer\BarbaServerTcpConnectionBase.h" />
     <ClInclude Include="BarbaCourierDatagram\BarbaCourierDatagram.h" />
@@ -289,6 +290,7 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <ClCompile Include="BarbaFilterDriver.cpp" />
     <ClCompile Include="BarbaCourierStream\BarbaCourierRequestMode.cpp" />
     <ClCompile Include="BarbaPortRange.cpp" />
+    <ClCompile Include="BarbaServer\BarbaServerUdpConnection.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerHttpConnection.cpp" />
     <ClCompile Include="BarbaServer\BarbaServerTcpConnectionBase.cpp" />
     <ClCompile Include="BarbaCourierDatagram\BarbaCourierDatagram.cpp" />

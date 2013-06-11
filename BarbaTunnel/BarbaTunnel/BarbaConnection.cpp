@@ -38,6 +38,10 @@ size_t BarbaConnection::GetLasNegotiationTime()
 	return LasNegotiationTime;
 }
 
+void BarbaConnection::Init()
+{
+}
+
 void BarbaConnection::CryptData(BYTE* data, size_t dataSize, size_t index, bool encrypt)
 {
 	BarbaCrypt::Crypt(data, dataSize, GetConfig()->Key.data(), GetConfig()->Key.size(), index, encrypt);
