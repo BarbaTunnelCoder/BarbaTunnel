@@ -61,14 +61,7 @@ struct FakeFileHeader
 	BarbaBuffer Data;
 };
 
-//BarbaHeader. Not used yet
-struct BarbaHeader
-{
-	GUID Signature;
-	BYTE Version;	
-};
-
-GUID* GetBarbaSign();
+std::string GetBarbaTag();
 BarbaModeEnum BarbaMode_FromString(LPCTSTR mode);
 LPCTSTR BarbaMode_ToString(BarbaModeEnum mode);
 u_char BarbaMode_GetProtocol(BarbaModeEnum mode);

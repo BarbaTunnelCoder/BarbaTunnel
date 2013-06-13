@@ -76,9 +76,9 @@ void BarbaFilterDriver::Dispose()
 	}
 }
 
-void BarbaFilterDriver::AddPacket(PacketHelper* packet, bool send)
+void BarbaFilterDriver::AddPacket(PacketHelper* packet, bool outbound)
 {
-	if (!packet->IsValidChecksum())
+	if (!packet->IsValidChecksum() )
 	{
 		BarbaLog2("Error: Invalid packet received and dropped!");
 		delete packet;
@@ -95,7 +95,7 @@ void BarbaFilterDriver::AddPacket(PacketHelper* packet, bool send)
 	}
 
 
-	CapturePackets.AddTail(new CapturePacket(packet, send));
+	CapturePackets.AddTail(new CapturePacket(packet, outbound));
 	CaptureEvent.Set();
 }
 

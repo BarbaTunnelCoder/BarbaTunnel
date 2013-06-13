@@ -239,8 +239,8 @@ size_t WinpkFilterDriver::FindAdapterIndex()
 bool WinpkFilterDriver::SendPacketToInbound(PacketHelper* packet)
 {
 	//fix ethernet packet
-	memcpy_s(OutboundAddress, ETH_ALEN, packet->ethHeader->h_source, ETH_ALEN);
-	memcpy_s(InboundAddress, ETH_ALEN, packet->ethHeader->h_dest, ETH_ALEN);
+	memcpy_s(packet->ethHeader->h_source, ETH_ALEN, OutboundAddress, ETH_ALEN);
+	memcpy_s(packet->ethHeader->h_dest, ETH_ALEN, InboundAddress, ETH_ALEN);
 
 	INTERMEDIATE_BUFFER intBuf = {0};
 	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_RECEIVE;
@@ -256,8 +256,8 @@ bool WinpkFilterDriver::SendPacketToInbound(PacketHelper* packet)
 bool WinpkFilterDriver::SendPacketToOutbound(PacketHelper* packet)
 {
 	//fix ethernet address
-	memcpy_s(InboundAddress, ETH_ALEN, packet->ethHeader->h_source, ETH_ALEN);
-	memcpy_s(OutboundAddress, ETH_ALEN, packet->ethHeader->h_dest, ETH_ALEN);
+	memcpy_s(packet->ethHeader->h_source, ETH_ALEN, InboundAddress, ETH_ALEN);
+	memcpy_s(packet->ethHeader->h_dest, ETH_ALEN, OutboundAddress, ETH_ALEN);
 
 	INTERMEDIATE_BUFFER intBuf = {0};
 	intBuf.m_dwDeviceFlags = PACKET_FLAG_ON_SEND;
@@ -368,8 +368,13 @@ void WinpkFilterDriver::StartCaptureLoop()
 
 void WinpkFilterDriver::SaveEthernetHeader(PacketHelper* packet, bool outbound)
 {
-	memcpy_s(outbound ? packet->ethHeader->h_dest : packet->ethHeader->h_source, ETH_ALEN, OutboundAddress, ETH_ALEN);
-	memcpy_s(outbound ? packet->ethHeader->h_source : packet->ethHeader->h_dest, ETH_ALEN, InboundAddress, ETH_ALEN);
+	static bool isAlreadySet = false;
+	if (isAlreadySet)
+		return;
+	isAlreadySet = true;
+
+	memcpy_s(OutboundAddress, ETH_ALEN, outbound ? packet->ethHeader->h_dest : packet->ethHeader->h_source, ETH_ALEN);
+	memcpy_s(InboundAddress, ETH_ALEN,  outbound ? packet->ethHeader->h_source : packet->ethHeader->h_dest, ETH_ALEN);
 }
 	
 

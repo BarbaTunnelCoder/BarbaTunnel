@@ -7,6 +7,8 @@ class BarbaCourierUdpServer : public BarbaCourierDatagram
 public:
 	struct CreateStrcutUdp : public CreateStrcut
 	{
+		CreateStrcutUdp() { KeepAlivePortsCount = 50; };
+		u_short KeepAlivePortsCount;
 	};
 
 private:
@@ -19,10 +21,13 @@ private:
 			u_short ClientPort;
 		};
 		BarbaArray<PortPair> PortPairs;
-		int NextClientPortIndex;
+		int NextPortIndex;
+		u_short MaxPortsCount;
 
 	public:
 		PortManager();
+		void SetMaxPorts(u_short value);
+		u_short GetMaxPorts();
 		void AddPort(u_short serverPort, u_short clientPort);
 		void FindPort(u_short* serverPort, u_short* clientPort);
 	};
@@ -34,7 +39,8 @@ public:
 	bool ProcessInboundPacket(PacketHelper* packet);
 
 protected:
-	void SendChunkToOutbound(BarbaBuffer* chunk) final override;
+	void ProcessControlCommand(std::tstring command) override;
+	void SendChunkToOutbound(BarbaBuffer* chunk) override;
 	virtual void SendUdpPacketToOutbound(DWORD remoteIp, u_short srcPort, u_short desPort, BarbaBuffer* payLoad) = 0;
 };
 

@@ -4,8 +4,25 @@
 
 BarbaCourierUdpServer::PortManager::PortManager()
 {
-	NextClientPortIndex = 0;
-	PortPairs.reserve(20); //beaware of NAT timeout
+	NextPortIndex = 0;
+	SetMaxPorts(1);
+}
+
+void BarbaCourierUdpServer::PortManager::SetMaxPorts(u_short value)
+{
+	value = min(0xFFFF, value); //i know max short can have maximum 0xFFFF, but maybe i change type later
+	value = max(1, value); //couldn't be less than 1
+	MaxPortsCount = value;
+	PortPairs.reserve(value);
+	if (PortPairs.size()>value)
+		PortPairs.resize(value);
+	if (NextPortIndex>=value)
+		NextPortIndex = 0;
+}
+
+u_short BarbaCourierUdpServer::PortManager::GetMaxPorts()
+{
+	return MaxPortsCount;
 }
 
 void BarbaCourierUdpServer::PortManager::AddPort(u_short serverPort, u_short clientPort)
@@ -14,14 +31,14 @@ void BarbaCourierUdpServer::PortManager::AddPort(u_short serverPort, u_short cli
 	pair.ServerPort = serverPort;
 	pair.ClientPort = clientPort;
 
-	if (PortPairs.size()<PortPairs.capacity())
+	if (PortPairs.size()<MaxPortsCount)
 		PortPairs.append(pair);
 	else 
-		PortPairs[NextClientPortIndex] = pair;
+		PortPairs[NextPortIndex] = pair;
 
-	NextClientPortIndex++;
-	if (NextClientPortIndex>=PortPairs.capacity())
-		NextClientPortIndex = 0;
+	NextPortIndex++;
+	if (NextPortIndex>=MaxPortsCount)
+		NextPortIndex = 0;
 }
 
 void BarbaCourierUdpServer::PortManager::FindPort(u_short* serverPort, u_short* clientPort)
@@ -42,6 +59,7 @@ void BarbaCourierUdpServer::PortManager::FindPort(u_short* serverPort, u_short* 
 BarbaCourierUdpServer::BarbaCourierUdpServer(CreateStrcutUdp* cs)
 	: BarbaCourierDatagram(cs)
 {
+	portManager.	SetMaxPorts(cs->KeepAlivePortsCount);
 }
 
 
@@ -56,9 +74,11 @@ bool BarbaCourierUdpServer::ProcessInboundPacket(PacketHelper* packet)
 	if (!packet->IsUdp())
 		return false;
 
+	std::string tag = GetBarbaTag();
+	
 	//get udp data
 	BarbaBuffer buffer(packet->GetUdpPayload(), packet->GetUdpPayloadLen());
-	if (buffer.size()< (sizeof GUID + sizeof DWORD) )
+	if (buffer.size()< (tag.size() + sizeof DWORD) )
 	{
 		Log3(_T("Invalid UDP size for a UDP chunk! Invalid key or overlapped port!"));
 		return false;
@@ -69,9 +89,9 @@ bool BarbaCourierUdpServer::ProcessInboundPacket(PacketHelper* packet)
 
 	//extract data
 	int offset = 0;
-	GUID sign = *(GUID*)(buffer.data() + offset);
-	offset += sizeof sign;
-	if (sign!=*GetBarbaSign())
+	std::string tag2((char*)buffer.data() + offset, tag.size());
+	offset += (int)tag.size();
+	if (tag2.compare(tag)!=0)
 	{
 		Log3(_T("Could not find Barba Signature in chunk! Invalid key or overlapped port!"));
 		return false; //not barba packet
@@ -88,7 +108,7 @@ bool BarbaCourierUdpServer::ProcessInboundPacket(PacketHelper* packet)
 
 	portManager.AddPort(packet->GetDesPort(), packet->GetSrcPort());
 	BarbaBuffer chunk(buffer.data() + offset, buffer.size()-offset);
-	Log3(_T("Receiving UDP Chunk. ClientPort:%d, ServerPort:%d, Size: %d Bytes."), packet->GetDesPort(), packet->GetSrcPort(), chunk.size());
+	Log3(_T("Receiving UDP Chunk. ServerPort:%d, ClientPort:%d, Size: %d Bytes."), packet->GetDesPort(), packet->GetSrcPort(), chunk.size());
 	SendChunkToInbound(&chunk);
 	return true;
 }
@@ -97,17 +117,41 @@ bool BarbaCourierUdpServer::ProcessInboundPacket(PacketHelper* packet)
 void BarbaCourierUdpServer::SendChunkToOutbound(BarbaBuffer* chunk)
 {
 	//append UDP Tunnel signaturel
+	std::string tag = "BarbaTunnelUdp;";
+
 	// BarbaSign | Chunk
 	BarbaBuffer buffer;
-	buffer.reserve( sizeof GUID +  chunk->size() );
-	buffer.append( GetBarbaSign(), sizeof GUID );
+	buffer.reserve( tag.size() +  chunk->size() );
+	buffer.append( (char*)tag.data(), tag.size() );
 	buffer.append( chunk );
 	Encrypt(buffer.data(), buffer.size(), 0);
 	
 	u_short serverPort;
 	u_short clientPort;
 	portManager.FindPort(&serverPort, &clientPort);
-	Log3(_T("Sending UDP Chunk. SessionId: %x, ClientPort:%d, ServerPort:%d, Size: %d Bytes."), _SessionId, clientPort, serverPort, chunk->size());
+	Log3(_T("Sending UDP Chunk. SessionId: %x, ServerPort:%d, ClientPort:%d, Size: %d Bytes."), _SessionId, serverPort, clientPort, chunk->size());
 	SendUdpPacketToOutbound(GetCreateStruct()->RemoteIp, serverPort, clientPort, &buffer);
 }
 
+void BarbaCourierUdpServer::ProcessControlCommand(std::tstring command)
+{
+	if (command.compare(_T("keepAlive"))==0)
+		return;
+
+	BarbaCourierDatagram::ProcessControlCommand(command); //reprot it 
+
+	//initialize server
+	std::tstring cmd = BarbaUtils::GetKeyValueFromString(command.data(), _T("command"));
+	if (cmd.compare(_T("init"))==0)
+	{
+		int keepAlivePortsCount = BarbaUtils::GetKeyValueFromString(command.data(), _T("keepAlivePortsCount"), 0);
+		if (keepAlivePortsCount!=0) portManager.SetMaxPorts((u_short)keepAlivePortsCount); 
+
+		int maxChunkSize = BarbaUtils::GetKeyValueFromString(command.data(), _T("maxChunkSize"), 0);
+		if (maxChunkSize!=0) GetCreateStruct()->MaxChunkSize = maxChunkSize;
+
+		std::tstring cmdAck;
+		BarbaUtils::SetKeyValue(&cmdAck, _T("command"), _T("initAck"));
+		SendControlCommand(cmdAck);
+	}
+}

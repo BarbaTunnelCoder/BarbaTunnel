@@ -28,13 +28,17 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 		GrabProtocols.append(port);
 	}
 	
-	//FakePacketMinSize
+	//MinPacketSize
 	MinPacketSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MinPacketSize"), 0, file);
 	if (MinPacketSize > BARBA_MinPacketSizeLimit)
 	{
 		Log(_T("MinPacketSize could not be more than %d!"), BARBA_MinPacketSizeLimit);
 		MinPacketSize = BARBA_MinPacketSizeLimit;
 	}
+
+	//MaxPacketSize
+	MaxPacketSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxPacketSize"), 1500, file);
+	KeepAlivePortsCount = (u_short)GetPrivateProfileInt(_T("General"), _T("KeepAlivePortsCount"), 100, file);
 
 	//KeepAliveInterval
 	KeepAliveInterval = (size_t)GetPrivateProfileInt(_T("General"), _T("KeepAliveInterval"), BARBA_KeepAliveIntervalDefault/1000, file) * 1000;

@@ -45,7 +45,7 @@ bool BarbaServerUdpSimpleConnection::CreateUdpBarbaPacket(PacketHelper* packet, 
 
 bool BarbaServerUdpSimpleConnection::ProcessOutboundPacket(PacketHelper* packet)
 {
-	if (!theApp->CheckMTUDecrement(packet->GetPacketLen(), sizeof iphdr + sizeof udphdr + sizeof BarbaHeader))
+	if (!theApp->CheckMTUDecrement(packet->GetPacketLen(), sizeof iphdr + sizeof udphdr))
 		return false;
 
 	packet->SetDesIp(ClientLocalIp);
