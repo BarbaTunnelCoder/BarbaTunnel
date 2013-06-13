@@ -52,7 +52,7 @@ protected:
 	volatile bool _IsStarted;
 	virtual void StartCaptureLoop()=0;
 	SimpleEvent StopEvent;
-	void AddPacket(PacketHelper* packet, bool send);
+	void AddPacket(PacketHelper* packet, bool outbound);
 	void SendPacketWithSocket(PacketHelper* packet);
 	void UpdateMTUDecrement();
 	//@param filter object that should handle by subclass implementer

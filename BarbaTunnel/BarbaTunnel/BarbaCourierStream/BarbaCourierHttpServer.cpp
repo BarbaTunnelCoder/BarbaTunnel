@@ -281,4 +281,3 @@ void BarbaCourierHttpServer::GetGetReplyBombard(size_t dataLength, BarbaBuffer* 
 	BarbaUtils::UpdateHttpRequest(&reply, NULL, NULL, _T("application/octet-stream"), dataLength, NULL);
 	requestBuffer->append((char*)reply.data(), reply.size());
 }
-

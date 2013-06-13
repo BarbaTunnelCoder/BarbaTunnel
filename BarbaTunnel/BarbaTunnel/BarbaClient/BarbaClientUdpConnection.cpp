@@ -17,6 +17,8 @@ BarbaClientUdpConnection::~BarbaClientUdpConnection(void)
 void BarbaClientUdpConnection::Init()
 {
 	BarbaCourierUdpClient::CreateStrcutUdp* cs = new BarbaCourierUdpClient::CreateStrcutUdp();
+	cs->MaxChunkSize = GetConfig()->MaxPacketSize - sizeof (iphdr) - sizeof (udphdr);
+	cs->KeepAliveInterval = GetConfig()->KeepAliveInterval;
 	cs->RemoteIp = GetConfig()->ServerIp;
 	cs->PortRange = &GetConfig()->TunnelPorts;
 	_Courier = new Courier(this, cs);

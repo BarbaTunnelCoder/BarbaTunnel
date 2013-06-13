@@ -357,7 +357,7 @@ void BarbaUtils::SetKeyValue(std::tstring* str, LPCTSTR key, LPCTSTR value)
 {
 	str->reserve(str->size() + _tcslen(value) + 5);
 	str->append(key);
-	str->append(_T("="));
+	str->append(_T(":"));
 	str->append(value);
 	str->append(_T(";"));
 }
@@ -525,4 +525,12 @@ int BarbaUtils::GetTimeZoneFromString(LPCTSTR timeZone)
 	int min = 0;
 	_stscanf_s(timeZibeStr.data() + timePos + 4, _T("%d:%d"), &hour, &min);
 	return (hour * 3600 + min * 60) * utcSign;
+}
+
+size_t BarbaUtils::GetTickDiff(DWORD oldTick)
+{
+	size_t t1 = GetTickCount();
+	if (t1<oldTick)
+		t1 += 0xFFFFFFFF;
+	return t1 - oldTick;
 }

@@ -40,6 +40,8 @@ public:
 	static std::string PrepareHttpRequest(std::tstring request);
 	static std::tstring GetTimeString(int timeZone);
 	static std::tstring GetTimeString(time_t _Time, int timeZone);
+	//check oldTick with current GetTickCount with 49 days care
+	static size_t GetTickDiff(DWORD oldTick); 
 	//@return -1 if not valid otherwise is the time zone different in second
 	static int GetTimeZoneFromString(LPCTSTR timeZone);
 };

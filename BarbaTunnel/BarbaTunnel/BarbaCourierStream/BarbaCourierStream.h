@@ -89,7 +89,7 @@ protected:
 	Message* GetMessage();
 	void CheckKeepAlive();
 	void StartKeepAliveThread();
-	static unsigned int __stdcall CheckKeepAliveThread(void* BarbaCourierStream);
+	static u_int __stdcall CheckKeepAliveThread(void* BarbaCourierStream);
 	std::tstring RequestData_ToString(std::tstring requestData);
 	std::tstring RequestData_FromString(std::tstring requestString);
 	CreateStrcut* GetCreateStruct() {return _CreateStruct;}

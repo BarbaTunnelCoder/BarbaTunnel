@@ -2,11 +2,9 @@
 #include "General.h"
 #include "BarbaCrypt.h"
 
-// {E0B6D3F2-5B74-46E7-BC2C-5C349055DD06}
-GUID BarbaSign = { 0xe0b6d3f2, 0x5b74, 0x46e7, { 0xbc, 0x2c, 0x5c, 0x34, 0x90, 0x55, 0xdd, 0x6 } };
-GUID* GetBarbaSign()
+std::string GetBarbaTag()
 {
-	return &BarbaSign;
+	return _T("BarbaTunnelTag;");
 }
 
 BarbaModeEnum BarbaMode_FromString(LPCTSTR mode)

@@ -44,7 +44,7 @@ bool BarbaClientUdpSimpleConnection::CreateUdpBarbaPacket(PacketHelper* packet, 
 
 bool BarbaClientUdpSimpleConnection::ProcessOutboundPacket(PacketHelper* packet)
 {
-	if (!theApp->CheckMTUDecrement(packet->GetPacketLen(), sizeof iphdr + sizeof udphdr + sizeof BarbaHeader))
+	if (!theApp->CheckMTUDecrement(packet->GetPacketLen(), sizeof iphdr + sizeof udphdr))
 		return false;
 
 	//Create Barba packet
