@@ -303,7 +303,7 @@ void WinpkFilterDriver::Initialize()
 	//check is driver loaded (let after Comm Files created)
 	if(!gWinpkFilterApi.IsDriverLoaded(FilterDriverHandle))
 	{
-		LPCTSTR err = _T("Driver not installed on this system or failed to load!\r\nPlease go to http://www.ntndis.com/w&p.php?id=7 and install WinpkFilter driver.");
+		LPCTSTR err = _T("Driver not installed on this system or failed to load!\r\nPlease go to http://www.ntkernel.com/ and install WinpkFilter driver.");
 		BarbaNotify(_T("Error: Driver not installed!\r\nDriver not installed on this system or failed to load!"));
 		throw new BarbaException(err);
 	}

@@ -67,6 +67,15 @@ BarbaCourierUdpServer::~BarbaCourierUdpServer(void)
 {
 }
 
+void BarbaCourierUdpServer::Init()
+{
+	BarbaCourierDatagram::Init();
+	std::string cmd;
+	BarbaUtils::SetKeyValue(&cmd, _T("command"), _T("udpInit"));
+	BarbaBuffer data((char*)cmd.data(), cmd.size());
+	SendDataControl(&data);
+}
+
 
 // GUID (32) | Session (4) | Data
 bool BarbaCourierUdpServer::ProcessInboundPacket(PacketHelper* packet)
@@ -108,7 +117,7 @@ bool BarbaCourierUdpServer::ProcessInboundPacket(PacketHelper* packet)
 
 	portManager.AddPort(packet->GetDesPort(), packet->GetSrcPort());
 	BarbaBuffer chunk(buffer.data() + offset, buffer.size()-offset);
-	Log3(_T("Receiving UDP Chunk. ServerPort:%d, ClientPort:%d, Size: %d Bytes."), packet->GetDesPort(), packet->GetSrcPort(), chunk.size());
+	Log3(_T("Receiving UDP Chunk. ServerPort:%d, ClientPort:%d, Size: %d bytes."), packet->GetDesPort(), packet->GetSrcPort(), chunk.size());
 	SendChunkToInbound(&chunk);
 	return true;
 }
@@ -129,29 +138,39 @@ void BarbaCourierUdpServer::SendChunkToOutbound(BarbaBuffer* chunk)
 	u_short serverPort;
 	u_short clientPort;
 	portManager.FindPort(&serverPort, &clientPort);
-	Log3(_T("Sending UDP Chunk. SessionId: %x, ServerPort:%d, ClientPort:%d, Size: %d Bytes."), _SessionId, serverPort, clientPort, chunk->size());
+	Log3(_T("Sending UDP Chunk. SessionId: %x, ServerPort:%d, ClientPort:%d, Size: %d bytes."), _SessionId, serverPort, clientPort, chunk->size());
 	SendUdpPacketToOutbound(GetCreateStruct()->RemoteIp, serverPort, clientPort, &buffer);
 }
 
-void BarbaCourierUdpServer::ProcessControlCommand(std::tstring command)
+bool BarbaCourierUdpServer::PreReceiveData(BarbaBuffer* data)
 {
-	if (command.compare(_T("keepAlive"))==0)
-		return;
+	std::string udpKeepAlive("@keepAlive");
+	if (data->size()==udpKeepAlive.size() && memcmp(data->data(), udpKeepAlive.data(), udpKeepAlive.size()))
+		return true;
+	return false;
+}
 
-	BarbaCourierDatagram::ProcessControlCommand(command); //reprot it 
+bool BarbaCourierUdpServer::PreReceiveDataControl(BarbaBuffer* data)
+{
+	if (BarbaCourierDatagram::PreReceiveDataControl(data))
+		return true;
+
+	std::string command((char*)data->data(), data->size());
+	std::tstring cmdName = BarbaUtils::GetKeyValueFromString(command.data(), _T("command"));
 
 	//initialize server
-	std::tstring cmd = BarbaUtils::GetKeyValueFromString(command.data(), _T("command"));
-	if (cmd.compare(_T("init"))==0)
+	if (cmdName.compare(_T("udpInit"))==0)
 	{
 		int keepAlivePortsCount = BarbaUtils::GetKeyValueFromString(command.data(), _T("keepAlivePortsCount"), 0);
 		if (keepAlivePortsCount!=0) portManager.SetMaxPorts((u_short)keepAlivePortsCount); 
 
 		int maxChunkSize = BarbaUtils::GetKeyValueFromString(command.data(), _T("maxChunkSize"), 0);
 		if (maxChunkSize!=0) GetCreateStruct()->MaxChunkSize = maxChunkSize;
-
-		std::tstring cmdAck;
-		BarbaUtils::SetKeyValue(&cmdAck, _T("command"), _T("initAck"));
-		SendControlCommand(cmdAck);
 	}
+	else
+	{
+		return false;
+	}
+
+	return true;
 }

@@ -37,9 +37,11 @@ public:
 	BarbaCourierUdpServer(CreateStrcutUdp* cs);
 	virtual ~BarbaCourierUdpServer(void);
 	bool ProcessInboundPacket(PacketHelper* packet);
+	void Init() override;
 
 protected:
-	void ProcessControlCommand(std::tstring command) override;
+	bool PreReceiveData(BarbaBuffer* data) override;
+	bool PreReceiveDataControl(BarbaBuffer* data) override;
 	void SendChunkToOutbound(BarbaBuffer* chunk) override;
 	virtual void SendUdpPacketToOutbound(DWORD remoteIp, u_short srcPort, u_short desPort, BarbaBuffer* payLoad) = 0;
 };

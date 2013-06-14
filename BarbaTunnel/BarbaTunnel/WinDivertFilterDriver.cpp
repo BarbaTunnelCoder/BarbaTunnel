@@ -98,7 +98,7 @@ void WinDivertFilterDriver::Initialize()
 
 	InitWinDivertApi();
 
-	this->DivertHandle = OpenDivertHandle();
+	DivertHandle = OpenDivertHandle();
 }
 
 void WinDivertFilterDriver::Dispose()
@@ -107,9 +107,9 @@ void WinDivertFilterDriver::Dispose()
 	BarbaFilterDriver::Dispose();
 
 	//all resource disposed in Stop
-	if (this->DivertHandle!=NULL)
-		gWinDivertApi.DivertClose(this->DivertHandle);
-	this->DivertHandle = NULL;
+	if (DivertHandle!=NULL)
+		gWinDivertApi.DivertClose(DivertHandle);
+	DivertHandle = NULL;
 }
 
 void WinDivertFilterDriver::Stop()
@@ -137,7 +137,7 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 	{
 		//IP-Only filter
 		BarbaLog(_T("WinDivert does not accept filter criteria. Please reduce configuration files. BarbaTunnel try to using IP-Filter only!"));
-		this->FilterIpOnly = true;
+		FilterIpOnly = true;
 		filter.clear();
 		AddPacketFilter(&filter);
 		divertHandle = gWinDivertApi.DivertOpen(filter.data(), DIVERT_LAYER_NETWORK, 0, 0);
@@ -169,8 +169,8 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 void WinDivertFilterDriver::StartCaptureLoop()
 {
 	//Stop() will close handle so need to be re-open
-	if (this->DivertHandle==NULL)
-		this->DivertHandle = OpenDivertHandle();
+	if (DivertHandle==NULL)
+		DivertHandle = OpenDivertHandle();
 
 	//SendRouteFinderPacket
 	SendPacketWithSocket(&RouteFinderPacket);
@@ -181,18 +181,17 @@ void WinDivertFilterDriver::StartCaptureLoop()
 	UINT recvLen;
 	while (!IsStopping())
 	{
-		//it will return error if this->DivertHandle closed
-		if (!gWinDivertApi.DivertRecv(this->DivertHandle, buffer, 0xFFFF, &addr, &recvLen))
+		//it will return error if DivertHandle closed
+		if (!gWinDivertApi.DivertRecv(DivertHandle, buffer, 0xFFFF, &addr, &recvLen))
 			continue;
-
 
 		//Initialize Packet
 		bool send = addr.Direction == DIVERT_PACKET_DIRECTION_OUTBOUND;
 		PacketHelper* packet = new PacketHelper((iphdr_ptr)buffer, recvLen);
 
 		//user adapter index for any grab packet
-		this->MainIfIdx = addr.IfIdx;
-		this->MainSubIfIdx = addr.SubIfIdx;
+		MainIfIdx = addr.IfIdx;
+		MainSubIfIdx = addr.SubIfIdx;
 
 		//don't send my special packets
 		if (HasSamePacketTarget(packet, &RouteFinderPacket) || HasSamePacketTarget(packet, &SingalPacket))
@@ -211,23 +210,23 @@ void WinDivertFilterDriver::StartCaptureLoop()
 bool WinDivertFilterDriver::SendPacketToOutbound(PacketHelper* packet)
 {
 	DIVERT_ADDRESS addr;
-	addr.IfIdx = this->MainIfIdx;
-	addr.SubIfIdx = this->MainSubIfIdx;
+	addr.IfIdx = MainIfIdx;
+	addr.SubIfIdx = MainSubIfIdx;
 	addr.Direction = DIVERT_PACKET_DIRECTION_OUTBOUND;
 	return 
-		this->DivertHandle!=NULL && 
-		gWinDivertApi.DivertSend(this->DivertHandle, packet->ipHeader, (UINT)packet->GetIpLen(), &addr, NULL)!=FALSE;
+		DivertHandle!=NULL && 
+		gWinDivertApi.DivertSend(DivertHandle, packet->ipHeader, (UINT)packet->GetIpLen(), &addr, NULL)!=FALSE;
 }
 
 bool WinDivertFilterDriver::SendPacketToInbound(PacketHelper* packet)
 {
 	DIVERT_ADDRESS addr;
-	addr.IfIdx = this->MainIfIdx;
-	addr.SubIfIdx = this->MainSubIfIdx;
+	addr.IfIdx = MainIfIdx;
+	addr.SubIfIdx = MainSubIfIdx;
 	addr.Direction = DIVERT_PACKET_DIRECTION_INBOUND;
 	return 
-		this->DivertHandle!=NULL && 
-		gWinDivertApi.DivertSend(this->DivertHandle, packet->ipHeader, (UINT)packet->GetIpLen(), &addr, NULL)!=FALSE;
+		DivertHandle!=NULL && 
+		gWinDivertApi.DivertSend(DivertHandle, packet->ipHeader, (UINT)packet->GetIpLen(), &addr, NULL)!=FALSE;
 }
 
 void WinDivertFilterDriver::CreateRangeFormat(TCHAR* format, LPCSTR fieldName, DWORD start, DWORD end, bool ip)
@@ -279,7 +278,7 @@ std::string WinDivertFilterDriver::GetFilter(bool send, u_long srcIpStart, u_lon
 	}
 
 	//stop in FilterIpOnly mode
-	if (this->FilterIpOnly && (srcIpStart!=0 || desIpStart!=0))
+	if (FilterIpOnly && (srcIpStart!=0 || desIpStart!=0))
 		return filter;
 
 	//protocol filter

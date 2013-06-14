@@ -44,6 +44,6 @@ bool BarbaClientRedirectConnection::ProcessInboundPacket(PacketHelper* packet)
 	DecryptPacket(packet);
 	packet->SetSrcPort(GetRealPort());
 	SendPacketToInbound(packet);
-	Log3(_T("Receving packet with %d bytes."), packet->GetPacketLen());
+	Log3(_T("Receiving packet with %d bytes."), packet->GetPacketLen());
 	return true;
 }

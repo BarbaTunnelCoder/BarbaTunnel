@@ -79,7 +79,7 @@ bool BarbaServerUdpSimpleConnection::ProcessInboundPacket(PacketHelper* packet)
 	//prepare for NAT
 	orgPacket.SetSrcIp(ClientVirtualIp);
 
-	Log3(_T("Receving packet with %d bytes."), orgPacket.GetPacketLen());
+	Log3(_T("Receiving packet with %d bytes."), orgPacket.GetPacketLen());
 	SendPacketToInbound(&orgPacket);
 	return true;
 
