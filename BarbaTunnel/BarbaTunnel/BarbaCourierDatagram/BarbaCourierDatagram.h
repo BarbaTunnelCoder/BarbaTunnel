@@ -41,8 +41,8 @@ public:
 	virtual ~BarbaCourierDatagram(void);
 	void Log2(LPCTSTR format, ...);
 	void Log3(LPCTSTR format, ...);
-	void SendData(BarbaBuffer* data); //end-user send data with this method
-	virtual void ReceiveData(BarbaBuffer* data)=0; //end-user receive data with this method
+	virtual void SendData(BarbaBuffer* data); //end-user send data with this method
+	virtual void SendDataControl(BarbaBuffer* data);
 	virtual void Encrypt(BYTE* data, size_t dataSize, size_t index)=0;
 	virtual void Decrypt(BYTE* data, size_t dataSize, size_t index)=0;
 	virtual void Init();
@@ -50,23 +50,25 @@ public:
 	CreateStrcut* GetCreateStruct() {return _CreateStruct;}
 
 protected:
+	virtual void ReceiveData(BarbaBuffer* data); 
+	virtual void ReceiveDataControl(BarbaBuffer* data);
+	virtual bool PreReceiveData(BarbaBuffer* data);
+	virtual bool PreReceiveDataControl(BarbaBuffer* data);
+
 	void LogImpl(int level, LPCTSTR format, va_list _ArgList);
 	DWORD GetNewMessageId();
 	void SendChunkToInbound(BarbaBuffer* data); //Subclasser should called it when got new chunk
 	virtual void SendChunkToOutbound(BarbaBuffer* chunk)=0; //Subclasser should send chunk
-	virtual void ProcessControlCommand(std::tstring command);
-	void SendControlCommand(std::tstring command, bool log=true);
 	DWORD _SessionId;
 	void TimerThread();
 
 private:
+	bool IsDataControl(BarbaBuffer* data, BarbaBuffer* dataControl=NULL);
 	CreateStrcut* _CreateStruct;
 	DWORD LastMessageId;
 	BarbaArray<Message*> Messages;
 	void RemoveMessage(int messageIndex);
 	void RemoveTimeoutMessages();
 	DWORD LastCleanTimeoutMessagesTime;
-	HANDLE TimerThreadHandle;
-	static u_int __stdcall TimerThread(void* courier);
 };
 

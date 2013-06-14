@@ -10,8 +10,6 @@ BarbaCourierUdpClient::BarbaCourierUdpClient(CreateStrcutUdp* cs)
 	LastKeepAliveTime = GetTickCount();
 	LastKeepAliveSentChunkCount = 0;
 	SentChunkCount = 0;
-	LastInitCommandSentTime = 0;
-	IsInitCommandAckRecieved = false;
 }
 
 
@@ -47,8 +45,9 @@ void BarbaCourierUdpClient::CheckKeepAlive()
 	//sending keepAlive
 	for (size_t i=0; i<portsCount; i++)
 	{
-		BarbaBuffer keepAlive;
-		SendControlCommand(_T("keepAlive"), false);
+		std::string udpKeepAlive("@keepAlive");
+		BarbaBuffer data((BYTE*)udpKeepAlive.data(), udpKeepAlive.size());
+		SendData(&data);
 	}
 
 
@@ -93,7 +92,6 @@ bool BarbaCourierUdpClient::ProcessInboundPacket(PacketHelper* packet)
 // GUID (32) | Session (4) | Data
 void BarbaCourierUdpClient::SendChunkToOutbound(BarbaBuffer* chunk)
 {
-	CheckInitCommand();
 	CheckKeepAlive();
 
 	//append UDP Tunnel signature
@@ -109,32 +107,29 @@ void BarbaCourierUdpClient::SendChunkToOutbound(BarbaBuffer* chunk)
 
 	u_short clientPort = GetCreateStruct()->PortRange->GetRandomPort();
 	u_short serverPort = GetCreateStruct()->PortRange->GetRandomPort();
-	Log3(_T("Sending UDP Chunk. ServerPort:%d, ClientPort:%d, Size: %d Bytes."), serverPort, clientPort, chunk->size());
+	Log3(_T("Sending UDP Chunk. ServerPort:%d, ClientPort:%d, Size: %d bytes."), serverPort, clientPort, chunk->size());
 	SendUdpPacketToOutbound(GetCreateStruct()->RemoteIp, clientPort, serverPort, &buffer);
 	SentChunkCount++;
 }
 
-void BarbaCourierUdpClient::ProcessControlCommand(std::tstring command)
+void BarbaCourierUdpClient::ReceiveDataControl(BarbaBuffer* data)
 {
-	BarbaCourierDatagram::ProcessControlCommand(command); //reprot it 
+	BarbaCourierDatagram::ReceiveDataControl(data);
+	std::string command((char*)data->data(), data->size());
+	std::tstring cmdName = BarbaUtils::GetKeyValueFromString(command.data(), _T("udpCommand"));
 
 	//initialize server
-	std::tstring cmd = BarbaUtils::GetKeyValueFromString(command.data(), _T("command"));
-	if (cmd.compare(_T("initAck"))==0)
-		IsInitCommandAckRecieved = true;
+	if (cmdName.compare(_T("init"))==0)
+		SendInitCommand();
 }
 
 
-void	 BarbaCourierUdpClient::CheckInitCommand()
+void	 BarbaCourierUdpClient::SendInitCommand()
 {
-	if (IsInitCommandAckRecieved || (GetTickCount()-LastInitCommandSentTime)<3000)
-		return;
-
-	LastInitCommandSentTime = GetTickCount();
-
 	std::tstring cmd;
-	BarbaUtils::SetKeyValue(&cmd, _T("command"), _T("init"));
+	BarbaUtils::SetKeyValue(&cmd, _T("command"), _T("udpInit"));
 	BarbaUtils::SetKeyValue(&cmd, _T("keepAlivePortsCount"), GetCreateStruct()->KeepAlivePortsCount);
 	BarbaUtils::SetKeyValue(&cmd, _T("maxChunkSize"), (int)GetCreateStruct()->MaxChunkSize);
-	SendControlCommand(cmd);
+	BarbaBuffer data((BYTE*)cmd.data(), cmd.size());
+	SendDataControl(&data);
 }

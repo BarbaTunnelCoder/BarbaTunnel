@@ -69,7 +69,8 @@ void BarbaServerUdpConnection::Courier::ReceiveData(BarbaBuffer* data)
 	//prepare for NAT
 	orgPacket.SetSrcIp(_Connection->ClientVirtualIp);
 
-	Log3(_T("Receving packet with %d bytes."), orgPacket.GetIpLen());
+	_Connection->Log3(_T("Receiving packet with %d bytes."), orgPacket.GetIpLen());
+	BarbaLog("ssssssss %s to %s,  %d", BarbaUtils::ConvertIpToString(orgPacket.GetSrcIp(), false).data(), BarbaUtils::ConvertIpToString(orgPacket.GetDesIp(), false).data(), orgPacket.ipHeader->ip_sum );
 	_Connection->SendPacketToInbound(&orgPacket);
 }
 

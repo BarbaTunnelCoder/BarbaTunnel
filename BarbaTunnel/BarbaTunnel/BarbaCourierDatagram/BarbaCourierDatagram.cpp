@@ -76,7 +76,6 @@ BarbaCourierDatagram::BarbaCourierDatagram(CreateStrcut* cs)
 	_SessionId = 0;
 	LastMessageId = 0;
 	_CreateStruct = cs;
-	TimerThreadHandle = NULL;
 	Messages.reserve(MaxMessagesCount); //reserver for 100K messages!
 }
 
@@ -116,6 +115,9 @@ DWORD BarbaCourierDatagram::GetNewMessageId()
 // Control (1) | { MessageId (4) | TotalChunk (4) | ChunkIndex (4) } | ChunkData
 void BarbaCourierDatagram::SendData(BarbaBuffer* data)
 {
+	if (!IsDataControl(data))
+		Log3(_T("Sending %d bytes."), data->size()); 
+
 	//prevent fix maxSize
 	size_t maxChunkSize = GetCreateStruct()->MaxChunkSize;
 	size_t maxSize = maxChunkSize - BarbaUtils::GetRandom(0, (u_int)maxChunkSize/8); //prevent fixed lengh max chunk size
@@ -128,7 +130,7 @@ void BarbaCourierDatagram::SendData(BarbaBuffer* data)
 
 		BYTE controlChar = message.Chunks.size()==1 ? 1 : 4;
 		chunk.append(controlChar); //control character
-		
+
 		//add MessageId (4) | TotalChunk (4) | ChunkIndex (4) if first 2 bit of controlChar is 4
 		if ( (controlChar & 0x4)==4 )
 		{
@@ -210,15 +212,18 @@ void BarbaCourierDatagram::SendChunkToInbound(BarbaBuffer* data)
 		message->GetData(&buf);
 
 		//check control command
-		std::string tag = "BarbaTunnelComm;";
-		if (buf.size()>=tag.size() && memcmp(buf.data(), tag.data(), tag.size())==0)
+		BarbaBuffer dataControl;
+		if (IsDataControl(data, &dataControl))
 		{
-			std::string command((char*)buf.data()+tag.size(), buf.size()-tag.size());
-			ProcessControlCommand(command);
+			Log3(_T("Receiving DataControl %d bytes."), buf.size()); 
+			if (!PreReceiveDataControl(&buf))
+				ReceiveDataControl(&dataControl);
 		}
 		else
 		{
-			ReceiveData(&buf);
+			Log3(_T("Receiving %d bytes."), buf.size()); 
+			if (!PreReceiveData(&buf))
+				ReceiveData(&buf);
 		}
 
 		//delete message
@@ -236,22 +241,47 @@ void BarbaCourierDatagram::SendChunkToInbound(BarbaBuffer* data)
 	RemoveTimeoutMessages();
 }
 
-void BarbaCourierDatagram::ProcessControlCommand(std::string command)
+bool BarbaCourierDatagram::PreReceiveData(BarbaBuffer* data)
 {
-	Log3(_T("Control Command Received: %s"), command.data());
+	UNREFERENCED_PARAMETER(data);
+	return false;
 }
 
-void BarbaCourierDatagram::SendControlCommand(std::string command, bool log)
+bool BarbaCourierDatagram::PreReceiveDataControl(BarbaBuffer* data)
 {
+	UNREFERENCED_PARAMETER(data);
+	return false;
+}
+
+bool BarbaCourierDatagram::IsDataControl(BarbaBuffer* data, BarbaBuffer* dataControl)
+{
+	std::string tag = "BarbaTunnelComm;";
+	bool ret = data->size()>=tag.size() && memcmp(data->data(), tag.data(), tag.size())==0;
+	if (ret && dataControl!=NULL)
+		dataControl->assign(data->data()+tag.size(), data->size()-tag.size());
+	return ret;
+}
+
+void BarbaCourierDatagram::SendDataControl(BarbaBuffer* data)
+{
+	return;
 	std::string tag = _T("BarbaTunnelComm;");
 	BarbaBuffer buf;
 	buf.append((BYTE*)tag.data(), tag.size());
-	buf.append((BYTE*)command.data(), command.size());
-
-	if (log) Log2(_T("Sending Control Command: %s"), command.data());
+	buf.append(data);
+	Log3(_T("Sending DataControl %d bytes."), data->size()); 
 	SendData(&buf);
 }
 
+void BarbaCourierDatagram::ReceiveData(BarbaBuffer* data)
+{
+	UNREFERENCED_PARAMETER(data);
+}
+
+void BarbaCourierDatagram::ReceiveDataControl(BarbaBuffer* data)
+{
+	UNREFERENCED_PARAMETER(data);
+}
 
 void BarbaCourierDatagram::RemoveMessage(int messageIndex)
 {

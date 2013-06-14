@@ -70,7 +70,7 @@ bool BarbaClientUdpSimpleConnection::ProcessInboundPacket(PacketHelper* packet)
 		return false;
 	}
 
-	Log3(_T("Receving packet with %d bytes."), orgPacket.GetPacketLen());
+	Log3(_T("Receiving packet with %d bytes."), orgPacket.GetPacketLen());
 	SendPacketToInbound(&orgPacket);
 	return true;
 }

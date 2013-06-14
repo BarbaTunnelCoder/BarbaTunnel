@@ -23,16 +23,14 @@ public:
 
 protected:
 	void SendChunkToOutbound(BarbaBuffer* chunk) override;
-	void ProcessControlCommand(std::tstring command) override;
+	void ReceiveDataControl(BarbaBuffer* data) override;
 	virtual void SendUdpPacketToOutbound(DWORD remoteIp, u_short srcPort, u_short desPort, BarbaBuffer* payLoad)=0;
 
 private:
-	bool IsInitCommandAckRecieved;
-	DWORD LastInitCommandSentTime;
 	DWORD LastKeepAliveTime;
 	size_t LastKeepAliveSentChunkCount;
 	size_t SentChunkCount;
 	void CheckKeepAlive();
-	void CheckInitCommand();
+	void SendInitCommand();
 };
 
