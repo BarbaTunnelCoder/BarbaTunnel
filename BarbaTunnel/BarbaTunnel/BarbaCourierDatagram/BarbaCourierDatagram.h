@@ -45,7 +45,7 @@ private:
 		~DataControlManager();
 		bool IsDataControl(BarbaBuffer* data);
 		bool CheckDataControl(BarbaBuffer* data);
-		void Process();
+		void Process(bool force);
 		void Send(BarbaBuffer* data);
 		void SendAck(DWORD id);
 		void Remove(DWORD id);

@@ -20,6 +20,7 @@ private:
 	bool ExtractUdpBarbaPacket(PacketHelper* barbaPacket, PacketHelper* orgPacket);
 	u_short ClientPort;
 	u_short TunnelPort;
+	DWORD LocalIp;
 
 };
 

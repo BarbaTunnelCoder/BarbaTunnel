@@ -20,12 +20,12 @@ void InitMemoryLeackReport(_HFILE fileHandle)
 	UNREFERENCED_PARAMETER(fileHandle); //for release mode
 
 	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-	_CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
-	_CrtSetReportFile( _CRT_WARN, fileHandle );
-	_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_FILE );
-	_CrtSetReportFile( _CRT_ERROR, fileHandle );
-	_CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_FILE );
-	_CrtSetReportFile( _CRT_ASSERT, fileHandle );
+	//_CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
+	//_CrtSetReportFile( _CRT_WARN, fileHandle );
+	//_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_FILE );
+	//_CrtSetReportFile( _CRT_ERROR, fileHandle );
+	//_CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_FILE );
+	//_CrtSetReportFile( _CRT_ASSERT, fileHandle );
 }
 
 void test()
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 		//create App
 		theApp = isBarbaServer ? (BarbaApp*)new BarbaServerApp(delayStart) : (BarbaApp*)new BarbaClientApp() ;
 		theApp->Initialize();
-		InitMemoryLeackReport(theApp->Comm.GetNotifyFileHandle());
+		InitMemoryLeackReport(theApp->Comm.GetLogFileHandle());
 		theApp->Start();
 	}
 	catch(BarbaException* er)

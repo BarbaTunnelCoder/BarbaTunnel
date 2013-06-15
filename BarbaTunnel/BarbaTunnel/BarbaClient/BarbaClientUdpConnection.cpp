@@ -3,15 +3,17 @@
 #include "BarbaClientApp.h"
 
 
-BarbaClientUdpConnection::BarbaClientUdpConnection(BarbaClientConfig* config)
+BarbaClientUdpConnection::BarbaClientUdpConnection(BarbaClientConfig* config, PacketHelper* initPacket)
 	: BarbaClientConnection(config)
 {
 	_Courier = NULL;
+	LocalIp = initPacket->GetSrcIp();;
 }
 
 
 BarbaClientUdpConnection::~BarbaClientUdpConnection(void)
 {
+	delete _Courier;
 }
 
 void BarbaClientUdpConnection::Init()
@@ -27,7 +29,6 @@ void BarbaClientUdpConnection::Init()
 
 bool BarbaClientUdpConnection::ProcessOutboundPacket(PacketHelper* packet)
 {
-	memcpy_s(&LastOutboundIpHeader, sizeof iphdr, packet->ipHeader, sizeof iphdr);
 	BarbaBuffer buffer((BYTE*)packet->ipHeader, packet->GetIpLen());
 	Log3(_T("Sending packet with %d bytes."), packet->GetIpLen());
 	GetCourier()->SendData(&buffer);
@@ -64,7 +65,6 @@ void BarbaClientUdpConnection::Courier::ReceiveData(BarbaBuffer* data)
 	}
 
 	_Connection->Log3(_T("Receiving packet with %d bytes."), orgPacket.GetIpLen());
-	BarbaLog("ssssssss %s to %s,", BarbaUtils::ConvertIpToString(orgPacket.GetSrcIp(), false).data(), BarbaUtils::ConvertIpToString(orgPacket.GetDesIp(), false).data() );
 	_Connection->SendPacketToInbound(&orgPacket);
 }
 
@@ -72,11 +72,11 @@ void BarbaClientUdpConnection::Courier::SendUdpPacketToOutbound(DWORD remoteIp, 
 {
 	PacketHelper barbaPacket;
 	barbaPacket.Reset(IPPROTO_UDP, sizeof iphdr + sizeof udphdr + payLoad->size());
-	barbaPacket.ipHeader->ip_ttl = _Connection->LastOutboundIpHeader.ip_ttl;
-	barbaPacket.ipHeader->ip_v = _Connection->LastOutboundIpHeader.ip_v;
-	barbaPacket.ipHeader->ip_off = _Connection->LastOutboundIpHeader.ip_off;
-	barbaPacket.ipHeader->ip_src = _Connection->LastOutboundIpHeader.ip_src;
+	barbaPacket.ipHeader->ip_ttl = 128;
+	barbaPacket.ipHeader->ip_v = 4;
+	barbaPacket.ipHeader->ip_off = 64;
 	barbaPacket.ipHeader->ip_id = 56;
+	barbaPacket.SetSrcIp(_Connection->LocalIp);
 	barbaPacket.SetDesIp(remoteIp);
 	barbaPacket.SetSrcPort(srcPort);
 	barbaPacket.SetDesPort(desPort);

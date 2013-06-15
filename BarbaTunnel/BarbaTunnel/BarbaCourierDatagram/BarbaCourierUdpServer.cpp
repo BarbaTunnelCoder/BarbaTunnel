@@ -69,8 +69,10 @@ BarbaCourierUdpServer::~BarbaCourierUdpServer(void)
 
 void BarbaCourierUdpServer::SendInitRequest()
 {
-	std::string cmd;
+	std::tstring cmd = "BarbaCourierUdp;sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss;";
 	BarbaUtils::SetKeyValue(&cmd, _T("command"), _T("udpInit"));
+	Log3(_T("Sending DataControl: %s"), cmd.data());
+
 	BarbaBuffer data((char*)cmd.data(), cmd.size());
 	SendDataControl(&data);
 }
@@ -109,10 +111,10 @@ bool BarbaCourierUdpServer::ProcessInboundPacket(PacketHelper* packet)
 	offset += sizeof sessionId;
 	
 	//create new session if session is 0
-	if (_SessionId==0)
+	bool isNewSession = _SessionId==0;
+	if (isNewSession)
 	{
 		_SessionId = sessionId;
-		SendInitRequest();
 	}
 	else if (_SessionId != sessionId)
 	{
@@ -123,6 +125,10 @@ bool BarbaCourierUdpServer::ProcessInboundPacket(PacketHelper* packet)
 	BarbaBuffer chunk(buffer.data() + offset, buffer.size()-offset);
 	Log3(_T("Receiving UDP Chunk. ServerPort:%d, ClientPort:%d, Size: %d bytes."), packet->GetDesPort(), packet->GetSrcPort(), chunk.size());
 	SendChunkToInbound(&chunk);
+
+	//Request Init data
+	if (isNewSession)
+		SendInitRequest();
 	return true;
 }
 
@@ -162,8 +168,16 @@ bool BarbaCourierUdpServer::PreReceiveDataControl(BarbaBuffer* data)
 	if (BarbaCourierDatagram::PreReceiveDataControl(data))
 		return true;
 
+	//check is DataContorl belong to me
+	std::string tag = "BarbaCourierUdp;";
+	bool isMine = data->size()>=tag.size() && memcmp(data->data(), tag.data(), tag.size())==0;
+	if (!isMine)
+		return false;
+
+	//process
 	std::string command((char*)data->data(), data->size());
 	std::tstring cmdName = BarbaUtils::GetKeyValueFromString(command.data(), _T("command"));
+	Log3(_T("Receiving DataControl: %s"), command.data());
 
 	//initialize server
 	if (cmdName.compare(_T("udpInit"))==0)
@@ -173,10 +187,6 @@ bool BarbaCourierUdpServer::PreReceiveDataControl(BarbaBuffer* data)
 
 		int maxChunkSize = BarbaUtils::GetKeyValueFromString(command.data(), _T("maxChunkSize"), 0);
 		if (maxChunkSize!=0) GetCreateStruct()->MaxChunkSize = maxChunkSize;
-	}
-	else
-	{
-		return false;
 	}
 
 	return true;

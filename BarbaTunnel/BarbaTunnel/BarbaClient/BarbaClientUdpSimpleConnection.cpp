@@ -8,6 +8,7 @@ BarbaClientUdpSimpleConnection::BarbaClientUdpSimpleConnection(BarbaClientConfig
 {
 	ClientPort = initPacket->GetSrcPort();
 	TunnelPort = config->TunnelPorts.GetRandomPort();
+	LocalIp = initPacket->GetSrcIp();
 }
 
 u_long BarbaClientUdpSimpleConnection::GetSessionId()
@@ -29,10 +30,10 @@ bool BarbaClientUdpSimpleConnection::ExtractUdpBarbaPacket(PacketHelper* barbaPa
 bool BarbaClientUdpSimpleConnection::CreateUdpBarbaPacket(PacketHelper* packet, PacketHelper*  barbaPacket)
 {
 	barbaPacket->Reset(IPPROTO_UDP, sizeof iphdr + sizeof udphdr + packet->GetIpLen());
-	barbaPacket->ipHeader->ip_ttl = packet->ipHeader->ip_ttl;
-	barbaPacket->ipHeader->ip_v = packet->ipHeader->ip_v;
+	barbaPacket->ipHeader->ip_ttl = 128;
+	barbaPacket->ipHeader->ip_v = 4;
 	barbaPacket->ipHeader->ip_id = 56;
-	barbaPacket->ipHeader->ip_off = packet->ipHeader->ip_off;
+	barbaPacket->ipHeader->ip_off = 64;
 	barbaPacket->SetSrcIp(packet->GetSrcIp());
 	barbaPacket->SetDesIp(GetConfig()->ServerIp);
 	barbaPacket->SetSrcPort(ClientPort);

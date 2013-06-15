@@ -33,7 +33,7 @@ BarbaConnection::~BarbaConnection(void)
 {
 }
 
-size_t BarbaConnection::GetLasNegotiationTime() 
+DWORD BarbaConnection::GetLasNegotiationTime() 
 {
 	return LasNegotiationTime;
 }

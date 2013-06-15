@@ -36,7 +36,7 @@ public:
 	int LogLevel;
 	bool LogAnonymously;
 	BarbaComm Comm;
-	u_int ConnectionTimeout;
+	DWORD ConnectionTimeout;
 	bool GetFakeFile(BarbaArray<std::tstring>* fakeTypes, size_t fakeFileMaxSize, TCHAR* filename, std::tstring* contentType, size_t* fileSize, BarbaBuffer* fakeFileHeader, bool createNew);
 	BarbaArray<FakeFileHeader> FakeFileHeaders;
 

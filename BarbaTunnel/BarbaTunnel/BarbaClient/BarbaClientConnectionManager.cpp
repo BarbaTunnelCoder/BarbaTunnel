@@ -29,7 +29,7 @@ BarbaClientConnection* BarbaClientConnectionManager::CreateConnection(PacketHelp
 	}
 	else if (config->Mode==BarbaModeUdpTunnel)
 	{
-		conn = new BarbaClientUdpConnection(config);
+		conn = new BarbaClientUdpConnection(config, packet);
 	}
 	else if (config->Mode==BarbaModeTcpTunnel)
 	{

@@ -106,29 +106,28 @@ bool BarbaCourierDatagram::DataControlManager::CheckDataControl(BarbaBuffer* dat
 		//only accept next id
 		if (id<=LastReceivedId && id!=0)
 		{
-			Courier->Log3(_T("Dropping DataControl. Already Received! %d bytes, Id: %d."), buf.size(), id); 
+			Courier->Log3(_T("Dropping DataControl. Already Received! %d bytes, RemoteId: %d."), buf.size(), id); 
 			SendAck(id);
 		}
 		else
 		{
 			LastReceivedId = id;
 			buf.assign(data->data() + offset, data->size()-offset);
-			Courier->Log3(_T("Receiving DataControl. %d bytes, Id=%d."), buf.size(), id); 
-			if (Courier->PreReceiveDataControl(&buf))
+			Courier->Log3(_T("Receiving DataControl. %d bytes, RemoteId: %d."), buf.size(), id); 
+			if (!Courier->PreReceiveDataControl(&buf))
 				Courier->ReceiveDataControl(&buf);
 			SendAck(id);
 		}
 	}
 	else if (type==1)
 	{
-		Courier->Log3(_T("Receiving DataControl Ack for id: id."), buf.size());
+		Courier->Log3(_T("Receiving DataControl Ack. Id: %d."), buf.size());
 		if (id==LastSentId)
 		{
 			if (!Datas.empty())
 				delete Datas.removeHead();
-			LastSentTime = 0;
 			NextId++;
-			Process();
+			Process(true);
 		}
 	}
 	else
@@ -146,7 +145,7 @@ void BarbaCourierDatagram::DataControlManager::SendAck(DWORD id)
 	buf.append((BYTE*)tag.data(), tag.size());
 	buf.append((BYTE*)&id, sizeof DWORD);
 	buf.append(1); //ack
-	Courier->Log3(_T("Sending DataControl Ack for id: %d."), id); 
+	Courier->Log3(_T("Sending DataControl Ack. RemoteId: %d."), id); 
 	Courier->SendData(&buf);
 }
 
@@ -154,12 +153,12 @@ void BarbaCourierDatagram::DataControlManager::Send(BarbaBuffer* data)
 {
 	BarbaBuffer* buffer = new BarbaBuffer(data);
 	Datas.addTail(buffer);
-	Process();
+	Process(Datas.size()==1); //force if the added data is only one in queue
 }
 
-void BarbaCourierDatagram::DataControlManager::Process()
+void BarbaCourierDatagram::DataControlManager::Process(bool force)
 {
-	if (BarbaUtils::GetTickDiff(LastSentTime)<4000)
+	if (BarbaUtils::GetTickDiff(LastSentTime)<4000 && !force)
 		return;
 	LastSentTime = GetTickCount();
 
@@ -410,5 +409,5 @@ void BarbaCourierDatagram::DoTimer()
 
 void BarbaCourierDatagram::Timer()
 {
-	DataControlManager.Process();
+	DataControlManager.Process(false);
 }
