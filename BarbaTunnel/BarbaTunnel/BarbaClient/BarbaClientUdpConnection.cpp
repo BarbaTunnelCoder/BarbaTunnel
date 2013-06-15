@@ -21,6 +21,7 @@ void BarbaClientUdpConnection::Init()
 	BarbaCourierUdpClient::CreateStrcutUdp* cs = new BarbaCourierUdpClient::CreateStrcutUdp();
 	cs->MaxChunkSize = GetConfig()->MaxPacketSize - sizeof (iphdr) - sizeof (udphdr);
 	cs->KeepAliveInterval = GetConfig()->KeepAliveInterval;
+	cs->KeepAlivePortsCount = GetConfig()->KeepAlivePortsCount;
 	cs->RemoteIp = GetConfig()->ServerIp;
 	cs->PortRange = &GetConfig()->TunnelPorts;
 	_Courier = new Courier(this, cs);
@@ -74,7 +75,7 @@ void BarbaClientUdpConnection::Courier::SendUdpPacketToOutbound(DWORD remoteIp, 
 	barbaPacket.Reset(IPPROTO_UDP, sizeof iphdr + sizeof udphdr + payLoad->size());
 	barbaPacket.ipHeader->ip_ttl = 128;
 	barbaPacket.ipHeader->ip_v = 4;
-	barbaPacket.ipHeader->ip_off = 64;
+	barbaPacket.ipHeader->ip_off = 0;
 	barbaPacket.ipHeader->ip_id = 56;
 	barbaPacket.SetSrcIp(_Connection->LocalIp);
 	barbaPacket.SetDesIp(remoteIp);

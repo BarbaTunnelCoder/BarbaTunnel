@@ -69,7 +69,7 @@ BarbaCourierUdpServer::~BarbaCourierUdpServer(void)
 
 void BarbaCourierUdpServer::SendInitRequest()
 {
-	std::tstring cmd = "BarbaCourierUdp;sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss;";
+	std::tstring cmd = "BarbaCourierUdp;";
 	BarbaUtils::SetKeyValue(&cmd, _T("command"), _T("udpInit"));
 	Log3(_T("Sending DataControl: %s"), cmd.data());
 

@@ -80,14 +80,13 @@ void BarbaServerUdpConnection::Courier::SendUdpPacketToOutbound(DWORD remoteIp, 
 	barbaPacket.Reset(IPPROTO_UDP, sizeof iphdr + sizeof udphdr + payLoad->size());
 	barbaPacket.ipHeader->ip_ttl =  128;
 	barbaPacket.ipHeader->ip_v = 4;
-	barbaPacket.ipHeader->ip_off = 64;
+	barbaPacket.ipHeader->ip_off = 0;
 	barbaPacket.ipHeader->ip_id = 56;
 	barbaPacket.SetSrcIp(_Connection->LocalIp);
 	barbaPacket.SetDesIp(remoteIp);
 	barbaPacket.SetSrcPort(srcPort);
 	barbaPacket.SetDesPort(desPort);
 	barbaPacket.SetUdpPayload(payLoad->data(), payLoad->size());
-	PacketHelper* packet = &barbaPacket;
 	_Connection->SendPacketToOutbound(&barbaPacket);
 }
 
