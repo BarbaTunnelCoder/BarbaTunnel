@@ -160,7 +160,7 @@ namespace BarbaTunnel.Monitor
 
 		void UpdateLog()
 		{
-			if (LockReportUpdate)
+			if (LockReportUpdate || WindowState==WindowState.Minimized || !IsVisible)
 				return;
 			
 			ReportTextBox.Text = _barbaComm.ReadLog();
@@ -324,6 +324,18 @@ namespace BarbaTunnel.Monitor
 		{
 			LockReportUpdate = false;
 			UpdateLog();
+		}
+
+		private void Window_StateChanged(object sender, EventArgs e)
+		{
+			if (WindowState!=WindowState.Minimized)
+				UpdateLog();
+		}
+
+		private void Window_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+		{
+			if (IsVisible)
+				UpdateLog();
 		}
 	}
 }
