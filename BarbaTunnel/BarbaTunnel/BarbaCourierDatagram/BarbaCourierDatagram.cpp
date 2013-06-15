@@ -386,7 +386,7 @@ void BarbaCourierDatagram::RemoveTimeoutMessages()
 	{
 		if (BarbaUtils::GetTickDiff(Messages[i]->LastUpdateTime)>GetCreateStruct()->MessageTimeout)
 		{
-			Log3(_T("Dropping timeout packet. MessageChunkId: %d"), Messages[i]->Id);
+			Log3(_T("Dropping timeout message chunk. Id: %d"), Messages[i]->Id);
 			delete Messages[i];
 			RemoveMessage(i);
 			i--;
