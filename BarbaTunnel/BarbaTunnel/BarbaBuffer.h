@@ -31,6 +31,33 @@ public:
 protected:
 	std::vector<T> buf;
 };
-
 typedef BarbaArray<BYTE> BarbaBuffer;
+
+template <class _Ty> 
+class BarbaList
+{
+private:
+	std::list<_Ty> _list;
+
+public:
+	bool empty() {return _list.empty();}
+	void addHead(_Ty _Val) {_list.push_front(_Val);}
+	void addTail(_Ty _Val) {_list.push_back(_Val);}
+	_Ty head() { return _list.front(); }
+	_Ty tail() { _list.back(); }
+	size_t size() { return _list.size(); }
+	_Ty removeTail()
+	{
+		_Ty ret = _list.back(); 
+		_list.pop_back();
+		return ret;
+	}
+	_Ty removeHead()
+	{
+		_Ty ret = _list.front(); 
+		_list.pop_front();
+		return ret;
+	}
+};
+
 

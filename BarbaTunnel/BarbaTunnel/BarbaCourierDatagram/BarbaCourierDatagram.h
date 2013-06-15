@@ -6,6 +6,7 @@ class BarbaCourierDatagram
 public:
 	static const u_int MaxMessageChunksCount = 10000;
 	static const u_int MaxMessagesCount = 100000; //100K messages!
+	static const u_int MaxDataControlCount = 1000; //100 queue
 
 	struct CreateStrcut
 	{
@@ -36,6 +37,29 @@ private:
 		DWORD AddedChunksCount;
 	};
 
+	//data control
+	class DataControlManager
+	{
+	public:
+		DataControlManager();
+		~DataControlManager();
+		bool IsDataControl(BarbaBuffer* data);
+		bool CheckDataControl(BarbaBuffer* data);
+		void Process();
+		void Send(BarbaBuffer* data);
+		void SendAck(DWORD id);
+		void Remove(DWORD id);
+		BarbaCourierDatagram* Courier;
+
+	private:
+		DWORD NextId;
+		DWORD LastSentId;
+		DWORD LastReceivedId;
+		BarbaList<BarbaBuffer*> Datas;
+		DWORD LastSentTime;
+	};
+	DataControlManager DataControlManager;
+
 public:
 	explicit BarbaCourierDatagram(CreateStrcut* cs);
 	virtual ~BarbaCourierDatagram(void);
@@ -54,6 +78,7 @@ protected:
 	virtual void ReceiveDataControl(BarbaBuffer* data);
 	virtual bool PreReceiveData(BarbaBuffer* data);
 	virtual bool PreReceiveDataControl(BarbaBuffer* data);
+	virtual void Timer(); //should always call base class member
 
 	void LogImpl(int level, LPCTSTR format, va_list _ArgList);
 	DWORD GetNewMessageId();
@@ -63,7 +88,8 @@ protected:
 	void TimerThread();
 
 private:
-	bool IsDataControl(BarbaBuffer* data, BarbaBuffer* dataControl=NULL);
+	DWORD LastTimerTime;
+	void DoTimer();
 	CreateStrcut* _CreateStruct;
 	DWORD LastMessageId;
 	BarbaArray<Message*> Messages;

@@ -24,6 +24,7 @@
 #include <process.h>
 #include <fstream>
 #include <vector>
+#include <list>
 #include <map>
 #include <Iphlpapi.h>
 #include <in6addr.h>
