@@ -22,8 +22,9 @@ public:
 	bool ProcessInboundPacket(PacketHelper* packet);
 
 protected:
+	void Timer() override;
 	void SendChunkToOutbound(BarbaBuffer* chunk) override;
-	void ReceiveDataControl(BarbaBuffer* data) override;
+	bool PreReceiveDataControl(BarbaBuffer* data) override;
 	virtual void SendUdpPacketToOutbound(DWORD remoteIp, u_short srcPort, u_short desPort, BarbaBuffer* payLoad)=0;
 
 private:

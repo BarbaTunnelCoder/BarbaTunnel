@@ -92,8 +92,6 @@ bool BarbaCourierUdpClient::ProcessInboundPacket(PacketHelper* packet)
 // GUID (32) | Session (4) | Data
 void BarbaCourierUdpClient::SendChunkToOutbound(BarbaBuffer* chunk)
 {
-	CheckKeepAlive();
-
 	//append UDP Tunnel signature
 	// BarbaSign | SessionID | Chunk
 	std::string tag = GetBarbaTag();
@@ -112,24 +110,43 @@ void BarbaCourierUdpClient::SendChunkToOutbound(BarbaBuffer* chunk)
 	SentChunkCount++;
 }
 
-void BarbaCourierUdpClient::ReceiveDataControl(BarbaBuffer* data)
+bool BarbaCourierUdpClient::PreReceiveDataControl(BarbaBuffer* data)
 {
-	BarbaCourierDatagram::ReceiveDataControl(data);
+	if (BarbaCourierDatagram::PreReceiveDataControl(data))
+		return true;
+
+	//check is DataContorl belong to me
+	std::string tag = "BarbaCourierUdp;";
+	bool isMine = data->size()>=tag.size() && memcmp(data->data(), tag.data(), tag.size())==0;
+	if (!isMine)
+		return false;
+
+	//process
 	std::string command((char*)data->data(), data->size());
-	std::tstring cmdName = BarbaUtils::GetKeyValueFromString(command.data(), _T("udpCommand"));
+	std::tstring cmdName = BarbaUtils::GetKeyValueFromString(command.data(), _T("command"));
+	Log3(_T("Receiving DataControl: %s"), command.data());
 
 	//initialize server
-	if (cmdName.compare(_T("init"))==0)
+	if (cmdName.compare(_T("udpInit"))==0)
 		SendInitCommand();
+	return true;
 }
 
 
 void	 BarbaCourierUdpClient::SendInitCommand()
 {
-	std::tstring cmd;
+	std::tstring cmd = "BarbaCourierUdp;";
 	BarbaUtils::SetKeyValue(&cmd, _T("command"), _T("udpInit"));
 	BarbaUtils::SetKeyValue(&cmd, _T("keepAlivePortsCount"), GetCreateStruct()->KeepAlivePortsCount);
 	BarbaUtils::SetKeyValue(&cmd, _T("maxChunkSize"), (int)GetCreateStruct()->MaxChunkSize);
+	Log3(_T("Sending DataControl: %s"), cmd.data());
+
 	BarbaBuffer data((BYTE*)cmd.data(), cmd.size());
 	SendDataControl(&data);
+}
+
+void BarbaCourierUdpClient::Timer()
+{
+	BarbaCourierDatagram::Timer();
+	CheckKeepAlive();
 }

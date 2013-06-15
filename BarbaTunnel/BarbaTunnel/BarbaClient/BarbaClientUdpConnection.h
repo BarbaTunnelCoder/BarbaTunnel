@@ -19,7 +19,7 @@ public:
 	};
 	
 public:
-	BarbaClientUdpConnection(BarbaClientConfig* config);
+	BarbaClientUdpConnection(BarbaClientConfig* config, PacketHelper* initPacket);
 	virtual ~BarbaClientUdpConnection(void);
 	bool ProcessOutboundPacket(PacketHelper* packet) override;
 	bool ProcessInboundPacket(PacketHelper* packet) override;
@@ -27,7 +27,7 @@ public:
 	u_long GetSessionId() override;
 
 private:
-	iphdr LastOutboundIpHeader;
+	DWORD LocalIp;
 	Courier* GetCourier() { return _Courier; }
 	Courier* _Courier;
 };

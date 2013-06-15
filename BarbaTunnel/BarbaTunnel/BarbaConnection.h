@@ -15,7 +15,7 @@ public:
 	virtual size_t GetId() {return this->ConnectionId;}
 	BarbaConfig* GetConfig() { return _Config; }
 	void CryptData(BYTE* data, size_t dataSize, size_t index, bool encrypt);
-	size_t GetLasNegotiationTime();
+	DWORD GetLasNegotiationTime();
 	void Log2(LPCTSTR format, ...);
 	void Log3(LPCTSTR format, ...);
 
@@ -29,7 +29,7 @@ protected:
 	void SetWorkingState(size_t length, bool send);
 
 private:
-	size_t LasNegotiationTime;
+	DWORD LasNegotiationTime;
 	size_t ConnectionId;
 	BarbaConfig* _Config;
 };

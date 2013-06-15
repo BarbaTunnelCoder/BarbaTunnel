@@ -27,8 +27,8 @@ public:
 	u_long GetSessionId() override;
 
 private:
+	DWORD LocalIp;
 	u_long ClientLocalIp;
-	iphdr LastOutboundIpHeader;
 	Courier* GetCourier() { return _Courier; }
 	Courier* _Courier;
 };

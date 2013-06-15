@@ -43,6 +43,6 @@ public:
 	void Log(LPCTSTR msg, bool notify);
 	bool CreateFiles();
 	bool IsAlreadyRunning() {return _IsAlreadyRunning;}
-	HANDLE GetNotifyFileHandle() { return this->NotifyFileHandle; }
+	HANDLE GetLogFileHandle() { return LogFileHandle; }
 };
 

@@ -196,7 +196,7 @@ LPCTSTR BarbaApp::GetModuleFolder()
 
 int BarbaApp::GetMinMTUDecrement()
 {
-	return sizeof iphdr + sizeof udphdr + GetBarbaTag().size() + 20; //20 for chunk header
+	return sizeof iphdr + sizeof udphdr + (int)GetBarbaTag().size() + 20; //20 for chunk header
 }
  
 bool BarbaApp::CheckTerminateCommands(PacketHelper* packet, bool outbound)
