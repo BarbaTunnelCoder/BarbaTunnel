@@ -44,7 +44,7 @@ void BarbaConnectionManager::CleanTimeoutConnections()
 	for (size_t i=0; i<Connections.GetCount(); i++)
 	{
 		BarbaConnection* conn = connections[i];
-		if (GetTickCount()-conn->GetLasNegotiationTime()>theApp->ConnectionTimeout)
+		if (BarbaUtils::GetTickDiff(conn->GetLasNegotiationTime()) > theApp->ConnectionTimeout)
 		{
 			RemoveConnection(conn);
 		}
@@ -54,10 +54,10 @@ void BarbaConnectionManager::CleanTimeoutConnections()
 void BarbaConnectionManager::DoIntervalCheck()
 {
 	//check timeout connections
-	if (GetTickCount()<LastIntervalTime+5000)
+	if (BarbaUtils::GetTickDiff(LastIntervalTime)<5000)
 		return;
-	
 	LastIntervalTime = GetTickCount();
+
 	CleanTimeoutConnections();
 }
 

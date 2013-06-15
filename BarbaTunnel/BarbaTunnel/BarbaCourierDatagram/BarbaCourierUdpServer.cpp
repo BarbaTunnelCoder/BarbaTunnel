@@ -67,9 +67,8 @@ BarbaCourierUdpServer::~BarbaCourierUdpServer(void)
 {
 }
 
-void BarbaCourierUdpServer::Init()
+void BarbaCourierUdpServer::SendInitRequest()
 {
-	BarbaCourierDatagram::Init();
 	std::string cmd;
 	BarbaUtils::SetKeyValue(&cmd, _T("command"), _T("udpInit"));
 	BarbaBuffer data((char*)cmd.data(), cmd.size());
@@ -111,9 +110,14 @@ bool BarbaCourierUdpServer::ProcessInboundPacket(PacketHelper* packet)
 	
 	//create new session if session is 0
 	if (_SessionId==0)
+	{
 		_SessionId = sessionId;
+		SendInitRequest();
+	}
 	else if (_SessionId != sessionId)
+	{
 		return false;
+	}
 
 	portManager.AddPort(packet->GetDesPort(), packet->GetSrcPort());
 	BarbaBuffer chunk(buffer.data() + offset, buffer.size()-offset);
@@ -138,6 +142,9 @@ void BarbaCourierUdpServer::SendChunkToOutbound(BarbaBuffer* chunk)
 	u_short serverPort;
 	u_short clientPort;
 	portManager.FindPort(&serverPort, &clientPort);
+	if (clientPort==0 || serverPort==0)
+		return;
+
 	Log3(_T("Sending UDP Chunk. SessionId: %x, ServerPort:%d, ClientPort:%d, Size: %d bytes."), _SessionId, serverPort, clientPort, chunk->size());
 	SendUdpPacketToOutbound(GetCreateStruct()->RemoteIp, serverPort, clientPort, &buffer);
 }

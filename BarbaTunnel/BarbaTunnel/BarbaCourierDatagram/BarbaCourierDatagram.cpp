@@ -70,19 +70,131 @@ BarbaCourierDatagram::Message::~Message()
 		delete Chunks[i];
 }
 
-//BarbaCourierDatagram Implementation
+// *************** DataControlManager Implementation
+BarbaCourierDatagram::DataControlManager::DataControlManager()
+{
+	LastSentId = 0;
+	LastReceivedId = 0;
+	LastSentTime = 0;
+	NextId = 0;
+}
+
+BarbaCourierDatagram::DataControlManager::~DataControlManager()
+{
+	while(!Datas.empty())
+		delete Datas.removeTail();
+}
+
+// BarbaTunnelComm | id | type | data
+bool BarbaCourierDatagram::DataControlManager::CheckDataControl(BarbaBuffer* data)
+{
+	std::string tag = "BarbaTunnelComm;";
+	bool ret = data->size()>=(tag.size() + sizeof DWORD + sizeof BYTE) && memcmp(data->data(), tag.data(), tag.size())==0;
+	if (!ret)
+		return false;
+
+	int offset = (int)tag.size();
+	DWORD id = *(DWORD*)(data->data() + offset);
+	offset += sizeof DWORD;
+
+	BYTE type = *(BYTE*)(data->data() + offset);
+	offset += sizeof BYTE;
+
+	BarbaBuffer buf;
+	if (type==0)
+	{
+		//only accept next id
+		if (id<=LastReceivedId && id!=0)
+		{
+			Courier->Log3(_T("Dropping DataControl. Already Received! %d bytes, Id: %d."), buf.size(), id); 
+			SendAck(id);
+		}
+		else
+		{
+			LastReceivedId = id;
+			buf.assign(data->data() + offset, data->size()-offset);
+			Courier->Log3(_T("Receiving DataControl. %d bytes, Id=%d."), buf.size(), id); 
+			if (Courier->PreReceiveDataControl(&buf))
+				Courier->ReceiveDataControl(&buf);
+			SendAck(id);
+		}
+	}
+	else if (type==1)
+	{
+		Courier->Log3(_T("Receiving DataControl Ack for id: id."), buf.size());
+		if (id==LastSentId)
+		{
+			if (!Datas.empty())
+				delete Datas.removeHead();
+			LastSentTime = 0;
+			NextId++;
+			Process();
+		}
+	}
+	else
+	{
+		Courier->Log3(_T("Unknown DataControl Type!"));
+	}
+
+	return true;
+}
+
+void BarbaCourierDatagram::DataControlManager::SendAck(DWORD id)
+{
+	std::string tag = "BarbaTunnelComm;";
+	BarbaBuffer buf;
+	buf.append((BYTE*)tag.data(), tag.size());
+	buf.append((BYTE*)&id, sizeof DWORD);
+	buf.append(1); //ack
+	Courier->Log3(_T("Sending DataControl Ack for id: %d."), id); 
+	Courier->SendData(&buf);
+}
+
+void BarbaCourierDatagram::DataControlManager::Send(BarbaBuffer* data)
+{
+	BarbaBuffer* buffer = new BarbaBuffer(data);
+	Datas.addTail(buffer);
+	Process();
+}
+
+void BarbaCourierDatagram::DataControlManager::Process()
+{
+	if (BarbaUtils::GetTickDiff(LastSentTime)<4000)
+		return;
+	LastSentTime = GetTickCount();
+
+	if (Datas.empty())
+		return;
+
+	BarbaBuffer* data = Datas.head();
+
+	//send data in queue
+	std::string tag = _T("BarbaTunnelComm;");
+	BarbaBuffer buf;
+	buf.append((BYTE*)tag.data(), tag.size());
+	buf.append((BYTE*)&NextId, sizeof DWORD);
+	buf.append((BYTE)0);
+	buf.append(data);
+	Courier->Log3(_T("Sending DataControl. %d bytes, Id: %d"), data->size(), NextId); 
+	Courier->SendData(&buf);
+}
+
+// *************** BarbaCourierDatagram Implementation
 BarbaCourierDatagram::BarbaCourierDatagram(CreateStrcut* cs)
 {
+	_CreateStruct = cs;
 	_SessionId = 0;
 	LastMessageId = 0;
-	_CreateStruct = cs;
-	Messages.reserve(MaxMessagesCount); //reserver for 100K messages!
+	LastCleanTimeoutMessagesTime = 0;
+	DataControlManager.Courier = this;
+	Messages.reserve(MaxMessagesCount);
 }
 
 BarbaCourierDatagram::~BarbaCourierDatagram(void)
 {
 	for (int i=0; i<Messages.size(); i++)
 		delete Messages[i];
+
 	delete _CreateStruct;
 }
 
@@ -115,8 +227,7 @@ DWORD BarbaCourierDatagram::GetNewMessageId()
 // Control (1) | { MessageId (4) | TotalChunk (4) | ChunkIndex (4) } | ChunkData
 void BarbaCourierDatagram::SendData(BarbaBuffer* data)
 {
-	if (!IsDataControl(data))
-		Log3(_T("Sending %d bytes."), data->size()); 
+	DoTimer(); //good place for timer check
 
 	//prevent fix maxSize
 	size_t maxChunkSize = GetCreateStruct()->MaxChunkSize;
@@ -147,6 +258,8 @@ void BarbaCourierDatagram::SendData(BarbaBuffer* data)
 // Control (1) | { MessageId (4) | TotalChunk (4) | ChunkIndex (4) } | ChunkData
 void BarbaCourierDatagram::SendChunkToInbound(BarbaBuffer* data)
 {
+	DoTimer(); //good place for timer check
+
 	if (data->size()<13)
 		return; //invalid size
 
@@ -212,14 +325,7 @@ void BarbaCourierDatagram::SendChunkToInbound(BarbaBuffer* data)
 		message->GetData(&buf);
 
 		//check control command
-		BarbaBuffer dataControl;
-		if (IsDataControl(data, &dataControl))
-		{
-			Log3(_T("Receiving DataControl %d bytes."), buf.size()); 
-			if (!PreReceiveDataControl(&buf))
-				ReceiveDataControl(&dataControl);
-		}
-		else
+		if (!DataControlManager.CheckDataControl(&buf))
 		{
 			Log3(_T("Receiving %d bytes."), buf.size()); 
 			if (!PreReceiveData(&buf))
@@ -253,26 +359,6 @@ bool BarbaCourierDatagram::PreReceiveDataControl(BarbaBuffer* data)
 	return false;
 }
 
-bool BarbaCourierDatagram::IsDataControl(BarbaBuffer* data, BarbaBuffer* dataControl)
-{
-	std::string tag = "BarbaTunnelComm;";
-	bool ret = data->size()>=tag.size() && memcmp(data->data(), tag.data(), tag.size())==0;
-	if (ret && dataControl!=NULL)
-		dataControl->assign(data->data()+tag.size(), data->size()-tag.size());
-	return ret;
-}
-
-void BarbaCourierDatagram::SendDataControl(BarbaBuffer* data)
-{
-	return;
-	std::string tag = _T("BarbaTunnelComm;");
-	BarbaBuffer buf;
-	buf.append((BYTE*)tag.data(), tag.size());
-	buf.append(data);
-	Log3(_T("Sending DataControl %d bytes."), data->size()); 
-	SendData(&buf);
-}
-
 void BarbaCourierDatagram::ReceiveData(BarbaBuffer* data)
 {
 	UNREFERENCED_PARAMETER(data);
@@ -293,14 +379,13 @@ void BarbaCourierDatagram::RemoveMessage(int messageIndex)
 void BarbaCourierDatagram::RemoveTimeoutMessages()
 {
 	//Use abs because GetTickCount is DWORD and just work for 50 days; servers may work beyound
-	DWORD currentTime = GetTickCount();
-	if ( (DWORD)abs((long)(currentTime-LastCleanTimeoutMessagesTime))<GetCreateStruct()->MessageTimeout)
+	if (BarbaUtils::GetTickDiff(LastCleanTimeoutMessagesTime) < GetCreateStruct()->MessageTimeout)
 		return;
+	LastCleanTimeoutMessagesTime = GetTickCount();
 
-	LastCleanTimeoutMessagesTime = currentTime;
 	for (int i=0; i<Messages.size(); i++)
 	{
-		if ((DWORD)abs((long)(currentTime - Messages[i]->LastUpdateTime))>GetCreateStruct()->MessageTimeout)
+		if (BarbaUtils::GetTickDiff(Messages[i]->LastUpdateTime)>GetCreateStruct()->MessageTimeout)
 		{
 			Log3(_T("Dropping timeout packet. MessageChunkId: %d"), Messages[i]->Id);
 			delete Messages[i];
@@ -310,4 +395,20 @@ void BarbaCourierDatagram::RemoveTimeoutMessages()
 	}
 }
 
+void BarbaCourierDatagram::SendDataControl(BarbaBuffer* data)
+{
+	DataControlManager.Send(data);
+}
 
+void BarbaCourierDatagram::DoTimer()
+{
+	if (BarbaUtils::GetTickDiff(LastTimerTime)<500)
+		return;
+	LastTimerTime = GetTickCount();
+	Timer();
+}
+
+void BarbaCourierDatagram::Timer()
+{
+	DataControlManager.Process();
+}

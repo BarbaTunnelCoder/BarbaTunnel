@@ -1,5 +1,4 @@
 #pragma once
-#include <list>
 #include "SimpleCriticalSection.h"
 
 template <class _Ty> 
