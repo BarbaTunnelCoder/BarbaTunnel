@@ -70,7 +70,7 @@ BarbaCourierUdpServer::~BarbaCourierUdpServer(void)
 void BarbaCourierUdpServer::SendInitRequest()
 {
 	std::tstring cmd = "BarbaCourierUdp;";
-	BarbaUtils::SetKeyValue(&cmd, _T("command"), _T("udpInit"));
+	BarbaUtils::SetKeyValue(&cmd, _T("Command"), _T("UdpInit"));
 	Log3(_T("Sending DataControl: %s"), cmd.data());
 
 	BarbaBuffer data((char*)cmd.data(), cmd.size());
@@ -157,7 +157,10 @@ void BarbaCourierUdpServer::SendChunkToOutbound(BarbaBuffer* chunk)
 
 bool BarbaCourierUdpServer::PreReceiveData(BarbaBuffer* data)
 {
-	std::string udpKeepAlive("@keepAlive");
+	if (BarbaCourierDatagram::PreReceiveData(data))
+		return true;
+
+	std::string udpKeepAlive("@KeepAlive");
 	if (data->size()==udpKeepAlive.size() && memcmp(data->data(), udpKeepAlive.data(), udpKeepAlive.size()))
 		return true;
 	return false;
@@ -176,16 +179,16 @@ bool BarbaCourierUdpServer::PreReceiveDataControl(BarbaBuffer* data)
 
 	//process
 	std::string command((char*)data->data(), data->size());
-	std::tstring cmdName = BarbaUtils::GetKeyValueFromString(command.data(), _T("command"));
+	std::tstring cmdName = BarbaUtils::GetKeyValueFromString(command.data(), _T("Command"));
 	Log3(_T("Receiving DataControl: %s"), command.data());
 
 	//initialize server
-	if (cmdName.compare(_T("udpInit"))==0)
+	if (cmdName.compare(_T("UdpInit"))==0)
 	{
-		int keepAlivePortsCount = BarbaUtils::GetKeyValueFromString(command.data(), _T("keepAlivePortsCount"), 0);
+		int keepAlivePortsCount = BarbaUtils::GetKeyValueFromString(command.data(), _T("KeepAlivePortsCount"), 0);
 		if (keepAlivePortsCount!=0) portManager.SetMaxPorts((u_short)keepAlivePortsCount); 
 
-		int maxChunkSize = BarbaUtils::GetKeyValueFromString(command.data(), _T("maxChunkSize"), 0);
+		int maxChunkSize = BarbaUtils::GetKeyValueFromString(command.data(), _T("MaxChunkSize"), 0);
 		if (maxChunkSize!=0) GetCreateStruct()->MaxChunkSize = maxChunkSize;
 	}
 
