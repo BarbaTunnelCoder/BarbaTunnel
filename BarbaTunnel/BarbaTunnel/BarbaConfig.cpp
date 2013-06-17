@@ -75,6 +75,11 @@ bool BarbaConfig::LoadFile(LPCTSTR file)
 	if (res==0)
 		return false; //could not find item
 	Mode = BarbaMode_FromString(modeString);
+	if (Mode==BarbaModeNone)
+	{
+		Log(_T("Unknown Tunnel Mode: %s"), modeString);
+		return false;
+	}
 	
 	//Key
 	TCHAR hexKey[2000];

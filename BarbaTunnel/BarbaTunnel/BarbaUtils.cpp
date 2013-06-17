@@ -90,7 +90,7 @@ std::tstring BarbaUtils::ConvertBufferToHexString(BarbaBuffer* buffer, bool deco
 {
 	std::tstring ret;
 	ret.reserve(buffer->size()+3);
-	for (int i=0; i<buffer->size(); i++)
+	for (int i=0; i<(int)buffer->size(); i++)
 	{
 		if (decorate && i>0)
 			ret.append(_T("-"));
