@@ -191,7 +191,7 @@ BarbaCourierDatagram::BarbaCourierDatagram(CreateStrcut* cs)
 
 BarbaCourierDatagram::~BarbaCourierDatagram(void)
 {
-	for (int i=0; i<Messages.size(); i++)
+	for (int i=0; i<(int)Messages.size(); i++)
 		delete Messages[i];
 
 	delete _CreateStruct;
@@ -233,7 +233,7 @@ void BarbaCourierDatagram::SendData(BarbaBuffer* data)
 	size_t maxSize = maxChunkSize - BarbaUtils::GetRandom(0, (u_int)maxChunkSize/8); //prevent fixed lengh max chunk size
 	Message message(GetNewMessageId(), data, (DWORD)maxSize);
 
-	for (int i=0; i<message.Chunks.size(); i++)
+	for (int i=0; i<(int)message.Chunks.size(); i++)
 	{
 		BarbaBuffer chunk;
 		chunk.reserve(13 +  message.Chunks[i]->size());
@@ -299,7 +299,7 @@ void BarbaCourierDatagram::SendChunkToInbound(BarbaBuffer* data)
 	//find in messages by id
 	Message* message = NULL;
 	int messageIndex = -1;
-	for (int i=0; i<Messages.size(); i++)
+	for (int i=0; i<(int)Messages.size(); i++)
 	{
 		if (Messages[i]->Id==messageId)
 		{
@@ -382,7 +382,7 @@ void BarbaCourierDatagram::RemoveTimeoutMessages()
 		return;
 	LastCleanTimeoutMessagesTime = GetTickCount();
 
-	for (int i=0; i<Messages.size(); i++)
+	for (int i=0; i<(int)Messages.size(); i++)
 	{
 		if (BarbaUtils::GetTickDiff(Messages[i]->LastUpdateTime)>GetCreateStruct()->MessageTimeout)
 		{
