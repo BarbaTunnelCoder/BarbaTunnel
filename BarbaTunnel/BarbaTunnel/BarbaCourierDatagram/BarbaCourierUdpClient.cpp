@@ -7,7 +7,7 @@ BarbaCourierUdpClient::BarbaCourierUdpClient(CreateStrcutUdp* cs)
 	: BarbaCourierDatagram(cs)
 {
 	_SessionId = BarbaUtils::GetRandom(100000, UINT_MAX-1);
-	LastKeepAliveTime = GetTickCount();
+	LastKeepAliveTime = 0;
 	LastKeepAliveSentChunkCount = 0;
 	SentChunkCount = 0;
 }
