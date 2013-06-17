@@ -242,16 +242,21 @@ void BarbaServerTcpHost::Start()
 				break;
 			}
 
+			//serverAddress
+			std::tstring serverAddress = item->ServerAddress;
+			if (theApp->LogAnonymously)
+				serverAddress = BarbaUtils::ConvertIpToString(item->ServerIp, true);
+
 			//add port
 			try
 			{
-				Log(_T("Listening to TCP %s:%d."), item->ServerAddress.data(), port);
+				Log(_T("Listening to TCP %s:%d."), serverAddress.data(), port);
 				AddListenerPort(item, port);
 				createdSocket++;
 			}
 			catch (BarbaException* er)
 			{
-				Log(_T("Error! Could not listen to TCP %s:%d. %s"), item->ServerAddress.data(), port, er->ToString());
+				Log(_T("Error! Could not listen to TCP %s:%d. %s"), serverAddress.data(), port, er->ToString());
 				delete er;
 			}
 		}// for j

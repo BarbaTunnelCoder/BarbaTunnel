@@ -37,7 +37,7 @@ bool BarbaClientConfig::LoadFile(LPCTSTR file)
 	}
 
 	//MaxPacketSize
-	MaxPacketSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxPacketSize"), 1500, file);
+	MaxPacketSize = (u_short)GetPrivateProfileInt(_T("General"), _T("MaxPacketSize"), 0xFFFF, file);
 	KeepAlivePortsCount = (u_short)GetPrivateProfileInt(_T("General"), _T("KeepAlivePortsCount"), 100, file);
 
 	//KeepAliveInterval
