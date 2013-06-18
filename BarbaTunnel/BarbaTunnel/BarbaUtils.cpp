@@ -353,6 +353,13 @@ int BarbaUtils::GetKeyValueFromString(LPCTSTR str, LPCTSTR key, int defValue)
 	return ret;
 }
 
+u_long BarbaUtils::GetKeyValueFromString(LPCTSTR str, LPCTSTR key, u_long defValue)
+{
+	std::tstring valueStr = BarbaUtils::GetKeyValueFromString(str, key);
+	int ret = valueStr.empty() ? defValue : _tcstoul(valueStr.data(), 0, 0);
+	return ret;
+}
+
 void BarbaUtils::SetKeyValue(std::tstring* str, LPCTSTR key, LPCTSTR value)
 {
 	str->reserve(str->size() + _tcslen(value) + 5);
@@ -360,6 +367,13 @@ void BarbaUtils::SetKeyValue(std::tstring* str, LPCTSTR key, LPCTSTR value)
 	str->append(_T(":"));
 	str->append(value);
 	str->append(_T(";"));
+}
+
+void BarbaUtils::SetKeyValue(std::tstring* str, LPCTSTR key, u_long value)
+{
+	TCHAR buffer[50];
+	_stprintf_s(buffer, _T("%u"), value);
+	SetKeyValue(str, key, buffer);	
 }
 
 void BarbaUtils::SetKeyValue(std::tstring* str, LPCTSTR key, int value)

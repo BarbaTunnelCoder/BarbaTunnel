@@ -29,8 +29,10 @@ public:
 	static std::tstring GetFileUrlFromHttpRequest(LPCTSTR httpRequest);
 	static std::tstring GetKeyValueFromString(LPCTSTR str, LPCTSTR key);
 	static int GetKeyValueFromString(LPCTSTR str, LPCTSTR key, int defValue);
+	static u_long GetKeyValueFromString(LPCTSTR str, LPCTSTR key, u_long defValue);
 	static void SetKeyValue(std::tstring* str, LPCTSTR key, LPCTSTR value);
 	static void SetKeyValue(std::tstring* str, LPCTSTR key, int value);
+	static void SetKeyValue(std::tstring* str, LPCTSTR key, u_long value);
 	static std::tstring FormatTimeForHttp();
 	static std::tstring FormatTimeForHttp(time_t* t);
 	static std::tstring ConvertIpToString(u_int ip, bool anonymously=false);
