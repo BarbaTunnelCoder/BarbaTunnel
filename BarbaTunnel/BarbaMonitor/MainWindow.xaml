@@ -1,7 +1,7 @@
 ﻿<Window x:Class="BarbaTunnel.Monitor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="BarbaTunnel Monitor" Height="427" Width="810" Closing="Window_Closing" MinWidth="550" MinHeight="250">
+        Title="BarbaTunnel Monitor" Height="427" Width="810" Closing="Window_Closing" MinWidth="550" MinHeight="250" StateChanged="Window_StateChanged" IsVisibleChanged="Window_IsVisibleChanged">
     <Grid>
         <TextBox Margin="12,116,12,12" Name="ReportTextBox" IsReadOnly="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="LightGray" UndoLimit="0" PreviewMouseDown="ReportTextBox_PreviewMouseDown" PreviewMouseUp="ReportTextBox_PreviewMouseUp"/>
         <Button Height="23" Margin="0,86,175,0" Name="StartButton" VerticalAlignment="Top" Click="StartButton_Click" HorizontalAlignment="Right" Width="75">
