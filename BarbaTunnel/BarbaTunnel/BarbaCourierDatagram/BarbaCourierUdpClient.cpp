@@ -29,6 +29,7 @@ void BarbaCourierUdpClient::CheckKeepAlive()
 	
 	//find number of ports that need to be alive
 	int portsCount = (int)GetCreateStruct()->KeepAlivePortsCount - (int)(SentChunkCount-LastKeepAliveSentChunkCount);
+	portsCount = min(portsCount, GetCreateStruct()->PortRange->GetPortsCount()); //could not be more than total port count
 	if (portsCount<=0)
 		return;
 

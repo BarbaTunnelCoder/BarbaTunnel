@@ -17,9 +17,9 @@
 #include <WinIoctl.h>   // Compiling Win32 Applications Or DLL's
 #endif // _WINDOWS
 
-#define NDISRD_VERSION			0x01023000
+#define NDISRD_VERSION			0x01033000
 #define NDISRD_MAJOR_VERSION	0x0003
-#define NDISRD_MINOR_VERSION	0x0102
+#define NDISRD_MINOR_VERSION	0x0103
 
 // Common strings set
 #define DRIVER_NAME_A "NDISRD"
@@ -37,7 +37,7 @@
 #define ADAPTER_NAME_SIZE	256
 #define ADAPTER_LIST_SIZE	32
 #define ETHER_ADDR_LENGTH	6
-#define	MAX_ETHER_FRAME		1514 
+#define	MAX_ETHER_FRAME		9014 
 
 // Adapter flags
 #define MSTCP_FLAG_SENT_TUNNEL		0x00000001	// Receive packets sent by MSTCP
