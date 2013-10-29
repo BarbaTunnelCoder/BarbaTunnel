@@ -29,7 +29,7 @@ void BarbaCourierUdpClient::CheckKeepAlive()
 	
 	//find number of ports that need to be alive
 	int portsCount = (int)GetCreateStruct()->KeepAlivePortsCount - (int)(SentChunkCount-LastKeepAliveSentChunkCount);
-	portsCount = min(portsCount, GetCreateStruct()->PortRange->GetPortsCount()); //could not be more than total port count
+	portsCount = min(portsCount, (int)GetCreateStruct()->PortRange->GetPortsCount()); //could not be more than total port count
 	if (portsCount<=0)
 		return;
 
@@ -44,7 +44,7 @@ void BarbaCourierUdpClient::CheckKeepAlive()
 	Log2(_T("Sending 'keepAlive' for %d ports."), portsCount);
 
 	//sending keepAlive
-	for (size_t i=0; i<portsCount; i++)
+	for (int i=0; i<portsCount; i++)
 	{
 		std::string udpKeepAlive("@KeepAlive");
 		BarbaBuffer data((BYTE*)udpKeepAlive.data(), udpKeepAlive.size());
