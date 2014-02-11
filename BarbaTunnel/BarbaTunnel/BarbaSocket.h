@@ -38,6 +38,7 @@ public:
 	int GetSendBufferSize();
 	void SetNoDelay(bool value);
 	void SetKeepAlive(bool value);
+	void SetKeepAliveVal(bool enabled, u_long  keepalivetime, u_long  keepaliveinterval);
 	void SetReceiveTimeOut(DWORD milisecond);
 	DWORD GetReceiveTimeOut();
 	void SetSendTimeOut(DWORD milisecond);

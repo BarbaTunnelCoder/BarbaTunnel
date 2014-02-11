@@ -322,6 +322,8 @@ void BarbaCourierHttpClient::ClientWorker(ClientWorkerData* clientWorkerData)
 
 					//process reply
 					std::tstring requestData = RequestData_FromString(httpReply);
+					if (requestData.empty())
+						throw new BarbaException(_T("Server does not return requestData in its HTTP GET Request reply!"));
 					size_t fileHeaderSize = BarbaUtils::GetKeyValueFromString(requestData.data(), _T("FileHeaderSize"), 0);
 
 					//wait for incoming file header

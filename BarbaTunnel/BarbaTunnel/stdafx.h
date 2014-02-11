@@ -7,14 +7,16 @@
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
-#define _WIN32_WINNT _WIN32_WINNT_WINXP
 #endif // WIN32_LEAN_AND_MEAN
+
+#define _WIN32_WINNT _WIN32_WINNT_WINXP
 #define _CRT_RAND_S
 
 #include "targetver.h"
 
 #include <windows.h>
 #include <winsock2.h>
+#include <Mstcpip.h>
 #include <shellapi.h>
 #include <shlobj.h>
 #include <stdio.h>

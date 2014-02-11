@@ -22,6 +22,8 @@ public:
 	virtual void AddFilter(void* filter, bool send, u_long srcIpStart, u_long srcIpEnd, u_long desIpStart, u_long desIpEnd, u_char protocol, u_short srcPortStart, u_short srcPortEnd, u_short desPortStart, u_short desPortEnd);
 
 private:
+	static void InitWinDivertApi();
+	static void FixWinDivertPath();
 	bool HasSamePacketTarget(PacketHelper* packet1, PacketHelper* packet2);
 	void AddPacketFilter(void* filter) override;
 	HANDLE OpenDivertHandle();

@@ -37,7 +37,7 @@
 #define ADAPTER_NAME_SIZE	256
 #define ADAPTER_LIST_SIZE	32
 #define ETHER_ADDR_LENGTH	6
-#define	MAX_ETHER_FRAME		9014 
+#define	MAX_ETHER_FRAME		1514 
 
 // Adapter flags
 #define MSTCP_FLAG_SENT_TUNNEL		0x00000001	// Receive packets sent by MSTCP
