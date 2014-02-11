@@ -129,6 +129,24 @@ void BarbaSocket::SetKeepAlive(bool value)
 		ThrowSocketError();
 }
 
+void BarbaSocket::SetKeepAliveVal(bool enabled, u_long  keepAliveTime, u_long  keepAliveInterval)
+{
+	// Argument structure for SIO_KEEPALIVE_VALS
+	struct tcp_keepalive {
+		u_long  onoff;
+		u_long  keepalivetime;
+		u_long  keepaliveinterval;
+	};
+	tcp_keepalive alive;
+	DWORD bytesRet = 0;
+
+	alive.onoff = enabled;
+	alive.keepaliveinterval = keepAliveInterval;
+	alive.keepalivetime = keepAliveTime;
+	if (WSAIoctl(this->_Socket, SIO_KEEPALIVE_VALS, &alive, sizeof(alive), NULL, 0, &bytesRet, NULL, NULL) == SOCKET_ERROR)
+		ThrowSocketError();
+}
+
 void BarbaSocket::Close()
 {
 	if (_Socket!=NULL)

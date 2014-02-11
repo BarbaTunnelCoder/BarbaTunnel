@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -32,27 +32,27 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110_xp</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110_xp</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110_xp</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110_xp</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -184,14 +184,14 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <None Include="Certificate\BarbaTunnel.pfx" />
     <None Include="Certificate\BarbaTunnel.pvk" />
     <None Include="WinDivert\amd64\msvcr100.dll" />
+    <None Include="WinDivert\amd64\WdfCoInstaller01009.dll" />
+    <None Include="WinDivert\amd64\WinDivert.inf" />
+    <None Include="WinDivert\amd64\WinDivert.sys" />
     <None Include="WinDivert\i386\msvcr100.dll" />
     <None Include="ReadMe.txt">
       <DeploymentContent>false</DeploymentContent>
     </None>
-    <None Include="WinDivert\amd64\WdfCoInstaller01009.dll" />
     <None Include="WinDivert\amd64\WinDivert.dll" />
-    <None Include="WinDivert\amd64\WinDivert.inf" />
-    <None Include="WinDivert\amd64\WinDivert.sys" />
     <None Include="WinDivert\i386\WdfCoInstaller01009.dll" />
     <None Include="WinDivert\i386\WinDivert.dll" />
     <None Include="WinDivert\i386\WinDivert.inf" />
@@ -236,7 +236,7 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <ClInclude Include="BarbaCourierDatagram\BarbaCourierUdpClient.h" />
     <ClInclude Include="BarbaCourierDatagram\BarbaCourierUdpServer.h" />
     <ClInclude Include="WinDivertFilterDriver.h" />
-    <ClInclude Include="WinDivert\divert.h" />
+    <ClInclude Include="WinDivert\windivert.h" />
     <ClInclude Include="WinDivert\WinDivertApi.h" />
     <ClInclude Include="WinpkFilterDriver.h" />
     <ClInclude Include="BarbaServer\BarbaServerConnectionManager.h" />

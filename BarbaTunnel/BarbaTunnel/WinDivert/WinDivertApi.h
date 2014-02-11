@@ -1,18 +1,18 @@
 #pragma once
-#include "divert.h"
+#include "windivert.h"
 
 class WinDivertApi
 {
 public:
 	HMODULE ModuleHandle;
-	typedef BOOL (*DIVERTCLOSE)(HANDLE handle);
-	typedef HANDLE (*DIVERTOPEN)(const char *filter, DIVERT_LAYER layer, INT16 priority, UINT64 flags);
-	typedef BOOL (*DIVERTRECV)(HANDLE handle, PVOID pPacket, UINT packetLen, PDIVERT_ADDRESS pAddr, UINT *readLen);
-	typedef BOOL (*DIVERTSEND)(HANDLE handle, PVOID pPacket, UINT packetLen, PDIVERT_ADDRESS pAddr, UINT *writeLen);
-	DIVERTOPEN DivertOpen;
-	DIVERTCLOSE DivertClose;
-	DIVERTRECV DivertRecv;
-	DIVERTSEND DivertSend;
+	typedef BOOL (*WINDIVERTCLOSE)(HANDLE handle);
+	typedef HANDLE(*WINDIVERTOPEN)(const char *filter, WINDIVERT_LAYER layer, INT16 priority, UINT64 flags);
+	typedef BOOL(*WINDIVERTRECV)(HANDLE handle, PVOID pPacket, UINT packetLen, PWINDIVERT_ADDRESS pAddr, UINT *readLen);
+	typedef BOOL(*WINDIVERTSEND)(HANDLE handle, PVOID pPacket, UINT packetLen, PWINDIVERT_ADDRESS pAddr, UINT *writeLen);
+	WINDIVERTOPEN Open;
+	WINDIVERTCLOSE Close;
+	WINDIVERTRECV Recv;
+	WINDIVERTSEND Send;
 
 	WinDivertApi()
 	{
@@ -22,10 +22,10 @@ public:
 	void Init(HMODULE moudle)
 	{
 		this->ModuleHandle = moudle;
-		this->DivertOpen = (DIVERTOPEN)GetFunction("DivertOpen");
-		this->DivertClose = (DIVERTCLOSE)GetFunction("DivertClose");
-		this->DivertRecv = (DIVERTRECV)GetFunction("DivertRecv");
-		this->DivertSend = (DIVERTSEND)GetFunction("DivertSend");
+		this->Open = (WINDIVERTOPEN)GetFunction("DivertOpen");
+		this->Close = (WINDIVERTCLOSE)GetFunction("DivertClose");
+		this->Recv = (WINDIVERTRECV)GetFunction("DivertRecv");
+		this->Send = (WINDIVERTSEND)GetFunction("DivertSend");
 	}
 
 private:

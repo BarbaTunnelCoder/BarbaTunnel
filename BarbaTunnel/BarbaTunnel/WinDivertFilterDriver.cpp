@@ -12,33 +12,39 @@ typedef LSTATUS (APIENTRY *REGSETKEYVALUEA) (HKEY hKey, LPCSTR lpSubKey, LPCSTR 
 
 WinDivertApi gWinDivertApi;
 extern BarbaComm* theComm;
-void InitWinDivertApi()
-{
-	if (gWinDivertApi.ModuleHandle!=NULL)
-		return;
 
+void WinDivertFilterDriver::FixWinDivertPath()
+{
 	REGGETVALUEA pRegGetValue = (REGGETVALUEA)GetProcAddress(GetModuleHandle(_T("Advapi32.dll")), "RegGetValueA");
 	REGSETKEYVALUEA pRegSetKeyValue = (REGSETKEYVALUEA)GetProcAddress(GetModuleHandle(_T("Advapi32.dll")), "RegSetKeyValueA");
-	if (pRegGetValue==NULL || pRegSetKeyValue==NULL)
+	if (pRegGetValue == NULL || pRegSetKeyValue == NULL)
 		throw _T("Could not find the required procedure! Note: WinDivert does not work on Windows XP!");
-		
+
 	//correct WinDivert.sys path in registry
 	TCHAR sysPath[MAX_PATH];
 	DWORD dataLen = _countof(sysPath);
 	LSTATUS res = pRegGetValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), RRF_RT_ANY, NULL, sysPath, &dataLen);
-
 	if (res == ERROR_SUCCESS)
 	{
 		TCHAR myPath[MAX_PATH];
-		_stprintf_s(myPath, _T("\\??\\%s\\WinDivert.sys"), BarbaUtils::GetModuleFolder().data()); 
-		if (_tcsclen(sysPath)!=0 && _tcsicmp(myPath, sysPath)!=0)
+		_stprintf_s(myPath, _T("\\??\\%s\\WinDivert.sys"), BarbaUtils::GetModuleFolder().data());
+		if (_tcsclen(sysPath) != 0 && _tcsicmp(myPath, sysPath) != 0)
 		{
-			res = pRegSetKeyValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), REG_SZ, myPath, (DWORD)_tcslen(myPath)) ;
-			if (res != ERROR_SUCCESS )
+			res = pRegSetKeyValue(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Services\\WinDivert1.0"), _T("ImagePath"), REG_SZ, myPath, (DWORD)_tcslen(myPath));
+			if (res != ERROR_SUCCESS)
 				throw _T("WinDivert.sys path is invalid and could not be fixed!");
 			BarbaLog(_T("WinDivert.sys path was invalid and fixed."));
 		}
 	}
+}
+
+void WinDivertFilterDriver::InitWinDivertApi()
+{
+	if (gWinDivertApi.ModuleHandle!=NULL)
+		return;
+
+	//Fix WinDivert Path and Installation in version 1.1.2
+	//FixWinDivertPath();
 
 	//initialize DivertModule
 	TCHAR curDir[MAX_PATH];
@@ -108,7 +114,7 @@ void WinDivertFilterDriver::Dispose()
 
 	//all resource disposed in Stop
 	if (DivertHandle!=NULL)
-		gWinDivertApi.DivertClose(DivertHandle);
+		gWinDivertApi.Close(DivertHandle);
 	DivertHandle = NULL;
 }
 
@@ -125,14 +131,14 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 	SetCurrentDirectory( BarbaApp::GetModuleFolder() ); //WinDivert need current directory to install driver perhaps for WdfCoInstaller01009
 
 	//try to solve WinDivert issue at first time load
-	HANDLE divertHandle = gWinDivertApi.DivertOpen("false", DIVERT_LAYER_NETWORK, 0, 0);
+	HANDLE divertHandle = gWinDivertApi.Open("false", WINDIVERT_LAYER_NETWORK, 0, 0);
 	if (divertHandle!=INVALID_HANDLE_VALUE)
-		gWinDivertApi.DivertClose(divertHandle);
+		gWinDivertApi.Close(divertHandle);
 
 	//apply filter
 	std::string filter;
 	AddPacketFilter(&filter);
-	divertHandle = gWinDivertApi.DivertOpen(filter.data(), DIVERT_LAYER_NETWORK, 0, 0);
+	divertHandle = gWinDivertApi.Open(filter.data(), WINDIVERT_LAYER_NETWORK, 0, 0);
 	if (divertHandle==INVALID_HANDLE_VALUE && GetLastError() == ERROR_INVALID_PARAMETER)
 	{
 		//IP-Only filter
@@ -140,14 +146,14 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 		FilterIpOnly = true;
 		filter.clear();
 		AddPacketFilter(&filter);
-		divertHandle = gWinDivertApi.DivertOpen(filter.data(), DIVERT_LAYER_NETWORK, 0, 0);
+		divertHandle = gWinDivertApi.Open(filter.data(), WINDIVERT_LAYER_NETWORK, 0, 0);
 	}
 
 	//true filter
 	if (divertHandle==INVALID_HANDLE_VALUE && GetLastError() == ERROR_INVALID_PARAMETER)
 	{
 		BarbaLog(_T("WinDivert does not accept filter criteria. Please reduce configuration files. BarbaTunnel try to capture all network packets (slow performance)!"));
-		divertHandle = gWinDivertApi.DivertOpen("true", DIVERT_LAYER_NETWORK, 0, 0);
+		divertHandle = gWinDivertApi.Open("true", WINDIVERT_LAYER_NETWORK, 0, 0);
 	}
 
 	if (divertHandle==INVALID_HANDLE_VALUE)
@@ -182,11 +188,11 @@ void WinDivertFilterDriver::StartCaptureLoop()
 	while (!IsStopping())
 	{
 		//it will return error if DivertHandle closed
-		if (!gWinDivertApi.DivertRecv(DivertHandle, buffer, 0xFFFF, &addr, &recvLen))
+		if (!gWinDivertApi.Recv(DivertHandle, buffer, 0xFFFF, &addr, &recvLen))
 			continue;
 
 		//Initialize Packet
-		bool send = addr.Direction == DIVERT_PACKET_DIRECTION_OUTBOUND;
+		bool send = addr.Direction == WINDIVERT_DIRECTION_OUTBOUND;
 		PacketHelper* packet = new PacketHelper((iphdr_ptr)buffer, recvLen);
 
 		//user adapter index for any grab packet
@@ -212,10 +218,10 @@ bool WinDivertFilterDriver::SendPacketToOutbound(PacketHelper* packet)
 	DIVERT_ADDRESS addr;
 	addr.IfIdx = MainIfIdx;
 	addr.SubIfIdx = MainSubIfIdx;
-	addr.Direction = DIVERT_PACKET_DIRECTION_OUTBOUND;
+	addr.Direction = WINDIVERT_DIRECTION_OUTBOUND;
 	return 
 		DivertHandle!=NULL && 
-		gWinDivertApi.DivertSend(DivertHandle, packet->ipHeader, (UINT)packet->GetIpLen(), &addr, NULL)!=FALSE;
+		gWinDivertApi.Send(DivertHandle, packet->ipHeader, (UINT)packet->GetIpLen(), &addr, NULL)!=FALSE;
 }
 
 bool WinDivertFilterDriver::SendPacketToInbound(PacketHelper* packet)
@@ -223,10 +229,10 @@ bool WinDivertFilterDriver::SendPacketToInbound(PacketHelper* packet)
 	DIVERT_ADDRESS addr;
 	addr.IfIdx = MainIfIdx;
 	addr.SubIfIdx = MainSubIfIdx;
-	addr.Direction = DIVERT_PACKET_DIRECTION_INBOUND;
+	addr.Direction = WINDIVERT_DIRECTION_INBOUND;
 	return 
 		DivertHandle!=NULL && 
-		gWinDivertApi.DivertSend(DivertHandle, packet->ipHeader, (UINT)packet->GetIpLen(), &addr, NULL)!=FALSE;
+		gWinDivertApi.Send(DivertHandle, packet->ipHeader, (UINT)packet->GetIpLen(), &addr, NULL)!=FALSE;
 }
 
 void WinDivertFilterDriver::CreateRangeFormat(TCHAR* format, LPCSTR fieldName, DWORD start, DWORD end, bool ip)

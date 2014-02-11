@@ -28,8 +28,9 @@ BarbaCourierStream::~BarbaCourierStream(void)
 
 void BarbaCourierStream::StartKeepAliveThread()
 {
-	if (GetCreateStruct()->KeepAliveInterval!=0)
-		Threads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, CheckKeepAliveThread, this, 0, NULL));
+	//Ignore my Implementation, Let use TCP keepAlive From Version 8.2 
+	//if (GetCreateStruct()->KeepAliveInterval!=0 && !IsServer())
+		//Threads.AddTail( (HANDLE)_beginthreadex(NULL, BARBA_SocketThreadStackSize, CheckKeepAliveThread, this, 0, NULL));
 }
 
 unsigned int __stdcall BarbaCourierStream::CheckKeepAliveThread(void* barbaCourier)
@@ -45,7 +46,7 @@ unsigned int __stdcall BarbaCourierStream::CheckKeepAliveThread(void* barbaCouri
 void BarbaCourierStream::CheckKeepAlive()
 {
 	//close connection that does not receive keep alive
-	if (GetCreateStruct()->KeepAliveInterval==0 || LastSentTime==0)
+	if (GetCreateStruct()->KeepAliveInterval == 0 || LastSentTime == 0)
 		return; //keep live not enabled or no data sent yet
 
 	SimpleSafeList<BarbaSocket*>* list = &IncomingSockets;
@@ -53,9 +54,10 @@ void BarbaCourierStream::CheckKeepAlive()
 	BarbaSocket** sockets = autoLockBuf.GetBuffer();
 	for (size_t i=0; i<list->GetCount(); i++)
 	{
+		size_t timeout = (GetCreateStruct()->KeepAliveInterval * 4) / 3;
 		if (sockets[i]->IsOpen() &&
-			sockets[i]->GetLastReceivedTime() < LastSentTime &&
-			GetTickCount() > (sockets[i]->GetLastReceivedTime() + GetCreateStruct()->KeepAliveInterval*2) )
+			sockets[i]->GetLastReceivedTime()!=0 &&
+			BarbaUtils::GetTickDiff(sockets[i]->GetLastReceivedTime()) > timeout) //A packet should has been recieved in KeepAliveInterval
 		{
 			Log2(_T("Connection closed due to keep alive timeout!"));
 			sockets[i]->Close();
@@ -239,13 +241,12 @@ void BarbaCourierStream::ProcessOutgoing(BarbaSocket* barbaSocket, size_t maxByt
 
 		//send KeepAlive from server to client
 		//if lastKeepAliveTime > this->LastReceivedTime it mean keepAlive already sent and it does not need more until next receive
-		if (IsServer() && messages.size()==0 &&
-			this->GetCreateStruct()->KeepAliveInterval!=0 && 
-			barbaSocket->GetLastSentTime() < this->LastReceivedTime &&
-			GetTickCount() > (barbaSocket->GetLastSentTime() + this->GetCreateStruct()->KeepAliveInterval) )
-		{
-			messages.append(new Message());
-		}
+		//if (IsServer() && messages.size() == 0 &&
+		//	this->GetCreateStruct()->KeepAliveInterval!=0 && 
+		//	(BarbaUtils::GetTickDiff(barbaSocket->GetLastSentTime()) > this->GetCreateStruct()->KeepAliveInterval))
+		//{
+		//	messages.append(new Message());
+		//}
 
 		while (messages.size()>0)
 		{
@@ -470,6 +471,13 @@ void BarbaCourierStream::Sockets_Add(BarbaSocket* socket, bool isOutgoing)
 
 	list->AddTail(socket);
 	socket->SetNoDelay(true);
+
+	//Initialize System KeepAlive in Client
+	if (!IsServer())
+	{
+		socket->SetKeepAlive(true);
+		socket->SetKeepAliveVal(true, GetCreateStruct()->KeepAliveInterval, 1000);
+	}
 
 	//Receive Timeout for in-comming 
 	if (this->GetCreateStruct()->ConnectionTimeout!=0)
