@@ -22,10 +22,10 @@ public:
 	void Init(HMODULE moudle)
 	{
 		this->ModuleHandle = moudle;
-		this->Open = (WINDIVERTOPEN)GetFunction("DivertOpen");
-		this->Close = (WINDIVERTCLOSE)GetFunction("DivertClose");
-		this->Recv = (WINDIVERTRECV)GetFunction("DivertRecv");
-		this->Send = (WINDIVERTSEND)GetFunction("DivertSend");
+		this->Open = (WINDIVERTOPEN)GetFunction("WinDivertOpen");
+		this->Close = (WINDIVERTCLOSE)GetFunction("WinDivertClose");
+		this->Recv = (WINDIVERTRECV)GetFunction("WinDivertRecv");
+		this->Send = (WINDIVERTSEND)GetFunction("WinDivertSend");
 	}
 
 private:

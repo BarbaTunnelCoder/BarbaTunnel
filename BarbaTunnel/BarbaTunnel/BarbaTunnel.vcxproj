@@ -180,22 +180,20 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="..\..\..\..\Users\Madnik7\Downloads\WinDivert-1.1.2-rc-MSVC\WinDivert-1.1.2-rc-MSVC\x86\WinDivert.dll" />
+    <None Include="..\..\..\..\Users\Madnik7\Downloads\WinDivert-1.1.2-rc-MSVC\WinDivert-1.1.2-rc-MSVC\x86\WinDivert32.sys" />
     <None Include="Certificate\BarbaTunnel.cer" />
     <None Include="Certificate\BarbaTunnel.pfx" />
     <None Include="Certificate\BarbaTunnel.pvk" />
     <None Include="WinDivert\amd64\msvcr100.dll" />
-    <None Include="WinDivert\amd64\WdfCoInstaller01009.dll" />
-    <None Include="WinDivert\amd64\WinDivert.inf" />
-    <None Include="WinDivert\amd64\WinDivert.sys" />
+    <None Include="WinDivert\amd64\WinDivert64.sys" />
     <None Include="WinDivert\i386\msvcr100.dll" />
     <None Include="ReadMe.txt">
       <DeploymentContent>false</DeploymentContent>
     </None>
     <None Include="WinDivert\amd64\WinDivert.dll" />
-    <None Include="WinDivert\i386\WdfCoInstaller01009.dll" />
     <None Include="WinDivert\i386\WinDivert.dll" />
-    <None Include="WinDivert\i386\WinDivert.inf" />
-    <None Include="WinDivert\i386\WinDivert.sys" />
+    <None Include="WinDivert\i386\WinDivert32.sys" />
     <None Include="WinpkFilter\amd64\ndisapi.dll" />
     <None Include="WinpkFilter\i386\ndisapi.dll">
       <FileType>Document</FileType>

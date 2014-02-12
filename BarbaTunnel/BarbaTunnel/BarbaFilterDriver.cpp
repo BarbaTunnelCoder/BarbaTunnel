@@ -192,7 +192,7 @@ void BarbaFilterDriver::AddClientFilters(void* filter, BarbaArray<BarbaClientCon
 	for (size_t i=0; i<configs->size(); i++)
 	{
 		BarbaClientConfig* config = &configs->at(i);
-		if (!config->Enabled)
+		if (!config->Enabled || config->ServerIp==0)
 			continue;
 
 		//filter only required packet going to server
