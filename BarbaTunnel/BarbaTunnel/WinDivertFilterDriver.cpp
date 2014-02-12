@@ -142,7 +142,7 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 	if (divertHandle==INVALID_HANDLE_VALUE && GetLastError() == ERROR_INVALID_PARAMETER)
 	{
 		//IP-Only filter
-		BarbaLog(_T("WinDivert does not accept filter criteria. Please reduce configuration files. BarbaTunnel try to using IP-Filter only!"));
+		BarbaLog(_T("WinDivert does not accept long filter criteria. Please reduce configuration files. BarbaTunnel now trying to use IP-Filter only!"));
 		FilterIpOnly = true;
 		filter.clear();
 		AddPacketFilter(&filter);
@@ -152,17 +152,15 @@ HANDLE WinDivertFilterDriver::OpenDivertHandle()
 	//true filter
 	if (divertHandle==INVALID_HANDLE_VALUE && GetLastError() == ERROR_INVALID_PARAMETER)
 	{
-		BarbaLog(_T("WinDivert does not accept filter criteria. Please reduce configuration files. BarbaTunnel try to capture all network packets (slow performance)!"));
+		BarbaLog(_T("WinDivert does not accept long filter criteria. Please reduce configuration files. BarbaTunnel now trying to capture all network packets (slow performance)!"));
 		divertHandle = gWinDivertApi.Open("true", WINDIVERT_LAYER_NETWORK, 0, 0);
 	}
 
 	if (divertHandle==INVALID_HANDLE_VALUE)
 	{
-		LPCTSTR msg = 
+		LPCTSTR msg =
 			_T("Failed to open Divert device (%d)!\r\n")
-			_T("1) Try to Install BarbaTunnel again.\r\n")
-			_T("2) Make sure your windows has been restarted.\r\n")
-			_T("3) Make sure your Windows x64 test signing is on: BCDEDIT /SET TESTSIGNING ON\r\n");
+			_T("Try to Install BarbaTunnel again.\r\n");
 		SetCurrentDirectory( curDir );
 		throw new BarbaException(msg, GetLastError());
 	}
@@ -334,12 +332,20 @@ void WinDivertFilterDriver::AddFilter(void* pfilter, bool send, u_long srcIpStar
 {
 	std::string* filter = (std::string*)pfilter;
 	std::string res = GetFilter(send, srcIpStart, srcIpEnd, desIpStart, desIpEnd, protocol, srcPortStart, srcPortEnd, desPortStart, desPortEnd);
-	if (!filter->empty())
-		filter->append(" || ");
 
-	filter->append("(");
-	filter->append(res);
-	filter->append(")");
+	//add Parentheses
+	std::string newCriteria;
+	newCriteria.append("(");
+	newCriteria.append(res);
+	newCriteria.append(")");
+
+	//add if criteria does not exists; help to reduce criteria
+	if (filter->find(newCriteria) == -1)
+	{
+		if (!filter->empty())
+			filter->append(" || ");
+		filter->append(newCriteria);
+	}
 }
 
 void WinDivertFilterDriver::AddPacketFilter(void* filter)
