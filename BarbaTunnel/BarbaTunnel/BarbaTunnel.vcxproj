@@ -185,13 +185,13 @@ xcopy "$(ProjectDir)WinpkFilter\amd64\*" "$(OutDir)" /E /D /Y</Command>
     <None Include="Certificate\BarbaTunnel.cer" />
     <None Include="Certificate\BarbaTunnel.pfx" />
     <None Include="Certificate\BarbaTunnel.pvk" />
-    <None Include="WinDivert\amd64\msvcr100.dll" />
+    <None Include="WinDivert\amd64\msvcr110.dll" />
     <None Include="WinDivert\amd64\WinDivert64.sys" />
-    <None Include="WinDivert\i386\msvcr100.dll" />
     <None Include="ReadMe.txt">
       <DeploymentContent>false</DeploymentContent>
     </None>
     <None Include="WinDivert\amd64\WinDivert.dll" />
+    <None Include="WinDivert\i386\msvcr110.dll" />
     <None Include="WinDivert\i386\WinDivert.dll" />
     <None Include="WinDivert\i386\WinDivert32.sys" />
     <None Include="WinpkFilter\amd64\ndisapi.dll" />
