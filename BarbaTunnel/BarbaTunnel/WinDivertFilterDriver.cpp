@@ -43,8 +43,8 @@ void WinDivertFilterDriver::InitWinDivertApi()
 	if (gWinDivertApi.ModuleHandle!=NULL)
 		return;
 
-	//Fix WinDivert Path and Installation in version 1.1.2
-	//FixWinDivertPath();
+	//Fix WinDivert Path and Installation in version 1.1.1 and before
+	FixWinDivertPath();
 
 	//initialize DivertModule
 	TCHAR curDir[MAX_PATH];
