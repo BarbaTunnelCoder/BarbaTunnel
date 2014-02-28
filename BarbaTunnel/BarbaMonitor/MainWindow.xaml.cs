@@ -164,7 +164,8 @@ namespace BarbaTunnel.Monitor
 				return;
 			
 			ReportTextBox.Text = _barbaComm.ReadLog();
-			ReportTextBox.ScrollToEnd();
+            ReportTextBox.Select(ReportTextBox.Text.Length, 0);
+            ReportTextBox.ScrollToEnd();
 		}
 
 		void BarbaComm_LogAdded(object sender, EventArgs e)
@@ -175,7 +176,8 @@ namespace BarbaTunnel.Monitor
 		void MainWindow_Loaded(object sender, RoutedEventArgs e)
 		{
 			UpdateStatus();
-			ReportTextBox.ScrollToEnd();
+            ReportTextBox.Select(ReportTextBox.Text.Length, 0);
+            ReportTextBox.ScrollToEnd();
 		}
 
 		void BarbaComm_Notified(object sender, EventArgs e)
