@@ -9,7 +9,7 @@ BarbaTunnel is software that helps you to bypass firewall and internet censorshi
 ![BarbaTunnel Monitor](docs/Home_BarbaTunnelMonitor.png)
 
 # How to use BarbaTunnel?
-Please read [Quick Start](docs/Quick-Start) in the documentation.
+Please read [Quick Start](docs/Quick%20Start.md) in the documentation.
 
 # Benefits
 There are many proxies and VPN such as OpenVPN, PPTP, SSTP exists on the internet, BarbaTunnel make all of them work whenever a firewall block them. You don't need to change or create another VPN and proxies, let they do their work and let BarbaTunnel hide them on the network!
