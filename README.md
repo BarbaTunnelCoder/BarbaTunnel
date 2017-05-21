@@ -9,7 +9,7 @@ BarbaTunnel is software that helps you to bypass firewall and internet censorshi
 ![BarbaTunnel Monitor](docs/Home_BarbaTunnelMonitor.png)
 
 # How to use BarbaTunnel?
-Please read [Quick Start](Quick-Start) in the documentation.
+Please read [Quick Start](docs/Quick-Start) in the documentation.
 
 # Benefits
 There are many proxies and VPN such as OpenVPN, PPTP, SSTP exists on the internet, BarbaTunnel make all of them work whenever a firewall block them. You don't need to change or create another VPN and proxies, let they do their work and let BarbaTunnel hide them on the network!
@@ -37,7 +37,7 @@ UDP Port Forwarding and TCP Port forwarding may be used for other purpose. You c
 # How Barbatunnel work?
 
 # Barbatunnel Diagram
-![Barbatunnel Diagram](Home_304017)
+![Barbatunnel Diagram](docs/Home_BarbaTunnelDiagram.png)
 
 # Current Implementation
 * HTTP-Tunnel
@@ -47,7 +47,7 @@ UDP Port Forwarding and TCP Port forwarding may be used for other purpose. You c
 * TCP-Redirect
 
 # Tested Platform
-To see what system we actually tested please click on [Tested Platforms](Tested-Platforms).
+To see what system we actually tested please click on [docs/Tested Platforms](Tested-Platforms).
 
 # Requirements
 * VPN or any other proxy software
