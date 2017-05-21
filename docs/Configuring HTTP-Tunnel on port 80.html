@@ -1,0 +1,14 @@
+<div class="wikidoc">
+<p>You can simply configure HTTP-Tunnel of BarbaTunnel on port 80 by setting TunnelPorts to port 80 in
+<a href="/wikipage?title=config.ini&referringTitle=Configuring%20HTTP-Tunnel%20on%20port%2080">
+config.ini</a>, but if your host already use port 80 for web server you cannot do this. In this case you should have at-least 2 valid IP on your server. By default IIS listen to all IPs, so you should configure IIS to listen on specific IPs associated network
+ IP. Read following document for more information.<br>
+<a href="http://toastergremlin.com/?p=320">Configure IIS to listen on specific IPs.</a></p>
+<p><strong>Note:</strong> <em>You will not be able to connect with SSTP VPN to this IP.</em></p>
+<p>BarbaTunnel server just listens to ServerAddress in <a href="/wikipage?title=config.ini&referringTitle=Configuring%20HTTP-Tunnel%20on%20port%2080">
+config.ini</a> by default, so you don't need to specific configuration for it.</p>
+<p><em><strong>Note:</strong> you can force BarbaTunnel to listen to all IP by setting ServerAddress to 0 in
+<a href="/wikipage?title=config.ini&referringTitle=Configuring%20HTTP-Tunnel%20on%20port%2080">
+config.ini</a> of server side.</em></p>
+<p>&nbsp;</p>
+</div><div class="ClearBoth"></div>
