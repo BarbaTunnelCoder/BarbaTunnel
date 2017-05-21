@@ -37,7 +37,7 @@ UDP Port Forwarding and TCP Port forwarding may be used for other purpose. You c
 # How Barbatunnel work?
 
 # Barbatunnel Diagram
-![Barbatunnel Diagram](docs/Home_BarbaTunnelDiagram.png)
+![Barbatunnel Diagram](docs/Home_BarbatunnelDiagram.png)
 
 # Current Implementation
 * HTTP-Tunnel
