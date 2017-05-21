@@ -6,7 +6,7 @@ BarbaTunnel is software that helps you to bypass firewall and internet censorshi
 
 **Attention:** _BarbaTunnel is not standalone tunnel and you should run a tunnel application or use a standard VPN connection after running BarbaTunnel._
 
-![BarbaTunnel Monitor](Home_BarbaTunnelMonitor.png)
+![BarbaTunnel Monitor](docs/Home_BarbaTunnelMonitor.png)
 
 # How to use BarbaTunnel?
 Please read [Quick Start](Quick-Start) in the documentation.
