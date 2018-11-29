@@ -192,25 +192,25 @@ u_short PacketHelper::GetSrcPort()
 	return 0;
 }
 
-void PacketHelper::SetEthHeader(ether_header_ptr ethHeader)
+void PacketHelper::SetEthHeader(ether_header_ptr ethHeaderParam)
 {
-	memcpy_s(this->ethHeader, this->PacketSize, ethHeader, sizeof ether_header);
+	memcpy_s(this->ethHeader, this->PacketSize, ethHeaderParam, sizeof ether_header);
 	Reinit();
 }
 
-void PacketHelper::SetEthPacket(ether_header_ptr ethHeader, size_t bufferLen)
+void PacketHelper::SetEthPacket(ether_header_ptr ethHeaderParam, size_t bufferLen)
 {
 	AllocIpBuffer(bufferLen-sizeof ether_header);
-	memcpy_s(this->ethHeader, this->PacketSize, ethHeader, bufferLen);
+	memcpy_s(this->ethHeader, this->PacketSize, ethHeaderParam, bufferLen);
 	Reinit();
 }
 
-void PacketHelper::SetIpPacket(iphdr_ptr ipHeader, size_t bufferLen)
+void PacketHelper::SetIpPacket(iphdr_ptr ipHeaderParam, size_t bufferLen)
 {
 	AllocIpBuffer(bufferLen);
 	this->ethHeader->h_proto = htons(ETH_P_IP);
 	Reinit();
-	memcpy_s(this->ipHeader, this->PacketSize-sizeof ether_header, ipHeader, bufferLen);
+	memcpy_s(this->ipHeader, this->PacketSize-sizeof ether_header, ipHeaderParam, bufferLen);
 	Reinit();
 }
 

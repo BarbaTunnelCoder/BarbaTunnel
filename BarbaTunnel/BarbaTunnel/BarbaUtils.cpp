@@ -217,8 +217,8 @@ void BarbaUtils::FindFiles(LPCTSTR folder, LPCTSTR search, bool recursive, std::
 	if (recursive)
 	{
 		_stprintf_s(file, _countof(file), _T("%s\\*"), folder);
-		HANDLE findHandle = FindFirstFile(file, &findData);
-		BOOL bfind = findHandle!=NULL;
+		findHandle = FindFirstFile(file, &findData);
+		bfind = findHandle!=NULL;
 		while (bfind)
 		{
 			TCHAR fullPath[MAX_PATH] = {0};

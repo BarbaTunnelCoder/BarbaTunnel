@@ -1,0 +1,5 @@
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\Run\Bin\Debug\BarbaCommLib.dll
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\Run\Bin\Debug\BarbaCommLib.pdb
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaCommLib\obj\Debug\BarbaCommLib.csproj.CoreCompileInputs.cache
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaCommLib\obj\Debug\BarbaCommLib.dll
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaCommLib\obj\Debug\BarbaCommLib.pdb

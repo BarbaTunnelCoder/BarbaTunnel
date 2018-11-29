@@ -1,0 +1,11 @@
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\Run\Bin\Debug\BarbaService.exe.config
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\Run\Bin\Debug\BarbaService.exe
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\Run\Bin\Debug\BarbaService.pdb
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaService\obj\Debug\BarbaService.csprojAssemblyReference.cache
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaService\obj\Debug\BarbaTunnel.Service.BarbaService.resources
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaService\obj\Debug\BarbaTunnel.Service.ProjectInstaller.resources
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaService\obj\Debug\BarbaService.csproj.GenerateResource.cache
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaService\obj\Debug\BarbaService.csproj.CoreCompileInputs.cache
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaService\obj\Debug\BarbaService.csproj.CopyComplete
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaService\obj\Debug\BarbaService.exe
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaService\obj\Debug\BarbaService.pdb

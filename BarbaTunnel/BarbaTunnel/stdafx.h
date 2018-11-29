@@ -9,6 +9,8 @@
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 #endif // WIN32_LEAN_AND_MEAN
 
+
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _WIN32_WINNT _WIN32_WINNT_WINXP
 #define _CRT_RAND_S
 

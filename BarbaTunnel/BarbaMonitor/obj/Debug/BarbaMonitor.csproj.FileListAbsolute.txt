@@ -1,0 +1,17 @@
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\Run\Bin\Debug\BarbaMonitor.exe.config
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\Run\Bin\Debug\BarbaMonitor.exe
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\Run\Bin\Debug\BarbaMonitor.pdb
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\BarbaMonitor.csprojAssemblyReference.cache
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\App.baml
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\MainWindow.baml
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\App.g.cs
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\MainWindow.g.cs
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\BarbaMonitor_MarkupCompile.cache
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\BarbaMonitor.g.resources
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\BarbaTunnel.Monitor.Properties.Resources.resources
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\BarbaTunnel.Monitor.Resource1.resources
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\BarbaMonitor.csproj.GenerateResource.cache
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\BarbaMonitor.csproj.CoreCompileInputs.cache
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\BarbaMonitor.csproj.CopyComplete
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\BarbaMonitor.exe
+C:\Users\Robert\source\repos\BarbaTunnel\BarbaTunnel\BarbaMonitor\obj\Debug\BarbaMonitor.pdb

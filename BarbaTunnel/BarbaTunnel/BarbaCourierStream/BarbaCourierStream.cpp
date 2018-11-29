@@ -464,9 +464,9 @@ void BarbaCourierStream::Sockets_Add(BarbaSocket* socket, bool isOutgoing)
 	if (list->GetCount()>=this->GetCreateStruct()->MaxConnections)
 	{
 		Log2(_T("Remove old connection due the maximum connections. MaxUserConnection is: %d."), GetCreateStruct()->MaxConnections);
-		BarbaSocket* socket = list->RemoveHead();
-		if (socket!=NULL) 
-			socket->Close(); //close head collection
+		BarbaSocket* first_socket = list->RemoveHead();
+		if (first_socket!=NULL) 
+			first_socket->Close(); //close head collection
 	}
 
 	list->AddTail(socket);

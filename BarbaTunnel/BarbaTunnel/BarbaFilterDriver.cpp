@@ -196,8 +196,8 @@ void BarbaFilterDriver::AddClientFilters(void* filter, BarbaArray<BarbaClientCon
 			continue;
 
 		//filter only required packet going to server
-		for (size_t i=0; i<config->GrabProtocols.size(); i++)
-			AddFilter(filter, true, 0, 0, config->ServerIp, 0, config->GrabProtocols[i].Protocol, 0, 0, config->GrabProtocols[i].Port, 0);
+		for (size_t j=0; j<config->GrabProtocols.size(); j++)
+			AddFilter(filter, true, 0, 0, config->ServerIp, 0, config->GrabProtocols[j].Protocol, 0, 0, config->GrabProtocols[j].Port, 0);
 
 		//redirect port
 		if (config->RealPort!=0)
@@ -205,8 +205,8 @@ void BarbaFilterDriver::AddClientFilters(void* filter, BarbaArray<BarbaClientCon
 
 		//filter only tunnel packet that come from server except tcp-tunnel family that use socket
 		if (config->Mode!=BarbaModeTcpTunnel && config->Mode!=BarbaModeHttpTunnel) 
-			for (size_t i=0; i<config->TunnelPorts.Items.size(); i++)
-				AddFilter(filter, false, config->ServerIp, 0, 0, 0, config->GetTunnelProtocol(), config->TunnelPorts.Items[i].StartPort, config->TunnelPorts.Items[i].EndPort, 0, 0);
+			for (size_t k=0; k<config->TunnelPorts.Items.size(); k++)
+				AddFilter(filter, false, config->ServerIp, 0, 0, 0, config->GetTunnelProtocol(), config->TunnelPorts.Items[k].StartPort, config->TunnelPorts.Items[k].EndPort, 0, 0);
 	}
 }
 
@@ -221,8 +221,8 @@ void BarbaFilterDriver::AddServerFilters(void* filter, BarbaArray<BarbaServerCon
 
 		//filter only tunnel packet that come from server except http-tunnel that use socket
 		if (config->Mode!=BarbaModeTcpTunnel && config->Mode!=BarbaModeHttpTunnel) 
-			for (size_t i=0; i<config->TunnelPorts.Items.size(); i++)
-				AddFilter(filter, false, 0, 0, config->ServerIp, 0, config->GetTunnelProtocol(), 0, 0, config->TunnelPorts.Items[i].StartPort, config->TunnelPorts.Items[i].EndPort);
+			for (size_t j=0; j<config->TunnelPorts.Items.size(); j++)
+				AddFilter(filter, false, 0, 0, config->ServerIp, 0, config->GetTunnelProtocol(), 0, 0, config->TunnelPorts.Items[j].StartPort, config->TunnelPorts.Items[j].EndPort);
 
 		//filter ICMP for debug mode
 		if (theApp->IsDebugMode())

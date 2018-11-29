@@ -132,7 +132,7 @@ LPCTSTR BarbaApp::GetConfigFolder()
 	static TCHAR configItemFolder[MAX_PATH] = {0};
 	if (configItemFolder[0]==0)
 	{
-		_stprintf_s(configItemFolder, _T("%s\\config"), GetAppFolder(), BARBA_ConfigFolderName);
+		_stprintf_s(configItemFolder, _countof(configItemFolder), _T("%s\\%s"), GetAppFolder(), BARBA_ConfigFolderName);
 	}
 	return configItemFolder;
 }
