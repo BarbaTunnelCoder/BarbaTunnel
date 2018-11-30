@@ -1,3 +1,0 @@
-[General]
-jpg=image/jpeg
-zip=application/zip
