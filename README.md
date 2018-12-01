@@ -1,4 +1,4 @@
-[Quick Start](https://github.com/BarbaTunnelCoder/BarbaTunnel/wiki/Quick-Start) | [Download](https://github.com/BarbaTunnelCoder/BarbaTunnel/releases) | [Version History](| [Version History](https://github.com/BarbaTunnelCoder/BarbaTunnel/wiki/Version-History))
+[Quick Start](https://github.com/BarbaTunnelCoder/BarbaTunnel/wiki/Quick-Start) | [Download](https://github.com/BarbaTunnelCoder/BarbaTunnel/releases) | [Version History](https://github.com/BarbaTunnelCoder/BarbaTunnel/wiki/Version-History)
 
 **Project Description**
 A layer that hide, redirect. forward, re-encrypt internet packet to keep VPN, Proxies and other p2p software hidden from Firewall. Free implementation for HTTP-Tunnel, UDP-Tunnel, port forwarding, port redirecting and packet re-encryption that can work in network data-link layer and transport layer.
