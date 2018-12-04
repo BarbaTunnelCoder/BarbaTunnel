@@ -62,3 +62,4 @@ To see what system we actually tested please click on [docs/Tested Platforms](Te
 BarbaTunnel use one of the following network filter driver. The default filter driver is WinDivert.
 * [WinDivert](http://reqrypt.org/divert.html), WinDivert is a free open source (LPGL) software package that provides user-mode packet capture, redirection, modification, and re-injection for Windows Vista/Windows 7/Windows 8/2008/2008R2. (LPGL License).
 * [WinpkFilter](http://www.ntkernel.com/?Products:Development_Toolkits:Windows_Packet_Filter_Kit), high performance packet filtering framework for Windows 9x/ME/NT/2000/XP/2003/Vista/2008/Windows 7/Windows 8/2008R2/2012 that allows developers to transparently filter (view and modify) raw network packets with minimal impact on network activity without having to write low level TDI or NDIS driver code. (Commercial License).
+
